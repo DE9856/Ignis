@@ -1,9 +1,32 @@
-import type { EvidenceChunk } from "@/lib/retrieval/types";
+import type { ChunkMetadata, EvidenceChunk } from "@/lib/retrieval/types";
 
 /**
  * Synthetic evidence chunks. Browser-safe (no file access), so the dev-only
  * mock retriever can use them too. Not NASA data.
  */
+
+/** Record facts left unknown, as a curator would leave them: null, never estimated. */
+export const TEST_EMPTY_METADATA: ChunkMetadata = {
+  shortTitle: null,
+  program: null,
+  platform: null,
+  hardware: [],
+  sensors: [],
+  measurements: [],
+  variables: [],
+  sampleShape: null,
+  sampleSize: null,
+  oxygenMin: null,
+  oxygenMax: null,
+  pressureMin: null,
+  pressureMax: null,
+  airflowMin: null,
+  airflowMax: null,
+  gravityValue: null,
+  sources: [],
+  related: [],
+  searchNames: [],
+};
 
 function chunk(
   overrides: Partial<EvidenceChunk> & Pick<EvidenceChunk, "id" | "section" | "content">,
@@ -11,8 +34,10 @@ function chunk(
   return {
     conceptId: "investigations/test-investigation-alpha",
     investigationId: "test-investigation-alpha",
+    investigation: "TEST_INVESTIGATION_ALPHA",
     title: "TEST_INVESTIGATION_ALPHA",
-    chunkType: "other",
+    chunkType: "OBJECTIVE",
+    chunkIndex: 0,
     tags: ["synthetic"],
     safetyCategories: ["prevention"],
     fuelType: "TEST_FUEL_A",
@@ -24,6 +49,7 @@ function chunk(
     previousChunkId: null,
     nextChunkId: null,
     embeddingVersion: "test-embedding/test-chunker",
+    metadata: TEST_EMPTY_METADATA,
     ...overrides,
   };
 }
@@ -31,7 +57,7 @@ function chunk(
 export const TEST_CHUNK_ALPHA_OBJECTIVE = chunk({
   id: "test-investigation-alpha.objective.01",
   section: "Objective",
-  chunkType: "objective",
+  chunkType: "OBJECTIVE",
   content: "Synthetic objective text about TEST_FUEL_A flame behaviour in a test chamber.",
   nextChunkId: "test-investigation-alpha.conditions.01",
 });
@@ -39,7 +65,8 @@ export const TEST_CHUNK_ALPHA_OBJECTIVE = chunk({
 export const TEST_CHUNK_ALPHA_CONDITIONS = chunk({
   id: "test-investigation-alpha.conditions.01",
   section: "Experimental Conditions",
-  chunkType: "conditions",
+  chunkType: "CONDITIONS",
+  chunkIndex: 1,
   content: "Synthetic conditions text: oxygen ten to twenty percent, pressure fifty to one hundred kPa.",
   previousChunkId: "test-investigation-alpha.objective.01",
   nextChunkId: "test-investigation-alpha.interpretation.01",
@@ -48,7 +75,8 @@ export const TEST_CHUNK_ALPHA_CONDITIONS = chunk({
 export const TEST_CHUNK_ALPHA_INTERPRETATION = chunk({
   id: "test-investigation-alpha.interpretation.01",
   section: "Fire Safety Relevance",
-  chunkType: "safety_relevance",
+  chunkType: "INTERPRETATION",
+  chunkIndex: 2,
   sourceClass: "TEAM_INTERPRETATION",
   content: "Team interpretation: synthetic interpretation text about smoke sensing. Not a NASA statement.",
   previousChunkId: "test-investigation-alpha.conditions.01",
@@ -58,9 +86,10 @@ export const TEST_CHUNK_BETA_UNVERIFIED = chunk({
   id: "test-investigation-beta.objective.01",
   conceptId: "investigations/test-investigation-beta",
   investigationId: "test-investigation-beta",
+  investigation: "TEST_INVESTIGATION_BETA",
   title: "TEST_INVESTIGATION_BETA",
   section: "Objective",
-  chunkType: "objective",
+  chunkType: "OBJECTIVE",
   safetyCategories: ["suppression"],
   fuelType: "TEST_FUEL_B",
   material: null,

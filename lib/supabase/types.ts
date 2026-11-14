@@ -12,11 +12,17 @@ export type EvidenceChunkRow = {
   concept_id: string;
   /** Display name of the parent investigation or record. */
   investigation: string;
+  /** Record id, e.g. `bass-ii`. Added in migration 0002. */
+  investigation_id: string;
   title: string;
   section: string;
   /** OBJECTIVE | CONDITIONS | VARIABLES | MEASUREMENT | FINDING | LIMITATION | INTERPRETATION */
   chunk_type: string;
+  /** Position of the chunk within its record, from 0. Added in migration 0002. */
+  chunk_index: number;
   content: string;
+  /** Names a reader might search by (title, short title, hardware). Indexed with the 'simple' config. */
+  search_names: string;
   /** NASA_SOURCE | TEAM_INTERPRETATION */
   source_class: string;
   source_url: string | null;
@@ -30,9 +36,11 @@ export type EvidenceChunkRow = {
   next_chunk_id: string | null;
   /** Model and chunker version, e.g. `bge-small-en-v1.5/chunker-v1`. */
   embedding_version: string;
+  /** Hash of the embedded text, so unchanged chunks are not re-embedded. Added in migration 0002. */
+  content_hash: string;
   /** vector(384). Written by ingestion; never selected for the frontend. */
   embedding: number[] | null;
-  /** Free-form ingestion provenance. Never scientific values. */
+  /** Record facts copied from the reviewed OKF record (`ChunkMetadata`): conditions, hardware, sources. */
   metadata: Record<string, unknown>;
   /** Generated full-text column. Read-only. */
   fts: unknown;

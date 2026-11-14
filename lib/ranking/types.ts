@@ -49,12 +49,18 @@ export interface FactorAssessment {
 
 export interface RelevanceResult {
   investigationId: string;
-  /** 0..1, or null when the scenario specifies no comparable factor. */
+  /**
+   * 0..1, or null when the scenario specifies no comparable factor. With an approved
+   * methodology this is `breakdown.relevanceScore / 100`; otherwise the placeholder
+   * share of matched factors. Evidence similarity, never a fire-risk probability.
+   */
   score: number | null;
   matched: number;
   mismatched: number;
   unknown: number;
   factors: FactorAssessment[];
+  /** Per-dimension methodology result. Null when no approved methodology is installed. */
+  breakdown: RelevanceBreakdown | null;
 }
 
 /**
@@ -84,12 +90,10 @@ export const FACTOR_LABELS: Record<ScenarioFactor, string> = {
 };
 
 /* -------------------------------------------------------------------------- */
-/* Target result shapes for the validated methodology.                         */
+/* Result shapes of the validated methodology (lib/ranking/scoring.ts).        */
 /*                                                                            */
-/* DRAFT CONTRACT. These follow the vocabulary in Member 3's brief so that     */
-/* Member 4 can build the score explanation and gap views against real types.  */
-/* Nothing produces them yet; field meanings are fixed by docs/methodology.md  */
-/* when Member 3 delivers it. Change them only in a `contract:` pull request.  */
+/* Field meanings are fixed by docs/methodology.md. Change them only in a      */
+/* `contract:` pull request.                                                   */
 /* -------------------------------------------------------------------------- */
 
 export interface DimensionAssessment {

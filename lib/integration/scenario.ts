@@ -3,9 +3,16 @@ import { canUseForAnalytics, type TrustOptions } from "@/lib/domain/provenance";
 import { isKnownNumber } from "@/lib/domain/units";
 import { SAFETY_OBJECTIVES, type Investigation } from "@/lib/okf/types";
 import { analyzeGaps } from "@/lib/ranking/gap-analysis";
-import { getMethodologyStatus } from "@/lib/ranking/methodology";
+import { activeMethodology, getMethodologyStatus } from "@/lib/ranking/methodology";
 import { rankInvestigations } from "@/lib/ranking/relevance";
-import type { GapFinding, MissionScenario, RelevanceResult } from "@/lib/ranking/types";
+import { analyzeCoverage, generateResearchQuestions } from "@/lib/ranking/scoring";
+import type {
+  GapFinding,
+  GapResult,
+  MissionScenario,
+  RelevanceResult,
+  ResearchQuestion,
+} from "@/lib/ranking/types";
 
 /**
  * Adapters between a scenario, the investigations and the ranking code.
@@ -57,10 +64,19 @@ export interface ScenarioAnalysis {
   /** False when the scenario specifies nothing comparable. */
   hasCriteria: boolean;
   /**
-   * False until Member 3's methodology is installed. While false, scores come
+   * False when no approved methodology is installed. While false, scores come
    * from the placeholder rules and must be presented as provisional.
    */
   methodologyConfigured: boolean;
+  /** `MethodologyConfig.id` that produced the scores, or null for the placeholder. */
+  methodologyId: string | null;
+  /**
+   * Research coverage gaps per scenario dimension, highest priority first.
+   * Corpus coverage, never a hazard rating. Empty without an approved methodology.
+   */
+  coverage: GapResult[];
+  /** Labelled PROJECT-GENERATED RESEARCH QUESTION. Not NASA recommendations. */
+  researchQuestions: ResearchQuestion[];
 }
 
 /** scenario + investigations -> ranking -> gap analysis, joined for display. */
@@ -75,6 +91,9 @@ export function analyzeScenario(
   const byId = new Map(inputs.map((investigation) => [investigation.id, investigation]));
   // The inputs are already trust-filtered, so the engine must not filter again.
   const results = rankInvestigations(scenario, inputs, { includeUnverified: true });
+  const methodology = activeMethodology();
+  const breakdowns = results.flatMap((result) => (result.breakdown ? [result.breakdown] : []));
+  const coverage = methodology === null ? [] : analyzeCoverage(scenario, breakdowns, methodology);
 
   return {
     scenario,
@@ -86,5 +105,8 @@ export function analyzeScenario(
     gaps: analyzeGaps(results),
     hasCriteria: results.some((result) => result.score !== null),
     methodologyConfigured: getMethodologyStatus().configured,
+    methodologyId: methodology?.id ?? null,
+    coverage,
+    researchQuestions: generateResearchQuestions(scenario, coverage),
   };
 }

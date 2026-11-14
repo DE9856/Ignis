@@ -143,11 +143,20 @@ export function WhyRetrieved({
           <dl className="space-y-2">
             <ScoreRow
               label="Lexical"
-              value={result.lexicalScore}
+              value={result.scores.lexical}
               note="Keyword match over the passage text"
             />
-            <ScoreRow label="Vector" value={result.vectorScore} note="Embedding similarity to the question" />
-            <ScoreRow label="Combined" value={result.combinedScore} note="Fused score used for ordering" />
+            <ScoreRow
+              label="Vector"
+              value={result.scores.vector}
+              note="Embedding similarity to the question"
+            />
+            <ScoreRow
+              label="Metadata"
+              value={result.scores.metadata}
+              note="Share of the question's investigations, roles, gravity, materials and hardware this passage matches"
+            />
+            <ScoreRow label="Combined" value={result.scores.fused} note="Fused score used for ordering" />
           </dl>
           <p className="mt-3 font-mono text-2xs leading-relaxed break-all text-ink-faint">
             chunk {chunk.id}

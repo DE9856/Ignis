@@ -6,9 +6,9 @@ import { assertDevOnly } from "./guard";
 /**
  * LocalMockRetriever: word-overlap search over synthetic TEST chunks.
  *
- * It exists so the Evidence Desk can be built and demonstrated before the real
- * retriever is ready. It says nothing about retrieval quality and returns no
- * NASA evidence. Refuses to run in production.
+ * It exists so the Evidence Desk can be built and demonstrated without a
+ * database. It says nothing about retrieval quality and returns no NASA
+ * evidence. Refuses to run in production.
  */
 export class LocalMockRetriever implements EvidenceRetriever {
   async search(query: RetrievalQuery): Promise<RetrievalResponse> {
@@ -34,14 +34,41 @@ export class LocalMockRetriever implements EvidenceRetriever {
     })
       .map((chunk) => {
         const haystack = `${chunk.title} ${chunk.section} ${chunk.content}`.toLowerCase();
-        const matched = terms.filter((term) => haystack.includes(term)).length;
-        const lexicalScore = terms.length === 0 ? 0 : matched / terms.length;
-        return { chunk, lexicalScore, vectorScore: null, combinedScore: lexicalScore };
+        const matchedTerms = terms.filter((term) => haystack.includes(term));
+        const lexical = terms.length === 0 ? 0 : matchedTerms.length / terms.length;
+        return { chunk, matchedTerms, lexical };
       })
-      .filter((result) => result.combinedScore > 0)
-      .sort((a, b) => b.combinedScore - a.combinedScore || a.chunk.id.localeCompare(b.chunk.id))
-      .slice(0, query.limit ?? 5);
+      .filter((result) => result.lexical > 0)
+      .sort((a, b) => b.lexical - a.lexical || a.chunk.id.localeCompare(b.chunk.id))
+      .slice(0, query.limit ?? 5)
+      .map(({ chunk, matchedTerms, lexical }, index) => ({
+        chunk,
+        rank: index + 1,
+        scores: { vector: null, lexical, metadata: null, fused: lexical },
+        matchedTerms,
+        matchedMetadata: [],
+        neighbors: [],
+      }));
 
-    return { status: "ok", results };
+    return {
+      status: "ok",
+      mode: "lexical_only",
+      results,
+      boundary: null,
+      listing: null,
+      understanding: {
+        terms,
+        investigations: [],
+        safetyCategories: [],
+        gravity: [],
+        materials: [],
+        fuels: [],
+        hardware: [],
+        sectionIntent: [],
+        conditionFields: [],
+        enumerative: false,
+      },
+      notice: "Synthetic test data from the dev mock. Not NASA evidence.",
+    };
   }
 }

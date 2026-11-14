@@ -2,7 +2,13 @@ import { areDevMocksEnabled } from "@/lib/core/capabilities";
 import { DEGRADED_MESSAGES } from "@/lib/core/degraded";
 import { canUseForRetrieval } from "@/lib/domain/provenance";
 import { getRetriever, RETRIEVAL_IMPLEMENTED } from "@/lib/retrieval";
-import type { RetrievalQuery, RetrievalResponse, RetrievedEvidence } from "@/lib/retrieval/types";
+import type {
+  EvidenceRetriever,
+  QueryUnderstanding,
+  RetrievalQuery,
+  RetrievalResponse,
+  RetrievedEvidence,
+} from "@/lib/retrieval/types";
 
 /**
  * The one function the interface calls to search evidence.
@@ -24,11 +30,36 @@ export interface RetrieveEvidenceOptions {
   includeUnverified?: boolean;
 }
 
+/** What a blank question "understood": nothing. */
+export const EMPTY_UNDERSTANDING: QueryUnderstanding = {
+  terms: [],
+  investigations: [],
+  safetyCategories: [],
+  gravity: [],
+  materials: [],
+  fuels: [],
+  hardware: [],
+  sectionIntent: [],
+  conditionFields: [],
+  enumerative: false,
+};
+
 function isTrusted(result: RetrievedEvidence, includeUnverified: boolean): boolean {
   return canUseForRetrieval(
     { sourceClass: result.chunk.sourceClass, humanReviewed: result.chunk.verificationStatus === "verified" },
     { includeUnverified },
   );
+}
+
+/**
+ * On the server, search directly: the HTTP retriever posts to a relative URL,
+ * which only resolves in a browser. The dynamic import keeps the database
+ * client, the model and `node:fs` out of client bundles.
+ */
+async function liveRetriever(): Promise<EvidenceRetriever> {
+  if (typeof window !== "undefined") return getRetriever();
+  const { getServerRetriever } = await import("@/lib/retrieval/server");
+  return getServerRetriever();
 }
 
 export async function retrieveEvidence(
@@ -37,7 +68,16 @@ export async function retrieveEvidence(
 ): Promise<EvidenceRetrievalResult> {
   const text = query.text.trim();
   if (text === "") {
-    return { status: "ok", results: [], origin: "none" };
+    return {
+      status: "ok",
+      mode: "lexical_only",
+      results: [],
+      boundary: null,
+      listing: null,
+      understanding: EMPTY_UNDERSTANDING,
+      notice: null,
+      origin: "none",
+    };
   }
 
   const useMock = areDevMocksEnabled() && !RETRIEVAL_IMPLEMENTED;
@@ -49,17 +89,16 @@ export async function retrieveEvidence(
       const { LocalMockRetriever } = await import("@/lib/dev/mock-retriever");
       response = await new LocalMockRetriever().search({ ...query, text });
     } else {
-      response = await getRetriever().search({ ...query, text });
+      response = await (await liveRetriever()).search({ ...query, text });
     }
 
     const origin: RetrievalOrigin = useMock ? "dev-mock" : RETRIEVAL_IMPLEMENTED ? "live" : "none";
     if (response.status !== "ok") return { ...response, origin };
 
-    return {
-      status: "ok",
-      results: response.results.filter((result) => isTrusted(result, options.includeUnverified === true)),
-      origin,
-    };
+    const results = response.results
+      .filter((result) => isTrusted(result, options.includeUnverified === true))
+      .map((result, index) => ({ ...result, rank: index + 1 }));
+    return { ...response, results, origin };
   } catch {
     return { status: "unavailable", reason: DEGRADED_MESSAGES.noRetrieval, origin: "none" };
   }

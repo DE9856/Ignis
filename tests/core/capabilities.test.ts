@@ -25,19 +25,21 @@ describe("getCapabilities", () => {
     clearEnv();
     expect(getCapabilities()).toEqual({
       supabaseConfigured: false,
-      retrievalImplemented: false,
+      // The retriever is installed in code; without Supabase it is still not enabled.
+      retrievalImplemented: true,
       llmConfigured: false,
       supabaseEnabled: false,
       ingestionEnabled: false,
       retrievalEnabled: false,
       llmEnabled: false,
       verifiedKnowledgeAvailable: false,
-      methodologyConfigured: false,
+      // The approved methodology is installed in code, not configured by environment.
+      methodologyConfigured: true,
       devMocksEnabled: false,
     });
   });
 
-  it("needs both Supabase values, and does not claim retrieval or synthesis that is not built", () => {
+  it("needs both Supabase values for retrieval, and does not claim synthesis that is not built", () => {
     clearEnv();
     vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://test.invalid");
     expect(getCapabilities().supabaseEnabled).toBe(false);
@@ -49,9 +51,9 @@ describe("getCapabilities", () => {
     expect(capabilities.supabaseEnabled).toBe(true);
     expect(capabilities.supabaseConfigured).toBe(true);
     expect(capabilities.llmConfigured).toBe(true); // key present...
-    expect(capabilities.retrievalImplemented).toBe(false); // ...but Supabase/pgvector never implies retrieval
+    expect(capabilities.retrievalImplemented).toBe(true);
     expect(capabilities.ingestionEnabled).toBe(true);
-    expect(capabilities.retrievalEnabled).toBe(false);
+    expect(capabilities.retrievalEnabled).toBe(true); // implemented in code AND Supabase configured
     expect(capabilities.llmEnabled).toBe(false);
   });
 
@@ -86,9 +88,13 @@ describe("getDegradedNotices", () => {
       DEGRADED_MESSAGES.noRetrieval,
     ]);
     expect(getDegradedNotices(capabilities, "scoring").map((notice) => notice.reason)).toEqual([
-      "noMethodology",
       "noVerifiedKnowledge",
     ]);
+    expect(
+      getDegradedNotices({ ...capabilities, methodologyConfigured: false }, "scoring").map(
+        (notice) => notice.reason,
+      ),
+    ).toEqual(["noMethodology", "noVerifiedKnowledge"]);
   });
 
   it("is empty when everything is available", () => {

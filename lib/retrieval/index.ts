@@ -1,25 +1,26 @@
+import { createHttpRetriever } from "./http-client";
 import type { EvidenceRetriever } from "./types";
 
-export * from "./types";
+/**
+ * Public entry point for the UI. Safe in client components: it only exports
+ * types, constants and the HTTP retriever. Server code that needs the
+ * database or the model imports `lib/retrieval/server` instead.
+ */
 
-export const RETRIEVAL_NOT_IMPLEMENTED =
-  "Evidence retrieval is not implemented yet. Chunking, embedding and hybrid search are planned on feat/search-rag.";
+export * from "./types";
+export { NOT_ESTABLISHED, BOUNDARY_MESSAGES } from "./messages";
+export { SEARCH_ENDPOINT } from "./http-client";
+
+const retriever = createHttpRetriever();
 
 /**
- * Set to true in the pull request that replaces the placeholder below with a
- * real retriever. `lib/core/capabilities.ts` reads it to decide whether the
- * app offers search or the "retrieval not available yet" state.
+ * The real retriever is wired in. `lib/core/capabilities.ts` reads this to
+ * decide whether the app offers search; search still needs Supabase
+ * configured before `retrievalEnabled` turns on.
  */
-export const RETRIEVAL_IMPLEMENTED = false;
+export const RETRIEVAL_IMPLEMENTED = true;
 
-/** Placeholder retriever. It never returns evidence, so it cannot invent any. */
-const unavailableRetriever: EvidenceRetriever = {
-  async search() {
-    return { status: "unavailable", reason: RETRIEVAL_NOT_IMPLEMENTED };
-  },
-};
-
-/** Single entry point for the UI. Swap the implementation here when it exists. */
+/** Single entry point for the UI. Calls `POST /api/evidence/search`. */
 export function getRetriever(): EvidenceRetriever {
-  return unavailableRetriever;
+  return retriever;
 }

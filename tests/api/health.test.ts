@@ -34,9 +34,10 @@ describe("GET /api/health", () => {
     expect(body).toMatchObject({
       status: "ok",
       database: { configured: false },
-      retrieval: { implemented: false, configured: false },
+      retrieval: { implemented: true, configured: false },
       llm: { configured: false },
-      methodology: { configured: false },
+      // The approved methodology is installed in code, not configured by environment.
+      methodology: { configured: true },
     });
     expect(body.knowledge).toMatchObject({ loaded: true });
     expect(body.database.check).toBeUndefined(); // no live request unless ?deep=1

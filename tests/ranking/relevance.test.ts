@@ -41,13 +41,36 @@ describe("assessInvestigation", () => {
   });
 
   it("compares text case-insensitively and safety objective by membership", () => {
+    const scenario = makeScenario({ material: " Alpha ", safetyObjective: "detection" });
+    const investigation = makeInvestigation({ material: "alpha", safetyCategories: ["suppression"] });
+
+    const placeholder = assessInvestigation(scenario, investigation, { methodology: null });
+    expect(outcomeOf(placeholder, "material")).toBe("match");
+    expect(outcomeOf(placeholder, "safetyObjective")).toBe("mismatch");
+    expect(placeholder.score).toBe(0.5);
+    expect(placeholder.breakdown).toBeNull();
+
+    // Methodology v1: material DIRECT (20), safety goal NOT_RELEVANT (0 of 20),
+    // measurement UNKNOWN (0 of 10, nothing listed) -> 20 / 50.
+    const scored = assessInvestigation(scenario, investigation);
+    expect(scored.score).toBe(0.4);
+    expect(scored.breakdown?.methodologyId).toBe("ignis-methodology-v1");
+  });
+
+  it("matches a material named inside a longer material description", () => {
     const result = assessInvestigation(
-      makeScenario({ material: " Alpha ", safetyObjective: "detection" }),
-      makeInvestigation({ material: "alpha", safetyCategories: ["suppression"] }),
+      makeScenario({ material: "PMMA" }),
+      makeInvestigation({ material: "SIBAL fabric; cast PMMA (one-sided 5 mm thick)" }),
     );
     expect(outcomeOf(result, "material")).toBe("match");
-    expect(outcomeOf(result, "safetyObjective")).toBe("mismatch");
-    expect(result.score).toBe(0.5);
+  });
+
+  it("reads microgravity from gravityCondition when gravityValue is not stated", () => {
+    const result = assessInvestigation(
+      makeScenario({ gravityG: 0 }),
+      makeInvestigation({ gravityCondition: "microgravity", gravityValue: null }),
+    );
+    expect(outcomeOf(result, "gravity")).toBe("match");
   });
 });
 

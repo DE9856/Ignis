@@ -98,7 +98,21 @@ export function testResearchQuestion(): ResearchQuestion {
 export function testRetrievedEvidence(): RetrievedEvidence[] {
   assertDevOnly("testRetrievedEvidence");
   return [
-    { chunk: TEST_CHUNK_ALPHA_CONDITIONS, lexicalScore: 0.5, vectorScore: 0.5, combinedScore: 0.5 },
-    { chunk: TEST_CHUNK_ALPHA_INTERPRETATION, lexicalScore: 0.25, vectorScore: null, combinedScore: 0.25 },
+    {
+      chunk: TEST_CHUNK_ALPHA_CONDITIONS,
+      rank: 1,
+      scores: { vector: 0.5, lexical: 0.5, metadata: 0.5, fused: 0.5 },
+      matchedTerms: ["oxygen"],
+      matchedMetadata: [],
+      neighbors: [],
+    },
+    {
+      chunk: TEST_CHUNK_ALPHA_INTERPRETATION,
+      rank: 2,
+      scores: { vector: null, lexical: 0.25, metadata: null, fused: 0.25 },
+      matchedTerms: [],
+      matchedMetadata: [],
+      neighbors: [],
+    },
   ];
 }

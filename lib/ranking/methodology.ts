@@ -1,10 +1,10 @@
 /**
  * Where the validated scoring methodology plugs in.
  *
- * OWNERSHIP: the numbers belong to Member 3. This file defines only the shape
- * and the single place the approved configuration is installed. Until then
+ * OWNERSHIP: the numbers belong to Member 3. This file defines the shape and
+ * the single place the approved configuration is installed. When
  * `PRODUCTION_METHODOLOGY` is null, the app reports scoring as awaiting
- * methodology, and the scorer in relevance.ts remains a labelled placeholder.
+ * methodology and relevance.ts falls back to its labelled placeholder score.
  *
  * Do not put provisional weights here to "get things working". Use TEST_CONFIG
  * from lib/dev/test-config.ts in tests and development.
@@ -35,8 +35,35 @@ export interface MethodologyConfig {
   stateMultipliers: Record<EvidenceState, number>;
 }
 
-/** Installed by Member 3's methodology pull request. Null until then. */
-export const PRODUCTION_METHODOLOGY: MethodologyConfig | null = null;
+/**
+ * IGNIS methodology v1, approved by Member 3 (scientific validation).
+ * Rules that turn records into evidence states live in scoring.ts; the
+ * reasoning for every number is in docs/methodology.md. Weights sum to 100.
+ */
+export const IGNIS_METHODOLOGY_V1: MethodologyConfig = {
+  id: "ignis-methodology-v1",
+  label: "IGNIS methodology v1",
+  approvedBy: "human:member3",
+  approvedAt: "2026-11-14",
+  weights: {
+    safetyObjective: 20,
+    materialFuel: 20,
+    oxygen: 15,
+    airflow: 15,
+    pressure: 10,
+    gravity: 10,
+    measurement: 10,
+  },
+  stateMultipliers: {
+    DIRECT: 1,
+    RELATED: 0.65,
+    BOUNDING: 0.4,
+    UNKNOWN: 0,
+    NOT_RELEVANT: 0,
+  },
+};
+
+export const PRODUCTION_METHODOLOGY: MethodologyConfig | null = IGNIS_METHODOLOGY_V1;
 
 export interface MethodologyStatus {
   configured: boolean;
@@ -71,4 +98,11 @@ export function getMethodologyStatus(
   const configured =
     config !== null && config.approvedBy !== null && findMethodologyProblems(config).length === 0;
   return { configured, id: config?.id ?? null, approvedBy: config?.approvedBy ?? null };
+}
+
+/** The approved methodology to score with, or null when none is configured. */
+export function activeMethodology(
+  config: MethodologyConfig | null = PRODUCTION_METHODOLOGY,
+): MethodologyConfig | null {
+  return config !== null && getMethodologyStatus(config).configured ? config : null;
 }
