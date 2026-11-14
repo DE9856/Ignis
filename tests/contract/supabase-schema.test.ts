@@ -15,10 +15,13 @@ const COLUMNS = [
   "chunk_id",
   "concept_id",
   "investigation",
+  "investigation_id",
   "title",
   "section",
   "chunk_type",
+  "chunk_index",
   "content",
+  "search_names",
   "source_class",
   "source_url",
   "safety_category",
@@ -30,6 +33,7 @@ const COLUMNS = [
   "previous_chunk_id",
   "next_chunk_id",
   "embedding_version",
+  "content_hash",
   "embedding",
   "metadata",
   "fts",
@@ -51,7 +55,9 @@ describe("contract: Supabase migration", () => {
 
   it("creates the table the code expects, with every column in the row type", () => {
     expect(sql).toContain(`create table if not exists public.${EVIDENCE_CHUNKS_TABLE}`);
-    for (const column of COLUMNS) expect(sql, column).toMatch(new RegExp(`^\\s+${column}\\s`, "m"));
+    // A column is declared in the create table (0001) or added by a later migration.
+    for (const column of COLUMNS)
+      expect(sql, column).toMatch(new RegExp(`^\\s+(add column if not exists\\s+)?${column}\\s`, "m"));
   });
 
   it("sizes the vector column to the embedding model", () => {
@@ -78,6 +84,14 @@ describe("contract: Supabase migration", () => {
       /revoke insert, update, delete, truncate on public\.evidence_chunks from anon, authenticated/,
     );
     expect(sql).not.toMatch(/for\s+(insert|update|delete|all)\b/i);
+  });
+
+  it("defines the hybrid search function the Supabase store calls, readable by the browser roles", () => {
+    expect(sql).toContain("create or replace function public.search_evidence_chunks(");
+    expect(sql).toMatch(
+      /grant execute on function public\.search_evidence_chunks\([^)]*\) to anon, authenticated/,
+    );
+    expect(sql).not.toMatch(/security definer/i);
   });
 
   it("keeps the dimension health helper and the embedding contract in step", () => {

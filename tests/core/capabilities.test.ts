@@ -25,7 +25,8 @@ describe("getCapabilities", () => {
     clearEnv();
     expect(getCapabilities()).toEqual({
       supabaseConfigured: false,
-      retrievalImplemented: false,
+      // The retriever is installed in code; without Supabase it is still not enabled.
+      retrievalImplemented: true,
       llmConfigured: false,
       supabaseEnabled: false,
       ingestionEnabled: false,
@@ -38,7 +39,7 @@ describe("getCapabilities", () => {
     });
   });
 
-  it("needs both Supabase values, and does not claim retrieval or synthesis that is not built", () => {
+  it("needs both Supabase values for retrieval, and does not claim synthesis that is not built", () => {
     clearEnv();
     vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://test.invalid");
     expect(getCapabilities().supabaseEnabled).toBe(false);
@@ -50,9 +51,9 @@ describe("getCapabilities", () => {
     expect(capabilities.supabaseEnabled).toBe(true);
     expect(capabilities.supabaseConfigured).toBe(true);
     expect(capabilities.llmConfigured).toBe(true); // key present...
-    expect(capabilities.retrievalImplemented).toBe(false); // ...but Supabase/pgvector never implies retrieval
+    expect(capabilities.retrievalImplemented).toBe(true);
     expect(capabilities.ingestionEnabled).toBe(true);
-    expect(capabilities.retrievalEnabled).toBe(false);
+    expect(capabilities.retrievalEnabled).toBe(true); // implemented in code AND Supabase configured
     expect(capabilities.llmEnabled).toBe(false);
   });
 

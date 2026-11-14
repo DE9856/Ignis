@@ -34,7 +34,7 @@ describe("GET /api/health", () => {
     expect(body).toMatchObject({
       status: "ok",
       database: { configured: false },
-      retrieval: { implemented: false, configured: false },
+      retrieval: { implemented: true, configured: false },
       llm: { configured: false },
       // The approved methodology is installed in code, not configured by environment.
       methodology: { configured: true },

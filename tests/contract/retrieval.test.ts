@@ -1,9 +1,10 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import { LocalMockRetriever } from "@/lib/dev/mock-retriever";
 import { toEvidenceDisplayModel, rowToEvidenceChunk } from "@/lib/integration/evidence";
-import { retrieveEvidence } from "@/lib/integration/retrieval";
+import { EMPTY_UNDERSTANDING, retrieveEvidence } from "@/lib/integration/retrieval";
 import { getRetriever, RETRIEVAL_IMPLEMENTED } from "@/lib/retrieval";
-import type { EvidenceChunk, RetrievedEvidence } from "@/lib/retrieval/types";
+import type { EvidenceChunk, RetrievalResponse, RetrievedEvidence } from "@/lib/retrieval/types";
 
 import {
   TEST_CHUNK_ALPHA_INTERPRETATION,
@@ -11,15 +12,21 @@ import {
   TEST_CHUNK_BETA_UNVERIFIED,
 } from "../fixtures";
 
-afterEach(() => vi.unstubAllEnvs());
+afterEach(() => {
+  vi.unstubAllEnvs();
+  vi.doUnmock("@/lib/retrieval/server");
+  vi.resetModules();
+});
 
 /**
  * CONTRACT: retrieval -> evidence UI.
  *
- * Checks the interface, not retrieval quality. Whatever Member 5 puts behind
- * getRetriever(), these shapes must hold for the Evidence Desk to keep working.
+ * Checks the interface, not retrieval quality (that is `scripts/evaluate.ts`).
+ * Whatever sits behind getRetriever(), these shapes must hold for the
+ * Evidence Desk to keep working.
  */
 const CHUNK_KEYS: (keyof EvidenceChunk)[] = [
+  "chunkIndex",
   "chunkType",
   "conceptId",
   "content",
@@ -27,8 +34,10 @@ const CHUNK_KEYS: (keyof EvidenceChunk)[] = [
   "fuelType",
   "gravityCondition",
   "id",
+  "investigation",
   "investigationId",
   "material",
+  "metadata",
   "nextChunkId",
   "previousChunkId",
   "safetyCategories",
@@ -40,11 +49,41 @@ const CHUNK_KEYS: (keyof EvidenceChunk)[] = [
   "verificationStatus",
 ];
 
+const RESULT_KEYS: (keyof RetrievedEvidence)[] = [
+  "chunk",
+  "matchedMetadata",
+  "matchedTerms",
+  "neighbors",
+  "rank",
+  "scores",
+];
+
 function expectRetrievedShape(result: RetrievedEvidence) {
-  expect(Object.keys(result).sort()).toEqual(["chunk", "combinedScore", "lexicalScore", "vectorScore"]);
+  expect(Object.keys(result).sort()).toEqual(RESULT_KEYS);
   expect(Object.keys(result.chunk).sort()).toEqual(CHUNK_KEYS);
-  expect(typeof result.combinedScore).toBe("number");
+  expect(typeof result.scores.fused).toBe("number");
+  expect(result.rank).toBeGreaterThanOrEqual(1);
   expect(result.chunk).not.toHaveProperty("embedding");
+}
+
+function retrieved(chunk: EvidenceChunk, rank: number): RetrievedEvidence {
+  return {
+    chunk,
+    rank,
+    scores: { vector: null, lexical: 0.5, metadata: null, fused: 0.5 },
+    matchedTerms: [],
+    matchedMetadata: [],
+    neighbors: [],
+  };
+}
+
+/** Replace the server retriever with a fixed answer. Returns a fresh retrieveEvidence. */
+async function withServerRetriever(response: RetrievalResponse) {
+  vi.resetModules();
+  vi.doMock("@/lib/retrieval/server", () => ({
+    getServerRetriever: () => ({ search: async () => response }),
+  }));
+  return (await import("@/lib/integration/retrieval")).retrieveEvidence;
 }
 
 describe("contract: getRetriever()", () => {
@@ -61,46 +100,86 @@ describe("contract: getRetriever()", () => {
 });
 
 describe("contract: retrieveEvidence()", () => {
-  it("always returns a status and an origin", async () => {
+  it("is wired to the real retriever", () => {
+    expect(RETRIEVAL_IMPLEMENTED).toBe(true);
+  });
+
+  it("returns a complete empty answer for a blank query without calling a retriever", async () => {
+    expect(await retrieveEvidence({ text: "   " })).toEqual({
+      status: "ok",
+      mode: "lexical_only",
+      results: [],
+      boundary: null,
+      listing: null,
+      understanding: EMPTY_UNDERSTANDING,
+      notice: null,
+      origin: "none",
+    });
+  });
+
+  it("searches the verified local records on the server when Supabase is not configured", async () => {
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "");
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY", "");
     vi.stubEnv("NEXT_PUBLIC_IGNIS_DEV_MOCKS", "");
-    const response = await retrieveEvidence({ text: "synthetic query" });
-    expect(["ok", "unavailable"]).toContain(response.status);
-    expect(["live", "dev-mock", "none"]).toContain(response.origin);
-    if (!RETRIEVAL_IMPLEMENTED) expect(response).toMatchObject({ status: "unavailable", origin: "none" });
+    const response = await retrieveEvidence({ text: "BASS flame spread" });
+    expect(response.origin).toBe("live");
+    if (response.status !== "ok") throw new Error(`expected ok, got: ${response.reason}`);
+    expect(response.mode).toBe("lexical_only");
+    expect(response.results.length).toBeGreaterThan(0);
+    response.results.forEach(expectRetrievedShape);
+    expect(response.results.every((result) => result.chunk.verificationStatus === "verified")).toBe(true);
   });
 
-  it("returns no results for a blank query without calling a retriever", async () => {
-    expect(await retrieveEvidence({ text: "   " })).toEqual({ status: "ok", results: [], origin: "none" });
+  it("drops unverified chunks unless asked, and re-numbers ranks", async () => {
+    const search = await withServerRetriever({
+      status: "ok",
+      mode: "hybrid",
+      results: [retrieved(TEST_CHUNK_BETA_UNVERIFIED, 1), retrieved(TEST_CHUNK_ALPHA_OBJECTIVE, 2)],
+      boundary: null,
+      listing: null,
+      understanding: EMPTY_UNDERSTANDING,
+      notice: null,
+    });
+    const trusted = await search({ text: "synthetic" });
+    const all = await search({ text: "synthetic" }, { includeUnverified: true });
+    if (trusted.status !== "ok" || all.status !== "ok") throw new Error("stub should answer");
+
+    expect(trusted.results.map((result) => [result.chunk.id, result.rank])).toEqual([
+      [TEST_CHUNK_ALPHA_OBJECTIVE.id, 1],
+    ]);
+    expect(trusted.mode).toBe("hybrid");
+    expect(all.results.some((result) => result.chunk.verificationStatus === "unverified")).toBe(true);
   });
 
-  it.runIf(!RETRIEVAL_IMPLEMENTED)(
-    "uses the synthetic mock only on explicit opt-in, and labels it",
-    async () => {
-      vi.stubEnv("NEXT_PUBLIC_IGNIS_DEV_MOCKS", "1");
-      const response = await retrieveEvidence({ text: "synthetic objective TEST_FUEL_A" });
-      expect(response.origin).toBe("dev-mock");
-      if (response.status !== "ok") throw new Error("mock should answer");
-      expect(response.results.length).toBeGreaterThan(0);
-      response.results.forEach(expectRetrievedShape);
-      expect(response.results.every((result) => result.chunk.title.startsWith("TEST_"))).toBe(true);
-    },
-  );
+  it("turns a retriever failure into an unavailable answer instead of throwing", async () => {
+    vi.resetModules();
+    vi.doMock("@/lib/retrieval/server", () => ({
+      getServerRetriever: () => ({
+        search: async () => {
+          throw new Error("boom");
+        },
+      }),
+    }));
+    const { retrieveEvidence: search } = await import("@/lib/integration/retrieval");
+    expect(await search({ text: "anything" })).toMatchObject({ status: "unavailable", origin: "none" });
+  });
+});
 
-  it.runIf(!RETRIEVAL_IMPLEMENTED)(
-    "drops unverified chunks unless asked, and never serves the mock in production",
-    async () => {
-      vi.stubEnv("NEXT_PUBLIC_IGNIS_DEV_MOCKS", "1");
-      const query = { text: "synthetic unverified objective extinguishing" };
-      const trusted = await retrieveEvidence(query);
-      const all = await retrieveEvidence(query, { includeUnverified: true });
-      if (trusted.status !== "ok" || all.status !== "ok") throw new Error("mock should answer");
-      expect(trusted.results.every((result) => result.chunk.verificationStatus === "verified")).toBe(true);
-      expect(all.results.some((result) => result.chunk.verificationStatus === "unverified")).toBe(true);
+describe("contract: LocalMockRetriever", () => {
+  it("answers in the full response shape with synthetic TEST data only", async () => {
+    vi.stubEnv("NODE_ENV", "test");
+    const response = await new LocalMockRetriever().search({ text: "synthetic objective TEST_FUEL_A" });
+    if (response.status !== "ok") throw new Error("mock should answer");
+    expect(response.results.length).toBeGreaterThan(0);
+    response.results.forEach(expectRetrievedShape);
+    expect(response.results.every((result) => result.chunk.title.startsWith("TEST_"))).toBe(true);
+    expect(response.notice).toMatch(/synthetic/i);
+  });
 
-      vi.stubEnv("NODE_ENV", "production");
-      expect((await retrieveEvidence(query)).origin).not.toBe("dev-mock");
-    },
-  );
+  it("refuses to run in production", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    await expect(new LocalMockRetriever().search({ text: "synthetic" })).rejects.toThrow();
+  });
 });
 
 describe("contract: EvidenceChunk -> evidence display model", () => {
@@ -108,6 +187,7 @@ describe("contract: EvidenceChunk -> evidence display model", () => {
     const model = toEvidenceDisplayModel(TEST_CHUNK_ALPHA_OBJECTIVE);
     expect(model).toMatchObject({
       id: TEST_CHUNK_ALPHA_OBJECTIVE.id,
+      investigation: "TEST_INVESTIGATION_ALPHA",
       provenance: "NASA_SOURCE",
       isCanonical: true,
       isInterpretation: false,
@@ -140,14 +220,12 @@ describe("contract: EvidenceChunk -> evidence display model", () => {
   it("carries score components for the why-retrieved view and trims long text", () => {
     const model = toEvidenceDisplayModel(
       {
-        chunk: { ...TEST_CHUNK_ALPHA_OBJECTIVE, content: "word ".repeat(200) },
-        lexicalScore: 0.5,
-        vectorScore: null,
-        combinedScore: 0.5,
+        ...retrieved({ ...TEST_CHUNK_ALPHA_OBJECTIVE, content: "word ".repeat(200) }, 1),
+        scores: { vector: 0.8, lexical: 0.5, metadata: 1, fused: 0.77 },
       },
       100,
     );
-    expect(model.scores).toEqual({ lexical: 0.5, vector: null, combined: 0.5 });
+    expect(model.scores).toEqual({ lexical: 0.5, vector: 0.8, metadata: 1, combined: 0.77 });
     expect(model.excerpt.length).toBeLessThanOrEqual(102);
   });
 });
@@ -158,10 +236,13 @@ describe("contract: database row -> EvidenceChunk", () => {
       chunk_id: "test-investigation-alpha.conditions.01",
       concept_id: "investigations/test-investigation-alpha",
       investigation: "TEST_INVESTIGATION_ALPHA",
+      investigation_id: "test-investigation-alpha",
       title: "TEST_INVESTIGATION_ALPHA",
       section: "Experimental Conditions",
       chunk_type: "CONDITIONS",
+      chunk_index: 1,
       content: "Synthetic conditions text.",
+      search_names: "TEST_INVESTIGATION_ALPHA",
       source_class: "SOMETHING_NEW",
       source_url: "https://test.invalid/alpha",
       safety_category: ["prevention", "not-a-category"],
@@ -173,15 +254,19 @@ describe("contract: database row -> EvidenceChunk", () => {
       previous_chunk_id: null,
       next_chunk_id: null,
       embedding_version: "test-embedding/test-chunker",
+      content_hash: "test-hash",
+      metadata: {},
     });
     expect(Object.keys(chunk).sort()).toEqual(CHUNK_KEYS);
     expect(chunk).toMatchObject({
       id: "test-investigation-alpha.conditions.01",
       investigationId: "test-investigation-alpha",
-      chunkType: "conditions",
+      chunkType: "CONDITIONS",
+      chunkIndex: 1,
       safetyCategories: ["prevention"],
       sourceClass: "UNVERIFIED",
       verificationStatus: "verified",
     });
+    expect(chunk.metadata.oxygenMin).toBeNull();
   });
 });
