@@ -15,6 +15,9 @@ import { cn } from "@/lib/utils/cn";
 export const metadata: Metadata = { title: "Dev status", robots: { index: false } };
 
 const CAPABILITY_LABELS: Record<keyof Capabilities, string> = {
+  supabaseConfigured: "Supabase configured (not checked live)",
+  retrievalImplemented: "Retrieval implemented in code",
+  llmConfigured: "LLM key configured",
   supabaseEnabled: "Supabase configured",
   ingestionEnabled: "Service-role key available",
   retrievalEnabled: "Retrieval available",
@@ -167,6 +170,12 @@ export default function DevStatusPage() {
               {summary.humanReviewed > 0
                 ? `${summary.humanReviewed} human-reviewed record(s).`
                 : "None yet (Members 2 and 3)."}
+            </dd>
+            <dt className="text-ink-muted">Database</dt>
+            <dd>
+              {capabilities.supabaseConfigured
+                ? "Configured. Not contacted on this page; run npm run check:db or open /api/health?deep=1."
+                : "Not configured. Running on local knowledge files."}
             </dd>
             <dt className="text-ink-muted">Health endpoint</dt>
             <dd className="font-mono">/api/health and /api/health?deep=1</dd>

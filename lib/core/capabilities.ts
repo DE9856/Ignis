@@ -3,13 +3,24 @@ import type { Investigation } from "@/lib/okf/types";
 import { getMethodologyStatus } from "@/lib/ranking/methodology";
 import { RETRIEVAL_IMPLEMENTED } from "@/lib/retrieval";
 
-import { isEnvConfigured } from "./env";
+import { getLlmState, getSupabaseState, isEnvConfigured } from "./env";
 
 /**
  * What this running instance can actually do. Pages read these flags to pick
  * between a working feature and an honest degraded state. Nothing here throws.
  */
 export interface Capabilities {
+  /**
+   * Raw facts, each true only for the thing it names:
+   * - `supabaseConfigured`: public URL and anon key are set and valid.
+   * - `retrievalImplemented`: a real retriever has been installed in code
+   *   (Member 5 flips `RETRIEVAL_IMPLEMENTED`). Never inferred from pgvector.
+   * - `llmConfigured`: an LLM key is set. Says nothing about synthesis code.
+   */
+  supabaseConfigured: boolean;
+  retrievalImplemented: boolean;
+  llmConfigured: boolean;
+  /** Usable features, derived from the facts above. */
   /** Public Supabase URL and anon key are both set and valid. */
   supabaseEnabled: boolean;
   /** Service-role key is available to server code and scripts. */
@@ -39,10 +50,12 @@ export function areDevMocksEnabled(): boolean {
 
 /** Server-side view. Pass the loaded investigations to fill in the knowledge flag. */
 export function getCapabilities(investigations: Investigation[] = []): Capabilities {
-  const supabaseEnabled =
-    isEnvConfigured("NEXT_PUBLIC_SUPABASE_URL") && isEnvConfigured("NEXT_PUBLIC_SUPABASE_ANON_KEY");
+  const supabaseEnabled = getSupabaseState() === "SUPABASE_CONFIGURED";
 
   return {
+    supabaseConfigured: supabaseEnabled,
+    retrievalImplemented: RETRIEVAL_IMPLEMENTED,
+    llmConfigured: getLlmState() === "LLM_CONFIGURED",
     supabaseEnabled,
     ingestionEnabled: supabaseEnabled && isEnvConfigured("SUPABASE_SERVICE_ROLE_KEY"),
     retrievalEnabled: RETRIEVAL_IMPLEMENTED && supabaseEnabled,

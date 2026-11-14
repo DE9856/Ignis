@@ -32,11 +32,15 @@ export type EvidenceChunkRow = {
   embedding_version: string;
   /** vector(384). Written by ingestion; never selected for the frontend. */
   embedding: number[] | null;
+  /** Free-form ingestion provenance. Never scientific values. */
+  metadata: Record<string, unknown>;
   /** Generated full-text column. Read-only. */
   fts: unknown;
 };
 
-export type EvidenceChunkInsert = Omit<EvidenceChunkRow, "fts">;
+export type EvidenceChunkInsert = Omit<EvidenceChunkRow, "fts" | "metadata"> & {
+  metadata?: Record<string, unknown>;
+};
 
 export type Database = {
   public: {
@@ -51,6 +55,7 @@ export type Database = {
     Views: Record<string, never>;
     Functions: {
       ignis_vector_available: { Args: Record<string, never>; Returns: boolean };
+      ignis_embedding_dimension: { Args: Record<string, never>; Returns: number | null };
       match_evidence_chunks: {
         Args: { query_embedding: number[]; match_count?: number };
         Returns: { chunk_id: string; similarity: number }[];

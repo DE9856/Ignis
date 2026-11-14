@@ -132,3 +132,19 @@ export function findEnvironmentProblems(env: EnvSource = process.env): string[] 
 export function isEnvConfigured(name: string, env: EnvSource = process.env): boolean {
   return inspectEnvironment(env).some((report) => report.name === name && report.state === "CONFIGURED");
 }
+
+export type SupabaseState = "SUPABASE_NOT_CONFIGURED" | "SUPABASE_CONFIGURED";
+export type LlmState = "LLM_NOT_CONFIGURED" | "LLM_CONFIGURED";
+
+/** Both public Supabase values present and valid. Says nothing about reachability. */
+export function getSupabaseState(env: EnvSource = process.env): SupabaseState {
+  return isEnvConfigured("NEXT_PUBLIC_SUPABASE_URL", env) &&
+    isEnvConfigured("NEXT_PUBLIC_SUPABASE_ANON_KEY", env)
+    ? "SUPABASE_CONFIGURED"
+    : "SUPABASE_NOT_CONFIGURED";
+}
+
+/** An LLM key is present. Says nothing about whether synthesis is implemented. */
+export function getLlmState(env: EnvSource = process.env): LlmState {
+  return isEnvConfigured("OPTIONAL_LLM_API_KEY", env) ? "LLM_CONFIGURED" : "LLM_NOT_CONFIGURED";
+}

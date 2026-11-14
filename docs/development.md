@@ -4,21 +4,21 @@ Day-to-day commands and what each one tells you.
 
 ## Commands
 
-| Command                      | What it does                                                                    |
-| ---------------------------- | ------------------------------------------------------------------------------- |
-| `npm run dev`                | Development server at http://localhost:3000                                     |
-| `npm run check`              | Format check, lint, type-check, tests, knowledge validation. Run before pushing |
-| `npm run check:ci`           | `check` plus a production build. What CI runs                                   |
-| `npm run test`               | Unit, contract and integration tests                                            |
-| `npm run test:watch`         | Tests in watch mode                                                             |
-| `npm run typecheck`          | Generate route types, then `tsc --noEmit`                                       |
-| `npm run lint`               | ESLint                                                                          |
-| `npm run format`             | Format everything with Prettier                                                 |
-| `npm run validate:knowledge` | Structural validation of `knowledge/`. Exits 1 on any error                     |
-| `npm run inspect:knowledge`  | Progress statistics for `knowledge/`. Counts only                               |
-| `npm run check:env`          | Which environment variables are usable. Never prints a value                    |
-| `npm run check:db`           | Is Supabase reachable, is the schema in place                                   |
-| `npm run build`              | Production build                                                                |
+| Command                      | What it does                                                                                         |
+| ---------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `npm run dev`                | Development server at http://localhost:3000                                                          |
+| `npm run check`              | Format check, lint, type-check, tests, knowledge validation. Run before pushing                      |
+| `npm run check:ci`           | `check` plus a production build. What CI runs                                                        |
+| `npm run test`               | Unit, contract and integration tests                                                                 |
+| `npm run test:watch`         | Tests in watch mode                                                                                  |
+| `npm run typecheck`          | Generate route types, then `tsc --noEmit`                                                            |
+| `npm run lint`               | ESLint                                                                                               |
+| `npm run format`             | Format everything with Prettier                                                                      |
+| `npm run validate:knowledge` | Structural validation of `knowledge/`. Exits 1 on any error                                          |
+| `npm run inspect:knowledge`  | Progress statistics for `knowledge/`. Counts only                                                    |
+| `npm run check:env`          | Which environment variables are usable. Never prints a value                                         |
+| `npm run check:db`           | Supabase state: reachable, pgvector, table, embedding dimension. `-- --strict` also fails when unset |
+| `npm run build`              | Production build                                                                                     |
 
 The knowledge scripts accept a folder and flags after `--`:
 
@@ -110,6 +110,8 @@ For layout work with records on screen, copy a fixture to `knowledge/investigati
 | `tests/fixtures`    | Synthetic data for all of the above                                         |
 
 ## Deployment notes
+
+Full guide: [deployment.md](deployment.md).
 
 - Pages are prerendered at build time from `knowledge/`. A deployed site reflects the knowledge files at the commit it was built from; new records need a new deploy.
 - `/api/health` runs at request time. `next.config.ts` ships the knowledge files with that function so its counts are real.

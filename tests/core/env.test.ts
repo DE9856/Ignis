@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { ENV_SPECS, findEnvironmentProblems, inspectEnvironment } from "@/lib/core/env";
+import {
+  ENV_SPECS,
+  findEnvironmentProblems,
+  getLlmState,
+  getSupabaseState,
+  inspectEnvironment,
+} from "@/lib/core/env";
 
 const state = (env: Record<string, string>, name: string) =>
   inspectEnvironment(env).find((report) => report.name === name)?.state;
@@ -55,5 +61,22 @@ describe("findEnvironmentProblems", () => {
     expect(findEnvironmentProblems({ NEXT_PUBLIC_SUPABASE_URL: "https://test.invalid" }).join(" ")).toMatch(
       /Set both/,
     );
+  });
+});
+
+describe("service states", () => {
+  const ok = { NEXT_PUBLIC_SUPABASE_URL: "https://test.invalid", NEXT_PUBLIC_SUPABASE_ANON_KEY: "test-anon" };
+
+  it("distinguishes Supabase configured from not configured, without throwing", () => {
+    expect(getSupabaseState({})).toBe("SUPABASE_NOT_CONFIGURED");
+    expect(getSupabaseState({ NEXT_PUBLIC_SUPABASE_URL: "https://test.invalid" })).toBe(
+      "SUPABASE_NOT_CONFIGURED",
+    );
+    expect(getSupabaseState(ok)).toBe("SUPABASE_CONFIGURED");
+  });
+
+  it("distinguishes LLM configured from not configured", () => {
+    expect(getLlmState({})).toBe("LLM_NOT_CONFIGURED");
+    expect(getLlmState({ OPTIONAL_LLM_API_KEY: "test-llm" })).toBe("LLM_CONFIGURED");
   });
 });
