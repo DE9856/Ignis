@@ -15,8 +15,8 @@ safetyCategories:
 
 fuelType: solid
 material: >-
-  Teflon, Kapton, silicone rubber, cellulose, and dibutyl-phthalate deposited on a porous wick
-  (lamp wick)
+  Teflon, Kapton, silicone rubber, cellulose (lamp wick), and dibutyl-phthalate deposited on a
+  porous wick
 sampleShape: null
 sampleSize: null
 
@@ -74,6 +74,17 @@ sources:
       2008-806)
     sourceClass: NASA_SOURCE
     accessed: 2026-11-14
+  - id: ntrs-20120012884
+    resource: "https://ntrs.nasa.gov/citations/20120012884"
+    title: >-
+      Properties of Smoke from Overheated Materials in Low-Gravity (Urban et al., AIAA 2009-0956)
+    sourceClass: NASA_SOURCE
+    accessed: 2026-11-14
+  - id: psi-102
+    resource: "https://psi.nasa.gov/physci/repo/data/investigations/PSI-102"
+    title: NASA PSI investigation record PSI-102 (SAME)
+    sourceClass: NASA_SOURCE
+    accessed: 2026-11-14
 
 related:
   - id: investigations/same-r
@@ -105,7 +116,7 @@ SAME was conducted in the Microgravity Science Glovebox (MSG) on the Internation
 
 - Gravity: microgravity (ISS).
 - Smoke generation: smoke was produced by overheating a small sample of material in a smoke generation duct for approximately 60 seconds; the cited sources describe pyrolysis smoke, not flaming combustion.
-- Samples: 30 samples in total, six samples each of five materials: Teflon, Kapton, silicone rubber, cellulose, and dibutyl-phthalate deposited on a porous wick.
+- Samples: 30 samples in total, six samples each of five materials: Teflon, Kapton, silicone rubber, cellulose (lamp wick), and dibutyl-phthalate deposited on a porous wick.
 - Test matrix: samples were tested at different airflow rates, heating (pyrolysis) temperatures and smoke aging durations. The specific values are not stated in the sources consulted, so the airflow, oxygen and pressure fields are null.
 - Smoke handling: a moving piston drew smoke into an aging chamber, held it for a predetermined time to allow coagulation, then pushed it into a diagnostics duct holding the measurement instruments and the Shuttle and ISS smoke detectors.
 
@@ -135,9 +146,10 @@ SAME used a "moment method": three instruments measured separate moments of the 
 
 - For the materials tested, a substantial portion of the smoke particles are below 500 nm in diameter (AIAA 2008 paper abstract).
 - Smoke particulate produced in low gravity was typically 50% larger in count mean diameter than under similar conditions in normal gravity, and the resulting sizes were all below 300 nm, suggesting that discriminating smoke from spacecraft dust could possibly be achieved by detecting in the sub-micrometer range (AIAA 2008 paper conclusion).
-- Baseline count mean diameters reported: silicone rubber 263 nm (53% larger than 1 g), Teflon 223 nm, lamp wick 248 nm (65% larger than 1 g), Kapton 114 nm (58% larger than 1 g).
+- Preliminary baseline count mean diameters (AIAA 2008, zeroth- and first-moment instruments only): silicone rubber 263 nm (53% larger than 1 g), Teflon 223 nm, lamp wick 248 nm (65% larger than 1 g), Kapton 114 nm (58% larger than 1 g).
+- Later baseline results with all three moment instruments (AIAA 2009, Table 1): arithmetic mean diameters of 105 nm (Kapton), 227 nm (lamp wick) and 205 nm (Teflon); diameters of average mass of 172 nm, 420 nm and 219 nm respectively; the silicone results did not converge. The authors state that the small Kapton and Teflon particles will make detection challenging for light-scattering devices, while the large lamp wick and silicone particles suggest detection against the background will need a system measuring more than one moment of the size distribution.
 - NASA's later summary states that a substantial portion of the aerosol mass is in particles larger than 1 micron, that Teflon smoke comprised primarily particles below 1 um, and that aging was consistent with particle coagulation with limited wall loss (number count decreased substantially while mass concentration stayed relatively steady).
-- NASA's summary states that although arithmetic mean diameters were all in the 100 to 200 nm range, almost half the particle mass of silicone rubber smoke was in particles larger than 1000 nm.
+- NASA's fact sheet states that although arithmetic mean diameters were all in the 100 to 200 nm range, the AMD for silicone rubber was 227 nm and almost half its particle mass was in particles larger than 1000 nm (see Limitations: this value conflicts with the paper it summarises).
 - All samples produced significant numbers of sub-micron particulate that are better detected using an ionization smoke detector, although a light-scattering detector would perform very well for most cases; results suggest that detection methods measuring a wider spectrum of particle sizes may be more reliable.
 - A companion smoke transport model of the ISS US Laboratory module showed that mixing dominates smoke transport in microgravity, so detection times are longer than in normal gravity and strongly dependent on source location and obstructions (model result, not a flight measurement).
 
@@ -151,11 +163,13 @@ Team interpretation: SAME is direct microgravity evidence about the smoke that s
 - The specific heating temperatures, airflow rates and aging times of each test are not stated in the sources consulted.
 - Oxygen concentration and pressure are not reported; tests ran in the MSG on the ISS, but no values are given.
 - The AIAA 2008 paper reports only zeroth- and first-moment results; third-moment (mass) and TEM analyses were still underway when it was written.
-- The two sources give different summary statistics: the AIAA 2008 paper reports count mean diameters up to 263 nm (silicone rubber) and "all below 300 nm", while the NASA fact sheet reports arithmetic mean diameters "in the 100 to 200 nm range" and 227 nm for silicone rubber. The sources do not explain the difference; it may reflect later re-analysis.
+- Particle-size statistics conflict across the three sources. Both papers define the count mean diameter as the arithmetic mean diameter, so the values are the same statistic. The AIAA 2008 paper gives preliminary values up to 263 nm (silicone rubber) and "all below 300 nm". The AIAA 2009 paper gives lower, recalibrated values (Kapton 105 nm, Teflon 205 nm, lamp wick 227 nm) and reports no converged result for silicone rubber. The NASA fact sheet, which cites the 2009 paper, says arithmetic mean diameters were "in the 100 to 200 nm range" and gives 227 nm for silicone rubber; in the 2009 table, 227 nm is the lamp wick value and two values exceed 200 nm. Under the IGNIS source ranking the fact sheet (official NASA page) outranks the papers, so its statements are kept with attribution, but the 227 nm silicone value should not be used as a silicone measurement without this caveat.
+- PSI-102 has no experimental table. Its Approach text (igniter run for 15 to 60 s, thermophoretic soot samplers, a Far Field Box, combustion events of about 2 minutes) and its hardware entry (Comparative Soot Diagnostic hardware) do not match the SAME hardware described in both papers and appear to describe the earlier Comparative Soot Diagnostics experiment; only the PSI-102 objectives and hypothesis are used here.
 - The smoke transport findings come from a numerical model (Fire Dynamics Simulator) of the US Lab module, not from flight measurements.
 
 # Source Notes
 
 - nasa-fact-sheet: NASA fact sheet PDF covering SAME and SAME-R. Supports the objective, the evaluation of Shuttle ionization and ISS photoelectric detectors, Expedition 15 in the MSG, 30 samples of five materials, the tested variables (airflow, heating temperature, aging), and the results paragraphs on mass above 1 um, Teflon smoke, aging, 100 to 200 nm AMD, 227 nm silicone AMD, and ionization versus light-scattering detection.
 - ntrs-20080012612: Urban, Ruff, Brooker, Cleary, Yang, Mulholland and Yuan, "Spacecraft Fire Detection: Smoke Properties and Transport in Low-Gravity", AIAA 2008-806 (46th Aerospace Sciences Meeting). Supports the moment method, instrument details and ranges, the 60 s overheating procedure, Table 1 count mean diameters, the "50% larger" and "below 300 nm" conclusion, the "below 500 nm" abstract result, and the smoke transport model findings.
-- The NASA PSI record for SAME was not consulted because the PSI site could not be read by the tools used to draft this record. Member 3 should check it if available.
+- ntrs-20120012884: Urban, Ruff, Sheredy, Cleary, Yang, Mulholland and Yuan, "Properties of Smoke from Overheated Materials in Low-Gravity", AIAA 2009-0956 (47th Aerospace Sciences Meeting). Supports cellulose being the lamp wick sample, the third-moment calibration method, Table 1 baseline diameters, the non-convergence of the silicone results, and the detection conclusions for Kapton, Teflon, lamp wick and silicone. This is the "Urban et al. 2009" paper the fact sheet cites for its results.
+- psi-102: NASA PSI record for SAME. Supports the objective of quantifying liquid smoke particle sizes in low gravity and the hypothesis that microgravity liquid aerosol smoke will have larger droplets than in 1 g, possibly affecting detector response. It gives no oxygen, pressure or airflow values.
