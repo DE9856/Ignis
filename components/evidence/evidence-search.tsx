@@ -99,7 +99,7 @@ export function EvidenceSearch({ synthesisAvailable = false }: { synthesisAvaila
     <div className="space-y-5">
       <form
         onSubmit={handleSubmit}
-        className="space-y-3 rounded-lg border border-line bg-surface p-4"
+        className="space-y-3 rounded-lg border border-line bg-surface ticks p-4"
         role="search"
       >
         <label htmlFor="evidence-query" className="block text-xs font-medium text-ink">
@@ -280,7 +280,7 @@ function SearchResults({
       ) : null}
 
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 id="retrieved-title" className="text-sm font-semibold text-ink">
+        <h2 id="retrieved-title" className="text-sm font-medium text-ink">
           {contextOnly ? "Closest reviewed evidence, for context only" : "Retrieved evidence"}{" "}
           <span className="font-mono font-normal text-ink-faint">{response.results.length}</span>
         </h2>

@@ -55,7 +55,7 @@ export function ExperimentCard({
       data-flip-id={investigation.id}
       aria-current={selected ? "true" : undefined}
       className={cn(
-        "group relative flex scroll-mt-24 flex-col rounded-lg border bg-surface transition-[border-color,box-shadow] duration-200 hover:shadow-[0_8px_24px_-12px_rgb(0_0_0/0.6)]",
+        "group relative flex scroll-mt-36 flex-col rounded-lg border bg-surface transition-[border-color,box-shadow] duration-200 hover:shadow-[0_8px_24px_-12px_rgb(0_0_0/0.6)] lg:scroll-mt-28",
         selected ? "border-accent/60 ring-1 ring-accent/30" : "border-line hover:border-line-strong",
         className,
       )}
@@ -63,7 +63,7 @@ export function ExperimentCard({
       <div className="flex-1 px-4 pt-3.5 pb-3">
         <header className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <h3 className="text-sm leading-snug font-semibold text-ink">
+            <h3 className="text-sm leading-snug font-medium text-ink">
               {onSelect ? (
                 <button
                   type="button"

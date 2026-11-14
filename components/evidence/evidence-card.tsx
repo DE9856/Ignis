@@ -43,9 +43,7 @@ export function EvidenceCard({
     <article
       className={cn(
         "rounded-lg border bg-surface",
-        model.isInterpretation
-          ? "border-l-2 border-interpretation/35 border-l-interpretation/70"
-          : "border-line",
+        model.isInterpretation ? "border-interpretation/40" : "border-line",
         className,
       )}
     >
@@ -57,7 +55,7 @@ export function EvidenceCard({
             </span>
           ) : null}
           <div className="min-w-0">
-            <h3 className="text-sm font-semibold text-ink">
+            <h3 className="text-sm font-medium text-ink">
               {model.investigationId ? (
                 <a href={`/explore#${model.investigationId}`} className="hover:text-accent">
                   {model.heading}

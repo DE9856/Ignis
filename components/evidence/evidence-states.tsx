@@ -33,7 +33,7 @@ export function EvidenceRefusal({
           <p className="font-mono text-2xs tracking-[0.1em] text-ink-faint uppercase">
             Insufficient evidence
           </p>
-          <p className="text-base font-semibold text-ink">The reviewed evidence does not establish this.</p>
+          <p className="text-base font-medium text-ink">The reviewed evidence does not establish this.</p>
           <p className="text-sm2 leading-relaxed text-ink-muted">
             No human-reviewed passage matched <q className="text-ink">{query}</q>. IGNIS does not fill the gap
             with generated text or typical values; a missing answer is shown as missing.
@@ -49,7 +49,7 @@ export function EvidenceRefusal({
                 href="/explore"
                 className="text-ink underline decoration-line-strong underline-offset-2 hover:decoration-ink"
               >
-                Evidence Explorer
+                Investigations
               </Link>
               .
             </li>
@@ -212,7 +212,7 @@ export function GeneratedSummary({ result, className }: { result: GroundedSummar
       className={cn("rounded-lg border border-dashed border-generated/50 bg-generated/[0.04]", className)}
     >
       <header className="flex flex-wrap items-center justify-between gap-2 border-b border-dashed border-generated/30 px-4 py-2.5">
-        <p className="flex items-center gap-2 text-sm font-semibold text-ink">
+        <p className="flex items-center gap-2 text-sm font-medium text-ink">
           <Layers aria-hidden className="size-4 text-generated" />
           Summary of the reviewed evidence
         </p>
@@ -229,7 +229,7 @@ export function GeneratedSummary({ result, className }: { result: GroundedSummar
               <p className="font-mono text-2xs tracking-[0.1em] text-ink-faint uppercase">
                 Insufficient evidence
               </p>
-              <p className="text-base font-semibold text-ink">{NOT_ESTABLISHED}</p>
+              <p className="text-base font-medium text-ink">{NOT_ESTABLISHED}</p>
               <p className="text-sm text-ink-muted">
                 The reviewed knowledge does not contain enough to answer this question. The passages below are
                 the closest matches; IGNIS does not fill the gap with generated text or typical values.
@@ -261,9 +261,10 @@ export function GeneratedSummary({ result, className }: { result: GroundedSummar
                 {SYNTHESIS_SECTION_LABELS[section]}
               </p>
               {section === "answer" && result.answerWithheld ? (
-                <p className="text-sm text-ink-muted">
-                  The summary&apos;s direct answer did not pass the review check, so it is not shown. The
-                  supported findings below still apply; the removed sentence is listed at the end.
+                <p className="text-sm2 leading-relaxed text-ink">
+                  {result.partialGravity
+                    ? "No reviewed investigation was tested in lunar or Martian gravity, so IGNIS cannot answer this directly. Here is what the microgravity evidence shows; it can only bound the question."
+                    : "The passages do not support a single short answer to this question. Here is what they do show:"}
                 </p>
               ) : null}
               <ul

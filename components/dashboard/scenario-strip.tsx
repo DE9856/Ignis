@@ -34,10 +34,13 @@ export function ScenarioStrip({ draft, errors, onChange, presets }: ScenarioStri
   const query = draftToQuery(draft);
 
   return (
-    <section aria-labelledby="scenario-strip-title" className="rounded-lg border border-line bg-surface">
+    <section
+      aria-labelledby="scenario-strip-title"
+      className="rounded-lg border border-line bg-surface ticks"
+    >
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-line px-4 py-2.5">
         <div className="flex min-w-0 items-baseline gap-3">
-          <h2 id="scenario-strip-title" className="text-sm font-semibold text-ink">
+          <h2 id="scenario-strip-title" className="text-sm font-medium text-ink">
             Scenario
           </h2>
           <p className="truncate text-xs text-ink-muted">

@@ -82,7 +82,7 @@ export function LargestGap({ analysis, variant = "full", className }: LargestGap
         <div className="rounded-md border border-line bg-sunken/50">
           <div className="flex flex-wrap items-start justify-between gap-3 border-b border-line px-3.5 py-3">
             <div className="min-w-0">
-              <p className="text-lg leading-tight font-semibold text-ink">{FACTOR_LABELS[largest.factor]}</p>
+              <p className="text-lg leading-tight font-medium text-ink">{FACTOR_LABELS[largest.factor]}</p>
               <p className="mt-1 font-mono text-xs text-ink-muted">
                 Scenario: {scenarioFactorText(largest.factor, analysis.scenario)}
               </p>

@@ -217,7 +217,7 @@ export function ExplorerFilterBar({
   const numericFilterOn = filters.oxygen.trim() !== "" || filters.airflow.trim() !== "";
 
   return (
-    <div className={cn("space-y-3 rounded-lg border border-line bg-surface p-4", className)}>
+    <div className={cn("space-y-3 rounded-lg border border-line bg-surface ticks p-4", className)}>
       <div className="flex flex-wrap items-end gap-x-4 gap-y-3">
         <div className="relative w-full sm:w-64">
           <label htmlFor="explorer-query" className="sr-only">

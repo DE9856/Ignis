@@ -19,7 +19,7 @@ interface ScrollRevealProps {
  * panels below the fold rise in as they are scrolled to, in batches.
  * Without JavaScript, or with reduced motion, every panel is simply visible.
  */
-export function ScrollReveal({ children, className, delay = 140 }: ScrollRevealProps) {
+export function ScrollReveal({ children, className, delay = 380 }: ScrollRevealProps) {
   const root = useRef<HTMLDivElement>(null);
 
   useGSAP(

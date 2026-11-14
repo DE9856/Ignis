@@ -7,8 +7,7 @@ import "./globals.css";
 
 import type { Metadata } from "next";
 
-import { AppHeader } from "@/components/layout/app-header";
-import { AppSidebar } from "@/components/layout/app-sidebar";
+import { AppShell } from "@/components/layout/app-shell";
 
 export const metadata: Metadata = {
   title: { default: "IGNIS", template: "%s · IGNIS" },
@@ -26,21 +25,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         >
           Skip to content
         </a>
-        <div className="flex min-h-screen">
-          <AppSidebar />
-          <div className="flex min-w-0 flex-1 flex-col">
-            <AppHeader />
-            <main id="main" className="mx-auto w-full max-w-[84rem] flex-1 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
-              {children}
-            </main>
-            <footer className="border-t border-line px-4 py-4 sm:px-6 lg:px-8">
-              <p className="mx-auto max-w-[84rem] text-2xs leading-relaxed text-ink-faint">
-                NASA is the source of scientific evidence. IGNIS is an independent hackathon prototype built
-                for NASA Space Apps 2026 and is not an official NASA product. Not for flight safety decisions.
-              </p>
-            </footer>
-          </div>
-        </div>
+        <AppShell>{children}</AppShell>
       </body>
     </html>
   );

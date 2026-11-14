@@ -30,9 +30,9 @@ export default function EvidencePage() {
   return (
     <>
       <PageHeader
-        eyebrow="Evidence search"
-        title="Evidence Desk"
-        description="Search reviewed source passages directly. Each result carries its investigation, section, evidence class and NASA source, and the evidence always comes before any generated summary."
+        eyebrow="Evidence Desk"
+        title="Search the reviewed sources"
+        description="Search reviewed source passages directly. Each result carries its investigation, section, evidence class and NASA source. Where an optional answer is shown, the passages it was written from follow it, so every claim can be checked."
       />
       <ScrollReveal>
         <DegradedNotice notices={notices} />

@@ -39,7 +39,7 @@ export function GapCoverageBars({ gaps, className }: { gaps: GapResult[]; classN
                 key={gap.dimension}
                 className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1.5 sm:grid-cols-[10rem_minmax(0,1fr)_3.5rem_6.5rem]"
               >
-                <p className={cn("text-sm2", isLargest ? "font-semibold text-ink" : "text-ink")}>
+                <p className={cn("text-sm2", isLargest ? "font-medium text-ink" : "text-ink")}>
                   {DIMENSION_LABELS[gap.dimension]}
                   {isLargest ? <span className="sr-only"> (largest evidence gap)</span> : null}
                 </p>

@@ -72,6 +72,8 @@ export type SynthesisResponse =
       insufficient: boolean;
       /** The answer sentences failed the checks, but supported findings remain and are shown. */
       answerWithheld: boolean;
+      /** The question mentions lunar, Martian or partial gravity, which no verified record tested. */
+      partialGravity: boolean;
       /** Deterministic reasons for passages left out, e.g. an unverified investigation. Labelled COMPUTED. */
       notes: string[];
       /** True when a second model pass confirmed each kept statement against its cited passages. */

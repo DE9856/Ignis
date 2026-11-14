@@ -12,8 +12,8 @@ export default function ComparePage() {
   return (
     <>
       <PageHeader
-        eyebrow="Evidence"
-        title="Investigation comparison"
+        eyebrow="Compare"
+        title="Investigations side by side"
         description="Up to four investigations side by side: purpose, sample, environment, facility, what was measured and what was found. Rows that differ are marked; a value that is not reported cannot be called the same."
       />
       <ComparisonTable investigations={investigations} />

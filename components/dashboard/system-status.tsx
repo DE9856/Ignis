@@ -31,7 +31,7 @@ export function SystemStatus({
       detail:
         issueCount === 0
           ? "Read from knowledge/ on disk. No validation problems."
-          : `${issueCount} validation problem${issueCount === 1 ? "" : "s"}. See the Evidence Explorer.`,
+          : `${issueCount} validation problem${issueCount === 1 ? "" : "s"}. See Investigations.`,
     },
     {
       label: "Scoring methodology",

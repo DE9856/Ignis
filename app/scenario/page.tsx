@@ -8,7 +8,7 @@ import { getCapabilities } from "@/lib/core/capabilities";
 import { getDegradedNotices } from "@/lib/core/degraded";
 import { loadKnowledgeBase } from "@/lib/okf/loader";
 
-export const metadata: Metadata = { title: "Scenario Builder" };
+export const metadata: Metadata = { title: "Scenario" };
 
 export default function ScenarioPage() {
   const { investigations } = loadKnowledgeBase();
@@ -17,7 +17,7 @@ export default function ScenarioPage() {
   return (
     <>
       <PageHeader
-        eyebrow="Scenario Builder"
+        eyebrow="Scenario"
         title="Mission scenario analysis"
         description="Describe a spacecraft or habitat fire-safety scenario. See which reviewed investigations tested comparable conditions, why each scores as it does, and where the evidence runs out."
       />

@@ -127,14 +127,8 @@ input[type="number"]::-webkit-outer-spin-button {
 }
 
 @keyframes ignite-core {
-  0% {
+  from {
     transform: scale(0);
-  }
-  65% {
-    transform: scale(1.3);
-  }
-  100% {
-    transform: scale(1);
   }
 }
 
@@ -148,12 +142,6 @@ input[type="number"]::-webkit-outer-spin-button {
 @keyframes grow-x {
   from {
     scale: 0 1;
-  }
-}
-
-@keyframes bar-in {
-  from {
-    transform: scaleY(0);
   }
 }
 
@@ -204,13 +192,137 @@ input[type="number"]::-webkit-outer-spin-button {
   transform-origin: center;
 }
 .mark-core {
-  animation: ignite-core 640ms cubic-bezier(0.34, 1.56, 0.64, 1) 150ms backwards;
+  animation: ignite-core 640ms cubic-bezier(0.16, 1, 0.3, 1) 150ms backwards;
 }
 .mark-inner {
   animation: ignite-ring 900ms cubic-bezier(0.16, 1, 0.3, 1) 420ms backwards;
 }
 .mark-outer {
   animation: draw-ring 1100ms cubic-bezier(0.33, 1, 0.68, 1) 420ms backwards;
+}
+
+/*
+ * Landing page (/). Registration ticks mark the corners of an instrument panel;
+ * the field grid sits behind the whole page at very low contrast.
+ */
+@utility ticks {
+  --tick: 9px;
+  --tick-color: color-mix(in oklch, var(--color-ink-faint) 80%, transparent);
+  background-image:
+    linear-gradient(var(--tick-color), var(--tick-color)),
+    linear-gradient(var(--tick-color), var(--tick-color)),
+    linear-gradient(var(--tick-color), var(--tick-color)),
+    linear-gradient(var(--tick-color), var(--tick-color)),
+    linear-gradient(var(--tick-color), var(--tick-color)),
+    linear-gradient(var(--tick-color), var(--tick-color)),
+    linear-gradient(var(--tick-color), var(--tick-color)),
+    linear-gradient(var(--tick-color), var(--tick-color));
+  background-size:
+    var(--tick) 1px,
+    1px var(--tick),
+    var(--tick) 1px,
+    1px var(--tick),
+    var(--tick) 1px,
+    1px var(--tick),
+    var(--tick) 1px,
+    1px var(--tick);
+  background-position:
+    0 0,
+    0 0,
+    100% 0,
+    100% 0,
+    0 100%,
+    0 100%,
+    100% 100%,
+    100% 100%;
+  background-repeat: no-repeat;
+}
+
+@utility field-grid {
+  background-image:
+    linear-gradient(
+      45deg,
+      transparent calc(50% - 0.5px),
+      color-mix(in oklch, var(--color-ink) 3.5%, transparent) 50%,
+      transparent calc(50% + 0.5px)
+    ),
+    linear-gradient(
+      -45deg,
+      transparent calc(50% - 0.5px),
+      color-mix(in oklch, var(--color-ink) 3.5%, transparent) 50%,
+      transparent calc(50% + 0.5px)
+    );
+  background-size: 24px 24px;
+}
+
+@keyframes land-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+    filter: blur(6px);
+  }
+}
+
+@keyframes ring-in {
+  from {
+    opacity: 0;
+    transform: scale(0.9) rotate(-24deg);
+  }
+}
+
+@keyframes bob {
+  from {
+    translate: 0 -5px;
+  }
+  to {
+    translate: 0 5px;
+  }
+}
+
+@keyframes progress {
+  from {
+    scale: 0 1;
+  }
+}
+
+@keyframes orbit {
+  to {
+    rotate: 360deg;
+  }
+}
+
+/* One entrance sequence: header, ring, flame, tiles, copy. Delays come from --d. */
+.seq {
+  animation: land-in 760ms cubic-bezier(0.22, 1, 0.36, 1) var(--d, 0ms) backwards;
+}
+.seq-ring {
+  animation: ring-in 1100ms cubic-bezier(0.22, 1, 0.36, 1) var(--d, 0ms) backwards;
+}
+.bob {
+  animation: bob 3.4s ease-in-out var(--bob-delay, 0s) infinite alternate;
+}
+.orbit {
+  animation: orbit 120s linear infinite;
+}
+.journey-progress {
+  animation: progress linear both;
+}
+
+/* Journey accordion and family gallery: widths ease, nothing else moves. */
+.ease-panel {
+  transition:
+    flex-grow 700ms cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 300ms ease,
+    border-color 300ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .seq,
+  .seq-ring,
+  .bob,
+  .orbit {
+    animation: none !important;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
