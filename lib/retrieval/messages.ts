@@ -1,7 +1,9 @@
 /**
  * Fixed wording for bounded answers. Shown as intentional answers, not errors.
  *
- * Status: draft by Member 5, pending Member 3's review (handoff H13).
+ * Status: drafted by Member 5; reviewed 2026-11-14 by human:member2 acting for
+ * Member 3 (absent). All approved; NOT_ESTABLISHED added to FALSE_PREMISE so
+ * every refusal contains it. Member 3 may revisit (handoff H13).
  * Change wording here only; tests check the key phrase, not the full text.
  */
 
@@ -13,9 +15,11 @@ export const BOUNDARY_MESSAGES = {
   UNIVERSAL_GUARANTEE: `${NOT_ESTABLISHED} The reviewed investigations report results for the conditions they tested; none establishes a universal guarantee or threshold.`,
   PREDICTION_REQUEST: `IGNIS does not predict or extrapolate results to conditions that were not tested. ${NOT_ESTABLISHED} Evidence that may bound the question is listed below.`,
   DESIGN_PRESCRIPTION: `IGNIS does not make design, material or equipment recommendations. ${NOT_ESTABLISHED} Related reviewed evidence is listed for engineers to assess.`,
-  FALSE_PREMISE:
-    "Microgravity is not the same as lunar or Martian gravity. IGNIS treats microgravity evidence as a bound for partial-gravity questions, never as a direct match.",
+  FALSE_PREMISE: `Microgravity is not the same as lunar or Martian gravity. ${NOT_ESTABLISHED} IGNIS treats microgravity evidence as a bound for partial-gravity questions, never as a direct match.`,
   INSUFFICIENT_EVIDENCE: `${NOT_ESTABLISHED} No verified passage in the IGNIS corpus supports an answer to this question.`,
+  /** Informational, shown beside the evidence and summary: the question mentions a gravity level no record tested. */
+  PARTIAL_GRAVITY_BOUND:
+    "No reviewed investigation in the IGNIS corpus was tested in lunar, Martian or other partial gravity. The evidence here comes from microgravity (and some 1 g comparisons); it can only bound a partial-gravity question, never answer it directly.",
 } as const;
 
 export function coverageMessage(condition: string, matches: string[]): string {

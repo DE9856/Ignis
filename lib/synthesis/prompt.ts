@@ -10,7 +10,7 @@ import type { EvidenceChunk } from "@/lib/retrieval/types";
  * back.
  */
 
-export const PROMPT_VERSION = "synthesis-v3";
+export const PROMPT_VERSION = "synthesis-v4";
 
 export const SYSTEM_PROMPT = `You are the evidence synthesis component of IGNIS.
 You are not an independent source of scientific knowledge.
@@ -65,10 +65,19 @@ export interface ChatMessage {
   content: string;
 }
 
-export function buildMessages(question: string, chunks: EvidenceChunk[]): ChatMessage[] {
+/** Question-specific rules, e.g. when the question mentions a gravity level no passage tested. */
+export function buildMessages(
+  question: string,
+  chunks: EvidenceChunk[],
+  extraRules: string[] = [],
+): ChatMessage[] {
   const evidence = chunks.map(evidenceBlock).join("\n\n---\n\n");
+  const system =
+    extraRules.length === 0
+      ? SYSTEM_PROMPT
+      : `${SYSTEM_PROMPT}\n\nAlso, for this question:\n${extraRules.map((rule) => `- ${rule}`).join("\n")}`;
   return [
-    { role: "system", content: SYSTEM_PROMPT },
+    { role: "system", content: system },
     {
       role: "user",
       content: `<question>\n${question.trim()}\n</question>\n\n<evidence>\n${evidence}\n</evidence>\n\nAnswer the question from the evidence only, as the JSON object described.`,

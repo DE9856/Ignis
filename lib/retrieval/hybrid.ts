@@ -425,7 +425,8 @@ export function createHybridRetriever(options: HybridRetrieverOptions): Evidence
         }
       }
 
-      if (selected.length === 0 && boundary === null) {
+      // No evidence at all: "insufficient" takes over from an informational notice, never from a refusal.
+      if (selected.length === 0 && (boundary === null || !blocksSynthesis(boundary))) {
         boundary = {
           kind: "INSUFFICIENT_EVIDENCE",
           message: BOUNDARY_MESSAGES.INSUFFICIENT_EVIDENCE,

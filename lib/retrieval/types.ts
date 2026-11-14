@@ -167,6 +167,8 @@ export const BOUNDARY_KINDS = [
   "CORPUS_COVERAGE",
   "VALUE_NOT_REPORTED",
   "INSUFFICIENT_EVIDENCE",
+  /** Informational: the question mentions partial gravity and no verified record tested it. */
+  "PARTIAL_GRAVITY_BOUND",
 ] as const;
 export type BoundaryKind = (typeof BOUNDARY_KINDS)[number];
 

@@ -95,6 +95,7 @@ const BOUNDARY_LABELS: Record<BoundaryKind, string> = {
   CORPUS_COVERAGE: "Coverage of the reviewed records",
   VALUE_NOT_REPORTED: "Not reported",
   INSUFFICIENT_EVIDENCE: "Answer",
+  PARTIAL_GRAVITY_BOUND: "Partial gravity not tested",
 };
 
 /**
@@ -104,7 +105,10 @@ const BOUNDARY_LABELS: Record<BoundaryKind, string> = {
  * the same calm style as the refusal. Any passages below it are context.
  */
 export function BoundaryAnswer({ boundary, className }: { boundary: BoundaryNotice; className?: string }) {
-  const informational = boundary.kind === "VALUE_NOT_REPORTED" || boundary.kind === "CORPUS_COVERAGE";
+  const informational =
+    boundary.kind === "VALUE_NOT_REPORTED" ||
+    boundary.kind === "CORPUS_COVERAGE" ||
+    boundary.kind === "PARTIAL_GRAVITY_BOUND";
   const Icon = informational ? Info : ShieldAlert;
   return (
     <div role="note" className={cn("rounded-lg border border-line bg-surface", className)}>

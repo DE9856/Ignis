@@ -177,10 +177,39 @@ export function classifyBoundary(
   if (PATTERNS.CORPUS_COVERAGE.test(query) && understanding.gravity.includes("partial_gravity")) {
     return partialGravityCoverage(catalog);
   }
-  return valueNotReported(understanding, catalog) ?? unknownName(text, understanding, catalog);
+  return (
+    valueNotReported(understanding, catalog) ??
+    unknownName(text, understanding, catalog) ??
+    partialGravityBound(understanding, catalog)
+  );
 }
+
+/**
+ * Any question that mentions lunar, Martian or partial gravity, when no
+ * verified record was tested at it. Informational: the microgravity evidence
+ * and its summary are still shown, with this notice beside them. ("Was X
+ * tested on the Moon?" is answered by the blocking coverage notice above.)
+ */
+function partialGravityBound(
+  understanding: QueryUnderstanding,
+  catalog: EvidenceChunk[],
+): BoundaryNotice | null {
+  if (!understanding.gravity.includes("partial_gravity")) return null;
+  if (catalog.some((chunk) => chunk.gravityCondition === "partial_gravity")) return null;
+  return {
+    kind: "PARTIAL_GRAVITY_BOUND",
+    message: BOUNDARY_MESSAGES.PARTIAL_GRAVITY_BOUND,
+    details: ['Verified investigations with gravity condition "partial_gravity": none.'],
+  };
+}
+
+/** Kinds shown beside an answer rather than instead of one. They allow a summary. */
+const INFORMATIONAL_KINDS: ReadonlySet<BoundaryNotice["kind"]> = new Set([
+  "VALUE_NOT_REPORTED",
+  "PARTIAL_GRAVITY_BOUND",
+]);
 
 /** Kinds that must never be passed to a language model for an answer. */
 export function blocksSynthesis(notice: BoundaryNotice | null): boolean {
-  return notice !== null && notice.kind !== "VALUE_NOT_REPORTED";
+  return notice !== null && !INFORMATIONAL_KINDS.has(notice.kind);
 }

@@ -157,17 +157,21 @@ Retrieval-specific:
 
 Owner: Member 5. Code: `lib/synthesis/`, route `app/api/evidence/synthesize/route.ts`.
 
-Synthesis only ever summarises evidence the user has already seen. It is off unless `OPTIONAL_LLM_API_KEY` (a Groq key) is set; `OPTIONAL_LLM_MODEL` picks the model. Check both with `npm run check:llm`.
+Synthesis only ever summarises evidence that is shown with it. It is off unless `OPTIONAL_LLM_API_KEY` (a Groq key) is set; `OPTIONAL_LLM_MODEL` picks the model (default `openai/gpt-oss-120b`). Check both with `npm run check:llm`.
 
-1. The user searches, reads the passages, ticks "Use in summary" on some of them and presses **Summarise**.
-2. The browser sends only the question and the passage ids. The server reloads the passages from its own verified catalog, so text from the browser is never summarised.
-3. The question goes through the same boundary guard as search. Probability, guarantee, prediction and design questions are refused before any model call.
-4. The model gets the brief's synthesis prompt (`lib/synthesis/prompt.ts`), the passages labelled `S1`, `S2`, … with their evidence class, temperature 0 and JSON mode. Question and passages are marked as data, not instructions.
-5. Every statement the model returns goes through `lib/synthesis/grounding.ts`. It is removed if it:
+Decision (2026-11-14, reviewed by human:member2 acting for Member 3, see `docs/team-handoff.md`): the summary is written automatically for every search and shown **above** the evidence, reversing the brief's "synthesis only on request". The passages it was written from are always listed below it. Users can re-summarise from passages they tick.
+
+1. The user searches. The browser sends only the question and the ids of the retrieved passages (or the ticked ones). The server reloads the passages from its own verified catalog, so text from the browser is never summarised.
+2. The question goes through the same boundary guard as search. Probability, guarantee, prediction, design and "was it tested on the Moon?" questions are refused before any model call. A question that mentions partial gravity when no verified record was tested there gets an informational notice (`PARTIAL_GRAVITY_BOUND`): the summary is still written, carries the notice, and must say so in Limitations.
+3. If the question names investigations, only their passages are summarised (`scope.ts`); if none has a passage, the answer is "insufficient" with no model call.
+4. A cached summary for the same question, passages, model and prompt versions is returned at once (`cache.ts`, 500 entries, 6 hours, failures never cached).
+5. The model gets the brief's synthesis prompt (`lib/synthesis/prompt.ts`), the passages labelled `S1`, `S2`, … with their evidence class, temperature 0 and JSON mode. Question and passages are marked as data, not instructions.
+6. Every statement goes through `lib/synthesis/grounding.ts`. It is removed if it:
    - cites no source, or a source that was not supplied;
    - contains a number that is not in a passage it cites (in Limitations, numbers from the question are also allowed);
    - sits under NASA evidence but cites team interpretation, or the reverse;
    - states a probability, a guarantee or a safety verdict.
-6. If no grounded answer survives, the answer is "The reviewed evidence does not establish this." Removed statements are listed under the summary with the reason, never dropped silently.
+7. A second model call reviews each remaining statement against only the passages it cites (`lib/synthesis/verify.ts`) and removes any it does not support, for example a result attributed to the wrong flow direction or material. If that review fails, no summary is shown.
+8. If no answer survives, the answer is "The reviewed evidence does not establish this." under an "Insufficient evidence" heading. Removed statements are listed under the summary with the reason, never dropped silently.
 
-The summary is shown after the evidence, with a dashed border, the GENERATED_SUMMARY badge, a citation number on every statement and the model id. Tests: `tests/synthesis/synthesis.test.ts` (a fake model, no network).
+The summary has a dashed border, the GENERATED_SUMMARY badge, a citation number on every statement and the model id. The checks reduce mistakes but do not remove them; the footer says so. Tests: `tests/synthesis/` (a fake model, no network).

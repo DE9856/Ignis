@@ -86,7 +86,8 @@ describe("classifyBoundary", () => {
     it(`${item.id}: ${item.question}`, () => {
       const notice = classifyBoundary(item.question, understand(item.question), catalog);
       expect(notice?.kind ?? null).toBe(item.guardKind);
-      if (notice && notice.kind !== "FALSE_PREMISE" && notice.kind !== "CORPUS_COVERAGE") {
+      // Every refusal contains the phrase; a coverage notice that names matches is not a refusal.
+      if (notice && notice.kind !== "CORPUS_COVERAGE") {
         expect(notice.message).toContain(NOT_ESTABLISHED);
       }
     });

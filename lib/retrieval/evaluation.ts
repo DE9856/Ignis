@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { CHUNK_TYPES, type EvidenceChunk, type RetrievalResponse } from "./types";
+import { BOUNDARY_KINDS, CHUNK_TYPES, type EvidenceChunk, type RetrievalResponse } from "./types";
 
 /**
  * Retrieval evaluation (Member 5 brief, Part F): Top-1/3/5 hit rate and MRR,
@@ -21,6 +21,8 @@ const evalCaseSchema = z.object({
   expected: z.array(z.string()),
   expectedSections: z.array(z.enum(CHUNK_TYPES)).optional(),
   labelSource: z.string().optional(),
+  /** A notice the answer must carry, e.g. PARTIAL_GRAVITY_BOUND for a lunar question. */
+  expectedBoundary: z.enum(BOUNDARY_KINDS).optional(),
 });
 export type EvalCase = z.infer<typeof evalCaseSchema>;
 
@@ -66,6 +68,8 @@ export interface CaseOutcome {
   sectionHitAt3: boolean | null;
   recall: number | null;
   negativePass: boolean | null;
+  /** Whether the expected notice was shown; null when none is expected. */
+  boundaryOk: boolean | null;
   /** Returned investigations not in the expected list, for manual review of false positives. */
   unexpected: string[];
 }
@@ -93,6 +97,10 @@ export function scoreCase(
     sectionHitAt3: null,
     recall: null,
     negativePass: null,
+    boundaryOk:
+      item.expectedBoundary === undefined
+        ? null
+        : response.status === "ok" && response.boundary?.kind === item.expectedBoundary,
     unexpected: [],
   };
 
@@ -211,6 +219,11 @@ export function renderReport(input: {
       `| ${summary.label} | ${summary.scored} | ${pct(summary.hit[1])} (${pct(summary.chance[1])}) | ${pct(summary.hit[3])} (${pct(summary.chance[3])}) | ${pct(summary.hit[5])} (${pct(summary.chance[5])}) | ${summary.mrr === null ? "n/a" : summary.mrr.toFixed(2)} | ${pct(summary.sectionHitAt3)} of ${summary.sectionCases} | ${pct(summary.recall)} of ${summary.recallCases} | ${pct(summary.negativePass)} of ${summary.negativeCases} | ${summary.notScorable} |`,
     );
   }
+  const noticeCases = input.outcomes.filter((outcome) => outcome.boundaryOk !== null);
+  if (noticeCases.length > 0) {
+    const shown = noticeCases.filter((outcome) => outcome.boundaryOk).length;
+    lines.push("", `Expected notices shown: ${shown} of ${noticeCases.length}.`);
+  }
   lines.push(
     "",
     "## Per question",
@@ -228,8 +241,10 @@ export function renderReport(input: {
         : outcome.hit[5]
           ? `hit at ${Math.round(1 / outcome.reciprocalRank)}`
           : "MISS";
+    const notice =
+      outcome.boundaryOk === null ? "" : outcome.boundaryOk ? "; notice shown" : "; NOTICE MISSING";
     lines.push(
-      `| ${outcome.id} | ${outcome.split} | ${outcome.kind} | ${outcome.query.replace(/\|/g, "/")} | ${result} | ${[...new Set(outcome.ranked)].slice(0, 5).join(", ") || "none"} | ${outcome.unexpected.join(", ") || "-"} |`,
+      `| ${outcome.id} | ${outcome.split} | ${outcome.kind} | ${outcome.query.replace(/\|/g, "/")} | ${result}${notice} | ${[...new Set(outcome.ranked)].slice(0, 5).join(", ") || "none"} | ${outcome.unexpected.join(", ") || "-"} |`,
     );
   }
   lines.push(
