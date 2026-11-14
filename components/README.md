@@ -44,15 +44,18 @@ The dashboard and the Scenario Builder share one scenario through the URL (`?oxy
 
 ### evidence/
 
-| Component                            | Props                                                                             | States                                                                     |
-| ------------------------------------ | --------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
-| `ProvenanceBadge`, `PROVENANCE_INFO` | `value: ProvenanceClass`                                                          | Labels from `getProvenanceLabel()`; meaning in the tooltip                 |
-| `ProvenanceLegend`                   | `classes?`, `variant: "inline" \| "table"`                                        |                                                                            |
-| `EvidenceCard`                       | `input: RetrievedEvidence \| EvidenceChunk`, `rank`, `query`, `filters`, `action` | Interpretation chunks drawn apart (violet rule)                            |
-| `WhyRetrieved`                       | `result`, `query`, `filters`                                                      | Query terms in passage, chunk metadata, lexical / vector / combined scores |
-| `EvidenceSearch`                     | `synthesisAvailable`                                                              | idle, loading, unavailable, refusal, results, error                        |
-| `EvidenceRefusal`                    | `query`                                                                           | "The reviewed evidence does not establish this."                           |
-| `GeneratedSummary`                   | `text`, `citations`                                                               | Not wired yet: synthesis is not implemented (Member 5)                     |
+| Component                            | Props                                                                             | States                                                                       |
+| ------------------------------------ | --------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| `ProvenanceBadge`, `PROVENANCE_INFO` | `value: ProvenanceClass`                                                          | Labels from `getProvenanceLabel()`; meaning in the tooltip                   |
+| `ProvenanceLegend`                   | `classes?`, `variant: "inline" \| "table"`                                        |                                                                              |
+| `EvidenceCard`                       | `input: RetrievedEvidence \| EvidenceChunk`, `rank`, `query`, `filters`, `action` | Interpretation chunks drawn apart (violet rule)                              |
+| `WhyRetrieved`                       | `result`, `query`, `filters`                                                      | Query terms in passage, chunk metadata, lexical / vector / combined scores   |
+| `EvidenceSearch`                     | `synthesisAvailable`                                                              | idle, loading, unavailable, refusal, bounded answer, listing, results, error |
+| `EvidenceRefusal`                    | `query`, `details?`                                                               | "The reviewed evidence does not establish this."                             |
+| `BoundaryAnswer`                     | `boundary: BoundaryNotice`                                                        | Bounded answer shown first; wording from `lib/retrieval/messages.ts`         |
+| `ListingSummary`                     | `listing: EvidenceListing`, `names`                                               | List questions answered from record metadata                                 |
+| `SearchNotice`                       | `notice: string \| null`                                                          | Quiet operational note, e.g. keyword-only search                             |
+| `GeneratedSummary`                   | `text`, `citations`                                                               | Not wired yet: synthesis is not implemented (Member 5)                       |
 
 ### scenario/ (score explanation)
 
