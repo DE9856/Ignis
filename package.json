@@ -12,7 +12,12 @@
     "test:watch": "vitest",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "check": "npm run format:check && npm run lint && npm run typecheck && npm run test"
+    "validate:knowledge": "tsx scripts/validate-knowledge.ts",
+    "inspect:knowledge": "tsx scripts/inspect-knowledge.ts",
+    "check:env": "tsx scripts/check-env.ts",
+    "check:db": "tsx scripts/check-db.ts",
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm run test && npm run validate:knowledge",
+    "check:ci": "npm run check && npm run build"
   },
   "dependencies": {
     "@fontsource/ibm-plex-mono": "^5.3.0",
@@ -39,6 +44,7 @@
     "prettier": "^3.10.1",
     "prettier-plugin-tailwindcss": "^0.8.1",
     "tailwindcss": "4.3.3",
+    "tsx": "^4.23.15",
     "typescript": "^5",
     "vitest": "^5.1.0"
   },
