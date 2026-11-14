@@ -8,7 +8,7 @@ description: >-
   overheated spacecraft materials below their ignition point, aged the smoke for 11 to 1800 s, and
   measured particle size, morphology and the response of smoke detectors, including a prototype
   two-moment detector.
-status: draft
+status: stable
 
 safetyCategories:
   - detection
@@ -93,7 +93,10 @@ generated:
   at: 2026-11-14
   tool: claude-assisted extraction
 
-verified: []
+verified:
+  - by: human:member3
+    at: 2026-11-14
+    note: "Scope: all. Checked against the cited NASA sources, using the docs/reviews source-check report."
 ---
 
 # Objective
@@ -134,7 +137,7 @@ SAME-R used the SAME "moment method": separate instruments measured the zeroth (
 - All samples produced significant numbers of sub-micron particles readily detected by an ionization smoke detector; aging results suggest some materials such as silicone rubber can produce smoke that grows to sizes better detected by light scattering (conclusions).
 - Zero-flow conditions produced smoke particles 2 to 3 times larger than those produced at the nominal 8 cm/s flow (conclusions).
 - Aging substantially increased observed diameters, mainly by removing the smallest particles through coagulation.
-- The prototype two-moment detector (MPASS) reduced the relative variance of its response by roughly a factor of at least 2 compared with a single-output sensor, which the authors describe as showing potential to detect a broad particle range while avoiding false alarms from dust.
+- The prototype two-moment detector (MPASS) reduced the relative variance of its response by roughly a factor of at least 2 compared with a single-output sensor, which the authors describe as showing potential to respond to a broad particle range while avoiding excessive false alarms from nuisance sources such as dust.
 - TEM imaging showed liquid-like droplets for lamp wick, silicone rubber and Kapton smoke and fractal-like agglomerates for Teflon and Pyrell; Pyrell smoke changed from clusters at 8 cm/s to spherical particles with no airflow.
 
 # Fire Safety Relevance
@@ -148,7 +151,7 @@ Team interpretation: SAME-R extends SAME's microgravity smoke data to more mater
 - Sample shape, size, oxygen concentration and pressure are not stated in the sources consulted.
 - Heating temperatures were material specific and are not tabulated in the sections consulted.
 - Zero-flow tests were not in the original hardware design; about half the smoke was lost from the system in those tests.
-- The log-normal distribution assumption used for geometric statistics could not be directly tested with the available instruments.
+- The log-normal distribution assumption used for geometric statistics could not be directly tested with the flight data; the 2012 paper gives two indications that it is a reasonable approximation. The fact sheet says later ground tests with a Scanning Mobility Particle Sizer were used to check it, but those results are not in the sources consulted.
 - Silicone rubber and dibutyl-phthalate particles were not visible by TEM, presumably because liquid particles evaporated before imaging.
 
 # Source Notes

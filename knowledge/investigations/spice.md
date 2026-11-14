@@ -7,7 +7,7 @@ description: >-
   ISS investigation in the Microgravity Science Glovebox that burned small gas-jet flames in a
   co-flowing air duct to find the laminar smoke point (the largest flame that does not emit soot)
   for several fuels, nozzle sizes and co-flow speeds in microgravity.
-status: draft
+status: stable
 
 safetyCategories:
   - prevention
@@ -87,12 +87,15 @@ generated:
   at: 2026-11-14
   tool: claude-assisted extraction
 
-verified: []
+verified:
+  - by: human:member3
+    at: 2026-11-14
+    note: "Scope: all. Checked against the cited NASA sources, using the docs/reviews source-check report."
 ---
 
 # Objective
 
-SPICE determined the point at which small gas-jet flames, similar to a butane-lighter flame, begin to emit soot in microgravity. NASA states it would determine the laminar smoke point properties of non-buoyant jet diffusion flames (the properties of the largest laminar jet diffusion flames that do not emit soot) for several fuels and nozzle diameter / co-flow velocity configurations, measure flame shape and stabilization height, and continue work begun by the Laminar Soot Processes (LSP) experiment on STS-94. NASA states that soot dominates heat emitted from flames in normal gravity and microgravity fires, so understanding soot is important to fire spread, to predicting heat release in microgravity fires, and to improved flammability criteria for selecting spacecraft materials.
+SPICE determined the point at which small gas-jet flames, similar to a butane-lighter flame, begin to emit soot in microgravity. NASA states it would determine the laminar smoke point properties of non-buoyant jet diffusion flames (the properties of the largest laminar jet diffusion flames that do not emit soot) for several fuels and nozzle diameter / co-flow velocity configurations, measure flame shape and stabilization height, measure the temperature field to verify flame structure predictions, and continue work begun by the Laminar Soot Processes (LSP) experiment on STS-94. NASA states that soot dominates heat emitted from flames in normal gravity and microgravity fires, so understanding soot is important to fire spread, to predicting heat release in microgravity fires, and to improved flammability criteria for selecting spacecraft materials.
 
 # Experimental Conditions
 
@@ -133,8 +136,9 @@ Team interpretation: soot controls how much heat a flame radiates, and NASA link
 # Limitations
 
 - The sources consulted are NASA summaries; the smoke-point values and co-flow speeds themselves are not given.
+- The temperature-field measurement is a stated objective, but no source consulted reports temperature results.
 - Only three of the six fuels are named.
-- The planned 54 test points and the reported 250 tests differ; the sources do not explain the difference (repeats or added conditions are possible but not stated).
+- The planned 54 test points and the reported 250 tests differ. The investigation summary says periodic repeat points were desired if time allowed, but no source states how the 250 tests break down.
 - Oxygen and pressure are not stated; the MSG normally operates with ISS air.
 - All tests were in microgravity.
 

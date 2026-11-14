@@ -7,7 +7,7 @@ description: >-
   ISS investigation in the Microgravity Science Glovebox that used the SPICE flow duct to burn
   methane and ethylene coflow jet flames, from weak diluted flames near extinction to strongly
   sooting flames, to study liftoff, blowout and soot formation in microgravity.
-status: draft
+status: stable
 
 safetyCategories: []
 
@@ -80,7 +80,10 @@ generated:
   at: 2026-11-14
   tool: claude-assisted extraction
 
-verified: []
+verified:
+  - by: human:member3
+    at: 2026-11-14
+    note: "Scope: all. Checked against the cited NASA sources, using the docs/reviews source-check report."
 ---
 
 # Objective
@@ -119,8 +122,8 @@ An analog color video camera monitored the flame, with fuel flow, fan setting, a
 - SLICE produced a comprehensive and unique set of microgravity coflow diffusion flame data, from weak flames near extinction to strong, highly sooting flames, enabling study of gravitational effects on liftoff, blowout and soot formation (NASA-co-authored paper, abstract).
 - For 100% methane coflow flames, microgravity flames were found to be sootier than normal-gravity flames by a factor of approximately 4 to 8 in peak soot volume fraction.
 - The location of peak soot shifted from the flame centerline in normal gravity to the flame wings in microgravity.
-- Microgravity flame temperature was lower than in normal gravity, attributed to higher soot loading and radiative loss.
-- Computations matched flame shape and the soot shift but underestimated soot volume fraction, especially in microgravity.
+- Microgravity flame temperature was lower than in normal gravity, attributed to higher soot loading and radiative loss; the peak soot temperature in microgravity was about 200 K lower than at 1 g.
+- Computations matched flame shape and the shift of soot toward the wings. The predicted soot volume fraction was the same order of magnitude as measured at 1 g, but the computation did not capture the large increase in microgravity.
 
 # Fire Safety Relevance
 
