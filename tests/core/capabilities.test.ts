@@ -14,6 +14,7 @@ function clearEnv() {
     "NEXT_PUBLIC_SUPABASE_ANON_KEY",
     "SUPABASE_SERVICE_ROLE_KEY",
     "OPTIONAL_LLM_API_KEY",
+    "OPTIONAL_LLM_MODEL",
     "NEXT_PUBLIC_IGNIS_DEV_MOCKS",
   ]) {
     vi.stubEnv(name, "");
@@ -39,7 +40,7 @@ describe("getCapabilities", () => {
     });
   });
 
-  it("needs both Supabase values for retrieval, and does not claim synthesis that is not built", () => {
+  it("needs both Supabase values for retrieval, and an LLM key for synthesis", () => {
     clearEnv();
     vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://test.invalid");
     expect(getCapabilities().supabaseEnabled).toBe(false);
@@ -50,11 +51,11 @@ describe("getCapabilities", () => {
     const capabilities = getCapabilities();
     expect(capabilities.supabaseEnabled).toBe(true);
     expect(capabilities.supabaseConfigured).toBe(true);
-    expect(capabilities.llmConfigured).toBe(true); // key present...
+    expect(capabilities.llmConfigured).toBe(true);
     expect(capabilities.retrievalImplemented).toBe(true);
     expect(capabilities.ingestionEnabled).toBe(true);
     expect(capabilities.retrievalEnabled).toBe(true); // implemented in code AND Supabase configured
-    expect(capabilities.llmEnabled).toBe(false);
+    expect(capabilities.llmEnabled).toBe(true); // synthesis is built, and the key is set
   });
 
   it("sees verified knowledge only when a human-reviewed record is loaded", () => {

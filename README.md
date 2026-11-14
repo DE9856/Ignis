@@ -22,7 +22,7 @@ Scaffold. The application runs, every route renders, and the data pipeline from 
 | Knowledge records               | None yet                                                       |
 | Supabase                        | Schema migration and health check; no data                     |
 | Chunking, embeddings, retrieval | Interfaces, contract tests and a development mock              |
-| LLM synthesis                   | Not started, optional                                          |
+| LLM synthesis                   | Built (`lib/synthesis/`), optional: Groq, grounded and checked |
 
 ## Architecture overview
 
@@ -84,12 +84,13 @@ All commands, the post-knowledge-merge checklist and the diagnostics pages are i
 
 Copy `.env.example` to `.env.local`. All are optional; without them the app reads local knowledge files and the dashboard reports Supabase as not configured.
 
-| Variable                        | Used for                                     |
-| ------------------------------- | -------------------------------------------- |
-| `NEXT_PUBLIC_SUPABASE_URL`      | Supabase project URL                         |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon key (browser-safe)             |
-| `SUPABASE_SERVICE_ROLE_KEY`     | Server-only key for ingestion scripts        |
-| `OPTIONAL_LLM_API_KEY`          | Optional grounded synthesis, not implemented |
+| Variable                        | Used for                                               |
+| ------------------------------- | ------------------------------------------------------ |
+| `NEXT_PUBLIC_SUPABASE_URL`      | Supabase project URL                                   |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon key (browser-safe)                       |
+| `SUPABASE_SERVICE_ROLE_KEY`     | Server-only key for ingestion scripts                  |
+| `OPTIONAL_LLM_API_KEY`          | Optional Groq key for grounded synthesis               |
+| `OPTIONAL_LLM_MODEL`            | Optional Groq model id (default `openai/gpt-oss-120b`) |
 
 Never commit real keys. `.env*` is git-ignored except `.env.example`.
 

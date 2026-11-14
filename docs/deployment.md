@@ -85,7 +85,8 @@ The migration is pinned by `tests/contract/supabase-schema.test.ts` (no live dat
 | `NEXT_PUBLIC_SUPABASE_URL`      | PUBLIC, optional          | Project URL (https only; localhost allowed)             |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | PUBLIC, optional          | Read-only key. Safe to expose because RLS limits it     |
 | `SUPABASE_SERVICE_ROLE_KEY`     | **SERVER-ONLY**, optional | Admin key for ingestion and server code. Bypasses RLS   |
-| `OPTIONAL_LLM_API_KEY`          | SERVER-ONLY, optional     | Grounded synthesis (not implemented)                    |
+| `OPTIONAL_LLM_API_KEY`          | SERVER-ONLY, optional     | Groq key for grounded synthesis                         |
+| `OPTIONAL_LLM_MODEL`            | SERVER-ONLY, optional     | Groq model id; defaults to `openai/gpt-oss-120b`        |
 | `NEXT_PUBLIC_IGNIS_DEV_MOCKS`   | PUBLIC, dev only          | Synthetic TEST data. Ignored when `NODE_ENV=production` |
 
 Both Supabase public values must be set together, or neither. `.env.local` is git-ignored (`.env*` except `.env.example`). `npm run check:env` also flags a service-role key placed in a `NEXT_PUBLIC_` variable.

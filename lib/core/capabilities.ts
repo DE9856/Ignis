@@ -37,8 +37,8 @@ export interface Capabilities {
   devMocksEnabled: boolean;
 }
 
-/** Flip to true in the pull request that adds grounded synthesis. */
-export const SYNTHESIS_IMPLEMENTED = false;
+/** Grounded synthesis is built (`lib/synthesis/`). It is enabled only when an LLM key is set. */
+export const SYNTHESIS_IMPLEMENTED = true;
 
 /**
  * Development mocks need two things: a non-production build and an explicit

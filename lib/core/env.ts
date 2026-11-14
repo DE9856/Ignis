@@ -65,7 +65,13 @@ export const ENV_SPECS: readonly EnvVarSpec[] = [
     name: "OPTIONAL_LLM_API_KEY",
     requirement: "OPTIONAL",
     exposure: "server",
-    purpose: "Optional grounded synthesis. The app is complete without it.",
+    purpose: "Groq API key for optional grounded synthesis. The app is complete without it.",
+  },
+  {
+    name: "OPTIONAL_LLM_MODEL",
+    requirement: "OPTIONAL",
+    exposure: "server",
+    purpose: "Groq model id for synthesis. Defaults to openai/gpt-oss-120b.",
   },
 ];
 

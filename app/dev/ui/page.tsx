@@ -87,13 +87,41 @@ export default async function DevUiPage() {
               <EvidenceCard key={result.chunk.id} input={result} rank={index + 1} query="smoke oxygen" />
             ))}
             <GeneratedSummary
-              text="TEST summary text. A layout check for the generated-summary block; it summarises nothing real."
-              citations={evidence.map((result) => ({
-                id: result.chunk.id,
-                heading: result.chunk.title,
-                section: result.chunk.section,
-                sourceUrl: result.chunk.sourceUrl,
-              }))}
+              result={{
+                status: "ok",
+                model: "groq:test-model",
+                insufficient: false,
+                notes: ["TEST note: passages about TEST_INVESTIGATION_BETA were not summarised."],
+                sections: {
+                  answer: [
+                    {
+                      text: "TEST answer sentence. A layout check; it summarises nothing real.",
+                      sources: [evidence[0].chunk.id],
+                    },
+                  ],
+                  nasaEvidence: [{ text: "TEST NASA evidence sentence.", sources: [evidence[0].chunk.id] }],
+                  teamInterpretation: [
+                    { text: "TEST team interpretation sentence.", sources: [evidence[1].chunk.id] },
+                  ],
+                  limitations: [{ text: "TEST limitation sentence.", sources: [evidence[0].chunk.id] }],
+                },
+                removed: [
+                  {
+                    section: "answer",
+                    text: "TEST removed sentence with 42 units.",
+                    reason: "contains 42, which the cited evidence does not contain",
+                  },
+                ],
+                sources: evidence.map((result, index) => ({
+                  id: result.chunk.id,
+                  number: index + 1,
+                  investigation: result.chunk.investigation,
+                  section: result.chunk.section,
+                  chunkType: result.chunk.chunkType,
+                  sourceClass: result.chunk.sourceClass,
+                  sourceUrl: result.chunk.sourceUrl,
+                })),
+              }}
             />
           </div>
         </Section>
