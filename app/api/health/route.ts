@@ -4,8 +4,9 @@ import { getCapabilities } from "@/lib/core/capabilities";
 import { toUserFacingError } from "@/lib/core/errors";
 import { summarizeKnowledge } from "@/lib/integration/knowledge";
 import { loadKnowledgeBase } from "@/lib/okf/loader";
-import { getMethodologyStatus } from "@/lib/ranking/methodology";
 import { checkDatabaseHealth } from "@/lib/supabase/health";
+
+const NO_STORE = { headers: { "Cache-Control": "no-store" } };
 
 /**
  * GET /api/health          configuration and knowledge counts
@@ -22,25 +23,35 @@ export async function GET(request: NextRequest) {
     const summary = summarizeKnowledge(knowledge);
     const capabilities = getCapabilities(knowledge.investigations);
 
-    return Response.json({
-      status: "ok",
-      knowledge: {
-        loaded: true,
-        concepts: summary.total,
-        investigations: summary.investigations,
-        verifiedConcepts: summary.humanReviewed,
-        filesWithProblems: summary.issues,
+    return Response.json(
+      {
+        status: "ok",
+        knowledge: {
+          loaded: true,
+          concepts: summary.total,
+          investigations: summary.investigations,
+          verifiedConcepts: summary.humanReviewed,
+          filesWithProblems: summary.issues,
+        },
+        database: {
+          configured: capabilities.supabaseConfigured,
+          ...(deep ? { check: await checkDatabaseHealth() } : {}),
+        },
+        retrieval: {
+          implemented: capabilities.retrievalImplemented,
+          configured: capabilities.retrievalEnabled,
+        },
+        synthesis: { configured: capabilities.llmEnabled },
+        llm: { configured: capabilities.llmConfigured },
+        methodology: { configured: capabilities.methodologyConfigured },
       },
-      database: {
-        configured: capabilities.supabaseEnabled,
-        ...(deep ? { check: await checkDatabaseHealth() } : {}),
-      },
-      retrieval: { configured: capabilities.retrievalEnabled },
-      synthesis: { configured: capabilities.llmEnabled },
-      methodology: { configured: getMethodologyStatus().configured },
-    });
+      NO_STORE,
+    );
   } catch (error) {
     const { code, message, detail } = toUserFacingError(error);
-    return Response.json({ status: "error", code, message, detail }, { status: 500 });
+    return Response.json(
+      { status: "error", code, message, detail },
+      { status: 500, headers: NO_STORE.headers },
+    );
   }
 }

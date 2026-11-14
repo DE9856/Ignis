@@ -24,6 +24,9 @@ describe("getCapabilities", () => {
   it("reports everything off, without throwing, when nothing is configured", () => {
     clearEnv();
     expect(getCapabilities()).toEqual({
+      supabaseConfigured: false,
+      retrievalImplemented: false,
+      llmConfigured: false,
       supabaseEnabled: false,
       ingestionEnabled: false,
       retrievalEnabled: false,
@@ -44,6 +47,9 @@ describe("getCapabilities", () => {
     vi.stubEnv("OPTIONAL_LLM_API_KEY", "test-llm");
     const capabilities = getCapabilities();
     expect(capabilities.supabaseEnabled).toBe(true);
+    expect(capabilities.supabaseConfigured).toBe(true);
+    expect(capabilities.llmConfigured).toBe(true); // key present...
+    expect(capabilities.retrievalImplemented).toBe(false); // ...but Supabase/pgvector never implies retrieval
     expect(capabilities.ingestionEnabled).toBe(true);
     expect(capabilities.retrievalEnabled).toBe(false);
     expect(capabilities.llmEnabled).toBe(false);
@@ -87,6 +93,9 @@ describe("getDegradedNotices", () => {
 
   it("is empty when everything is available", () => {
     const all = {
+      supabaseConfigured: true,
+      retrievalImplemented: true,
+      llmConfigured: true,
       supabaseEnabled: true,
       ingestionEnabled: true,
       retrievalEnabled: true,
