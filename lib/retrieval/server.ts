@@ -8,6 +8,7 @@ import { buildCorpusChunks, defaultKnowledgeRoot } from "./corpus";
 import { createHybridRetriever } from "./hybrid";
 import { createMemoryStore } from "./memory-store";
 import { RETRIEVAL_NOTICES } from "./messages";
+import type { EvidenceStore } from "./store";
 import { createSupabaseStore, readSupabaseConfig } from "./supabase-store";
 import { CHUNK_TYPES, type EvidenceRetriever, type RetrievalQuery, type RetrievalResponse } from "./types";
 
@@ -21,31 +22,42 @@ import { CHUNK_TYPES, type EvidenceRetriever, type RetrievalQuery, type Retrieva
  *   variables, which the team requires.
  */
 
-let supabaseRetriever: EvidenceRetriever | null = null;
-let local: { at: number; retriever: EvidenceRetriever } | null = null;
+let supabase: { store: EvidenceStore; retriever: EvidenceRetriever } | null = null;
+let local: { at: number; store: EvidenceStore; retriever: EvidenceRetriever } | null = null;
 const LOCAL_TTL_MS = 30_000;
 
-export function getServerRetriever(): EvidenceRetriever {
-  const supabase = readSupabaseConfig("anon");
-  if (supabase) {
-    supabaseRetriever ??= createHybridRetriever({
-      store: createSupabaseStore(supabase),
-      embedder: getQueryEmbedder(),
-    });
-    return supabaseRetriever;
+function currentBackend(): { store: EvidenceStore; retriever: EvidenceRetriever } {
+  const config = readSupabaseConfig("anon");
+  if (config) {
+    if (!supabase) {
+      const store = createSupabaseStore(config);
+      supabase = { store, retriever: createHybridRetriever({ store, embedder: getQueryEmbedder() }) };
+    }
+    return supabase;
   }
   if (!local || Date.now() - local.at > LOCAL_TTL_MS) {
     const corpus = buildCorpusChunks(defaultKnowledgeRoot());
+    const store = createMemoryStore(corpus.chunks);
     local = {
       at: Date.now(),
-      retriever: createHybridRetriever({
-        store: createMemoryStore(corpus.chunks),
-        embedder: null,
-        storeNotice: RETRIEVAL_NOTICES.localCorpus,
-      }),
+      store,
+      retriever: createHybridRetriever({ store, embedder: null, storeNotice: RETRIEVAL_NOTICES.localCorpus }),
     };
   }
-  return local.retriever;
+  return local;
+}
+
+export function getServerRetriever(): EvidenceRetriever {
+  return currentBackend().retriever;
+}
+
+/**
+ * The store behind the retriever: Supabase when configured, otherwise the
+ * verified local records. Synthesis reads passages from here by id, so it
+ * never relies on text sent by the browser.
+ */
+export function getServerStore(): EvidenceStore {
+  return currentBackend().store;
 }
 
 const requestSchema = z.object({

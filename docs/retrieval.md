@@ -152,3 +152,22 @@ Retrieval-specific:
 - **Member 4:** the response shape is in `lib/retrieval/types.ts` (H14). The current Evidence Desk ignores `boundary`, `listing`, `notice` and the scores. A refusal currently shows "No verified passages match", so `boundary.message` needs its own intentional-looking state.
 - **Member 3:** please review `lib/retrieval/messages.ts`, the safety-role keywords in `lib/retrieval/query-analysis.ts`, and `tests/retrieval/boundary.json` (H13), and this document (H15).
 - **Member 2:** keep the eight section headings exactly; unknown headings are reported and not indexed. SAME needs its capitalised name in the title or short title.
+
+## Grounded synthesis (optional)
+
+Owner: Member 5. Code: `lib/synthesis/`, route `app/api/evidence/synthesize/route.ts`.
+
+Synthesis only ever summarises evidence the user has already seen. It is off unless `OPTIONAL_LLM_API_KEY` (a Groq key) is set; `OPTIONAL_LLM_MODEL` picks the model. Check both with `npm run check:llm`.
+
+1. The user searches, reads the passages, ticks "Use in summary" on some of them and presses **Summarise**.
+2. The browser sends only the question and the passage ids. The server reloads the passages from its own verified catalog, so text from the browser is never summarised.
+3. The question goes through the same boundary guard as search. Probability, guarantee, prediction and design questions are refused before any model call.
+4. The model gets the brief's synthesis prompt (`lib/synthesis/prompt.ts`), the passages labelled `S1`, `S2`, … with their evidence class, temperature 0 and JSON mode. Question and passages are marked as data, not instructions.
+5. Every statement the model returns goes through `lib/synthesis/grounding.ts`. It is removed if it:
+   - cites no source, or a source that was not supplied;
+   - contains a number that is not in a passage it cites (in Limitations, numbers from the question are also allowed);
+   - sits under NASA evidence but cites team interpretation, or the reverse;
+   - states a probability, a guarantee or a safety verdict.
+6. If no grounded answer survives, the answer is "The reviewed evidence does not establish this." Removed statements are listed under the summary with the reason, never dropped silently.
+
+The summary is shown after the evidence, with a dashed border, the GENERATED_SUMMARY badge, a citation number on every statement and the model id. Tests: `tests/synthesis/synthesis.test.ts` (a fake model, no network).

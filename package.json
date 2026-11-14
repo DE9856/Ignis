@@ -16,6 +16,7 @@
     "inspect:knowledge": "tsx scripts/inspect-knowledge.ts",
     "check:env": "tsx scripts/check-env.ts",
     "check:db": "tsx scripts/check-db.ts",
+    "check:llm": "tsx scripts/check-llm.ts",
     "check": "npm run format:check && npm run lint && npm run typecheck && npm run test && npm run validate:knowledge",
     "check:ci": "npm run check && npm run build"
   },

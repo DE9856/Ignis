@@ -1,7 +1,7 @@
 "use client";
 
-import { Layers, Search, ServerOff } from "lucide-react";
-import { useState, type FormEvent } from "react";
+import { Layers, LoaderCircle, Search, ServerOff } from "lucide-react";
+import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 
 import { Enter } from "@/components/motion/enter";
 import { EmptyState } from "@/components/shared/empty-state";
@@ -19,10 +19,18 @@ import {
 } from "@/lib/okf/types";
 import { blocksSynthesis } from "@/lib/retrieval/guard";
 import type { RetrievalFilters } from "@/lib/retrieval/types";
+import { requestSynthesis } from "@/lib/synthesis/client";
+import { SYNTHESIS_LIMITS, type SynthesisResponse } from "@/lib/synthesis/types";
 import { cn } from "@/lib/utils/cn";
 
 import { EvidenceCard } from "./evidence-card";
-import { BoundaryAnswer, EvidenceRefusal, ListingSummary, SearchNotice } from "./evidence-states";
+import {
+  BoundaryAnswer,
+  EvidenceRefusal,
+  GeneratedSummary,
+  ListingSummary,
+  SearchNotice,
+} from "./evidence-states";
 import { ProvenanceBadge } from "./provenance-badge";
 
 const RESULT_LIMIT = 8;
@@ -41,9 +49,10 @@ type SearchState =
   | { kind: "error"; query: string };
 
 /**
- * Screen 6, evidence search. Retrieved passages come first and are useful on
- * their own; generating a summary is a separate, optional step that is only
- * offered after the evidence, and only when synthesis is available.
+ * Screen 6, evidence search. When synthesis is available, a grounded summary
+ * of the retrieved passages is written automatically and shown first; the
+ * passages follow so every statement can be checked. Without an LLM key the
+ * passages are the answer.
  */
 export function EvidenceSearch({ synthesisAvailable = false }: { synthesisAvailable?: boolean }) {
   const [text, setText] = useState("");
@@ -250,7 +259,6 @@ function SearchResults({
 
   // Passages under a refusal-type boundary are context, never an answer, and are not summarised.
   const contextOnly = blocksSynthesis(boundary);
-  const canSummarise = synthesisAvailable && !contextOnly;
   const names = Object.fromEntries(
     response.results.flatMap((result) =>
       result.chunk.investigationId ? [[result.chunk.investigationId, result.chunk.investigation]] : [],
@@ -260,6 +268,16 @@ function SearchResults({
   return (
     <section aria-labelledby="retrieved-title" className="space-y-3">
       {boundary ? <BoundaryAnswer boundary={boundary} /> : null}
+
+      {/* The summary comes first; the passages it was written from follow, so every claim can be checked. */}
+      {synthesisAvailable && !contextOnly ? (
+        <SummaryPanel
+          key={query}
+          question={query}
+          resultIds={response.results.map((result) => result.chunk.id)}
+          selectedIds={selectedIds}
+        />
+      ) : null}
 
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 id="retrieved-title" className="text-sm font-semibold text-ink">
@@ -313,37 +331,119 @@ function SearchResults({
         </ol>
       </Enter>
 
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-dashed border-line-strong px-4 py-3">
-        <div className="min-w-0 text-xs text-ink-muted">
-          <p className="flex flex-wrap items-center gap-2">
-            <span className="font-medium text-ink">Optional:</span> summarise the passages you selected.
-            <ProvenanceBadge value="GENERATED_SUMMARY" />
-          </p>
-          <p className="mt-1 text-ink-faint">
-            {contextOnly
-              ? "Not offered for this question: a summary could read as the answer IGNIS declined to give."
-              : synthesisAvailable
-                ? "The summary is written only from the selected passages and cites each one."
-                : DEGRADED_MESSAGES.noSynthesis}
-          </p>
-        </div>
-        <button
-          type="button"
-          disabled={!canSummarise || selectedIds.length === 0}
-          title={
-            canSummarise
-              ? undefined
-              : contextOnly
-                ? "Not offered for this question"
-                : DEGRADED_MESSAGES.noSynthesis
-          }
-          className="inline-flex h-8 items-center gap-1.5 rounded-md border border-generated/50 px-3 text-xs font-medium text-ink transition-colors hover:bg-generated/10 disabled:cursor-not-allowed disabled:opacity-45"
-        >
-          <Layers aria-hidden className="size-3.5" />
-          Summarise selected evidence
-          <span className="font-mono text-ink-faint">{selectedIds.length}</span>
-        </button>
-      </div>
+      {!synthesisAvailable && !contextOnly ? (
+        <p className="flex flex-wrap items-center gap-2 text-xs text-ink-faint">
+          <ProvenanceBadge value="GENERATED_SUMMARY" />
+          {DEGRADED_MESSAGES.noSynthesis}
+        </p>
+      ) : null}
     </section>
+  );
+}
+
+type SummaryState =
+  | { kind: "pending"; scope: "retrieved" | "selected" }
+  | { kind: "done"; scope: "retrieved" | "selected"; response: SynthesisResponse };
+
+/**
+ * The summary, written automatically from the retrieved passages as soon as
+ * they arrive, and shown above them. Sends only the question and passage ids;
+ * the server reloads the text, re-checks the question and checks every
+ * statement against the passages it cites. The user can re-summarise from
+ * the passages they tick.
+ */
+function SummaryPanel({
+  question,
+  resultIds,
+  selectedIds,
+}: {
+  question: string;
+  resultIds: string[];
+  selectedIds: string[];
+}) {
+  const [summary, setSummary] = useState<SummaryState>({ kind: "pending", scope: "retrieved" });
+  const started = useRef(false);
+
+  const summarise = useCallback(
+    async (scope: "retrieved" | "selected", ids: string[]) => {
+      setSummary({ kind: "pending", scope });
+      const chunkIds = ids.slice(0, SYNTHESIS_LIMITS.maxSources);
+      setSummary({ kind: "done", scope, response: await requestSynthesis({ question, chunkIds }) });
+    },
+    [question],
+  );
+
+  // Once per search. The ref keeps React's development double-mount from calling the model twice.
+  useEffect(() => {
+    if (started.current) return;
+    started.current = true;
+    void summarise("retrieved", resultIds);
+  }, [summarise, resultIds]);
+
+  const pending = summary.kind === "pending";
+  const tooMany = selectedIds.length > SYNTHESIS_LIMITS.maxSources;
+
+  return (
+    <div className="space-y-2">
+      {pending ? (
+        <LoadingState
+          label={
+            summary.scope === "retrieved"
+              ? "Writing a summary from the retrieved evidence"
+              : "Writing a summary from the selected passages"
+          }
+        />
+      ) : null}
+      {summary.kind === "done" && summary.response.status === "ok" ? (
+        <Enter key={summary.response.sources.map((source) => source.id).join("|")}>
+          <GeneratedSummary result={summary.response} />
+        </Enter>
+      ) : null}
+      {summary.kind === "done" && summary.response.status === "refused" ? (
+        <BoundaryAnswer boundary={summary.response.boundary} />
+      ) : null}
+      {summary.kind === "done" && summary.response.status === "unavailable" ? (
+        <ErrorState
+          title="No summary was written"
+          description={`${summary.response.reason} The retrieved evidence below is unaffected.`}
+        />
+      ) : null}
+
+      <div className="flex flex-wrap items-center justify-end gap-2 text-xs text-ink-faint">
+        <span>
+          {tooMany
+            ? `Select at most ${SYNTHESIS_LIMITS.maxSources} passages.`
+            : selectedIds.length > 0
+              ? "Re-summarise from only the passages you ticked:"
+              : "Tick “Use in summary” below to summarise specific passages."}
+        </span>
+        {selectedIds.length > 0 ? (
+          <button
+            type="button"
+            onClick={() => void summarise("selected", selectedIds)}
+            disabled={pending || tooMany}
+            className="inline-flex h-7 items-center gap-1.5 rounded-md border border-generated/50 px-2.5 font-medium text-ink transition-colors hover:bg-generated/10 disabled:cursor-not-allowed disabled:opacity-45"
+          >
+            {pending ? (
+              <LoaderCircle aria-hidden className="size-3.5 animate-spin" />
+            ) : (
+              <Layers aria-hidden className="size-3.5" />
+            )}
+            Summarise selected
+            <span className="font-mono text-ink-faint">{selectedIds.length}</span>
+          </button>
+        ) : null}
+        {summary.kind === "done" && summary.scope === "selected" ? (
+          <button
+            type="button"
+            onClick={() => void summarise("retrieved", resultIds)}
+            disabled={pending}
+            className="underline decoration-line-strong underline-offset-2 hover:text-ink disabled:opacity-45"
+          >
+            Back to all retrieved evidence
+          </button>
+        ) : null}
+      </div>
+    </div>
   );
 }

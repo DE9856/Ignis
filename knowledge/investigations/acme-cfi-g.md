@@ -7,7 +7,7 @@ description: >-
   ACME experiment in the ISS Combustion Integrated Rack that burned gaseous fuels on porous
   spherical burners to observe non-premixed, quasi-steady spherical cool flames, which cannot be
   produced in normal gravity or in ground-based microgravity facilities.
-status: draft
+status: stable
 
 safetyCategories: []
 
@@ -33,12 +33,8 @@ hardware:
   - Porous spherical burner
 sensors:
   - Intensified camera filtered for formaldehyde (CH2O) emission
-  - Thermopile radiometers
-  - Burner thermocouple
 measurements:
   - Hot flame and cool flame appearance and size
-  - Thermal radiation
-  - Burner temperature
 variables:
   - Fuel (ethane, propane, n-butane)
   - Flame configuration (normal or inverse)
@@ -84,7 +80,10 @@ generated:
   at: 2026-11-14
   tool: claude-assisted extraction
 
-verified: []
+verified:
+  - by: human:member3
+    at: 2026-11-14
+    note: "Scope: all. Checked against the cited NASA sources, using the docs/reviews source-check report."
 ---
 
 # Objective
@@ -109,11 +108,11 @@ Independent variables described for CFI-G:
 - Flame configuration: normal flame (fuel from burner into oxidizer) or inverse flame (oxidizer from burner into fuel).
 - Fuel dilution (the n-butane cool-flame test used diluted fuel; the diluent and level are not stated).
 
-Dependent variables: appearance, size and duration of hot and cool flames, thermal radiation, and burner temperature.
+Dependent variables: appearance and size of hot and cool flames, and the transition from hot flame to cool flame.
 
 # Sensors and Measurements
 
-Cool flames were imaged with an intensified camera filtered for formaldehyde (CH2O) emissions, which are associated with cool flame chemistry. NASA reports that cool flames were also identified in thermal radiation and burner temperature data. Other ACME diagnostics (high-definition color camera, photomultiplier tubes, thin filament pyrometry) were available in the chamber insert; the sources consulted do not state which were used for CFI-G.
+Cool flames were imaged with an intensified camera filtered for formaldehyde (CH2O) emissions, which are associated with cool flame chemistry. Other ACME diagnostics (high-definition color camera, thermopile radiometers, photomultiplier tubes, burner thermocouples) were available in the chamber insert; the sources consulted do not state which were used for CFI-G.
 
 # Key Findings
 

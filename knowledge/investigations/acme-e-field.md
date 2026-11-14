@@ -7,7 +7,7 @@ description: >-
   ACME experiment in the ISS Combustion Integrated Rack that applied electric fields of up to 10 kV
   between the burner and a downstream mesh to gas-jet and coflow flames of methane and ethylene, to
   study flame ion production and how ions can be used to control non-premixed flames.
-status: draft
+status: stable
 
 safetyCategories: []
 
@@ -85,7 +85,10 @@ generated:
   at: 2026-11-14
   tool: claude-assisted extraction
 
-verified: []
+verified:
+  - by: human:member3
+    at: 2026-11-14
+    note: "Scope: all. Checked against the cited NASA sources, using the docs/reviews source-check report."
 ---
 
 # Objective
@@ -115,7 +118,7 @@ Dependent variables: ion current through the flame, flame size and shape, flame 
 
 # Sensors and Measurements
 
-The ion current between the burner and the electrode mesh was determined by measuring the voltage drop across a known resistor and applying Ohm's law (ACME fact sheet). Flame imaging used the ACME high-definition color camera and the analog operations camera. Other ACME diagnostics were available in the chamber insert; the sources consulted do not state which were used for each E-FIELD test.
+The ion current between the burner and the electrode mesh was determined by measuring the voltage drop across a known resistor and applying Ohm's law (ACME fact sheet). The ACME chamber insert provides a high-definition color camera and an analog color camera, among other diagnostics; the sources consulted do not state which were used for each E-FIELD test.
 
 # Key Findings
 
@@ -134,7 +137,7 @@ Team interpretation: E-FIELD Flames is primarily aimed at combustion control and
 
 - The sources consulted are NASA overview papers with "selected findings"; peer-reviewed E-FIELD results papers were not consulted.
 - Oxygen concentration, pressure, dilution levels and flow velocities are not stated in the sources consulted.
-- The ACME fact sheet description of the electrode hardware was written before flight.
+- The ACME fact sheet description of the electrode hardware was written before flight. It also gives the chamber free volume as about 90 liters, where the 2021 paper gives approximately 83 liters; this record uses the later value.
 - All tests were in microgravity.
 
 # Source Notes

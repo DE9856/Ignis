@@ -1,7 +1,9 @@
 import { BookOpenText, Info, Layers, ListChecks, ShieldAlert } from "lucide-react";
 import Link from "next/link";
 
+import { NOT_ESTABLISHED } from "@/lib/retrieval/messages";
 import type { BoundaryKind, BoundaryNotice, EvidenceListing } from "@/lib/retrieval/types";
+import { SYNTHESIS_SECTION_LABELS, SYNTHESIS_SECTIONS, type SynthesisResponse } from "@/lib/synthesis/types";
 import { cn } from "@/lib/utils/cn";
 
 import { ProvenanceBadge } from "./provenance-badge";
@@ -28,7 +30,9 @@ export function EvidenceRefusal({
           <BookOpenText aria-hidden className="size-5" />
         </span>
         <div className="min-w-0 space-y-2">
-          <p className="font-mono text-2xs tracking-[0.1em] text-ink-faint uppercase">Answer</p>
+          <p className="font-mono text-2xs tracking-[0.1em] text-ink-faint uppercase">
+            Insufficient evidence
+          </p>
           <p className="text-base font-semibold text-ink">The reviewed evidence does not establish this.</p>
           <p className="text-sm2 leading-relaxed text-ink-muted">
             No human-reviewed passage matched <q className="text-ink">{query}</q>. IGNIS does not fill the gap
@@ -177,27 +181,27 @@ export function SearchNotice({ notice, className }: { notice: string | null; cla
   );
 }
 
-export interface SummaryCitation {
-  id: string;
-  heading: string;
-  section: string;
-  sourceUrl: string | null;
+function safeLink(value: string | null): string | null {
+  if (!value) return null;
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" || url.protocol === "http:" ? url.toString() : null;
+  } catch {
+    return null;
+  }
 }
+
+type GroundedSummary = Extract<SynthesisResponse, { status: "ok" }>;
 
 /**
  * Optional grounded synthesis, drawn apart from source evidence: its own
- * border, its own badge, and a numbered list of the passages it was written
- * from. Only ever shown after the retrieved evidence itself.
+ * dashed border, its own badge, the four sections the brief requires, a
+ * citation number on every statement, and a numbered list of the passages it
+ * was written from. Statements the grounding check removed are counted, not
+ * hidden. Only ever shown after the retrieved evidence itself.
  */
-export function GeneratedSummary({
-  text,
-  citations,
-  className,
-}: {
-  text: string;
-  citations: SummaryCitation[];
-  className?: string;
-}) {
+export function GeneratedSummary({ result, className }: { result: GroundedSummary; className?: string }) {
+  const numberOf = new Map(result.sources.map((source) => [source.id, source.number]));
   return (
     <section
       aria-label="Generated summary"
@@ -206,42 +210,135 @@ export function GeneratedSummary({
       <header className="flex flex-wrap items-center justify-between gap-2 border-b border-dashed border-generated/30 px-4 py-2.5">
         <p className="flex items-center gap-2 text-sm font-semibold text-ink">
           <Layers aria-hidden className="size-4 text-generated" />
-          Summary of the selected evidence
+          Summary of the reviewed evidence
         </p>
         <ProvenanceBadge value="GENERATED_SUMMARY" />
       </header>
-      <div className="space-y-3 px-4 py-3">
-        <p className="text-sm2 leading-relaxed whitespace-pre-line text-ink">{text}</p>
-        <div>
-          <p className="mb-1 font-mono text-2xs tracking-[0.08em] text-ink-faint uppercase">
-            Written only from these {citations.length} passages
-          </p>
-          <ol className="space-y-0.5 text-xs text-ink-muted">
-            {citations.map((citation, index) => (
-              <li key={citation.id} className="flex gap-2">
-                <span className="font-mono text-ink-faint">[{index + 1}]</span>
-                <span>
-                  {citation.heading} / {citation.section}
-                  {citation.sourceUrl ? (
-                    <>
-                      {" · "}
+      <div className="space-y-4 px-4 py-3">
+        {result.insufficient ? (
+          <div
+            role="note"
+            className="flex items-start gap-3 rounded-md border border-line-strong bg-surface px-3 py-3"
+          >
+            <ShieldAlert aria-hidden className="mt-0.5 size-4.5 shrink-0 text-ink-muted" />
+            <div className="min-w-0 space-y-1">
+              <p className="font-mono text-2xs tracking-[0.1em] text-ink-faint uppercase">
+                Insufficient evidence
+              </p>
+              <p className="text-base font-semibold text-ink">{NOT_ESTABLISHED}</p>
+              <p className="text-sm text-ink-muted">
+                The reviewed knowledge does not contain enough to answer this question. The passages below are
+                the closest matches; IGNIS does not fill the gap with generated text or typical values.
+              </p>
+            </div>
+          </div>
+        ) : null}
+        {result.notes.length > 0 ? (
+          <div className="space-y-1">
+            <ul className="space-y-1 border-l-2 border-computed/40 pl-3 text-xs text-ink-muted">
+              {result.notes.map((note) => (
+                <li key={note}>{note}</li>
+              ))}
+            </ul>
+            <p className="flex items-center gap-2 text-2xs text-ink-faint">
+              <ProvenanceBadge value="COMPUTED" />
+              Read from the reviewed records, not generated.
+            </p>
+          </div>
+        ) : null}
+        {SYNTHESIS_SECTIONS.map((section) => {
+          const statements = result.sections[section];
+          // The insufficient notice above replaces the answer; other grounded sections still show.
+          if (section === "answer" && result.insufficient) return null;
+          if (statements.length === 0 && section !== "answer") return null;
+          return (
+            <div key={section}>
+              <p className="mb-1 font-mono text-2xs tracking-[0.08em] text-ink-faint uppercase">
+                {SYNTHESIS_SECTION_LABELS[section]}
+              </p>
+              <ul
+                className={cn(
+                  "space-y-1 leading-relaxed text-ink",
+                  section === "answer" ? "text-sm2" : "text-sm",
+                  section === "teamInterpretation" && "border-l-2 border-interpretation/50 pl-3",
+                )}
+              >
+                {statements.map((statement) => (
+                  <li key={statement.text}>
+                    {statement.text}
+                    {statement.sources.map((id) => (
+                      <sup key={id} className="ml-0.5 font-mono text-2xs text-generated">
+                        [{numberOf.get(id)}]
+                      </sup>
+                    ))}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          );
+        })}
+
+        {result.sources.length > 0 ? (
+          <div>
+            <p className="mb-1 font-mono text-2xs tracking-[0.08em] text-ink-faint uppercase">
+              Written only from these {result.sources.length} passages, listed in full below
+            </p>
+            <ol className="space-y-0.5 text-xs text-ink-muted">
+              {result.sources.map((source) => {
+                const link = safeLink(source.sourceUrl);
+                return (
+                  <li key={source.id} className="flex flex-wrap items-center gap-x-2">
+                    <span className="font-mono text-ink-faint">[{source.number}]</span>
+                    <span>
+                      {source.investigation} / {source.section}
+                    </span>
+                    <ProvenanceBadge value={source.sourceClass} />
+                    {link ? (
                       <a
-                        href={citation.sourceUrl}
+                        href={link}
                         target="_blank"
                         rel="noreferrer noopener"
                         className="underline decoration-line-strong underline-offset-2 hover:text-ink"
                       >
                         source
                       </a>
-                    </>
-                  ) : null}
-                </span>
-              </li>
-            ))}
-          </ol>
-        </div>
-        <p className="text-2xs text-ink-faint">
-          Generated text. Check every statement against the cited passages above.
+                    ) : null}
+                  </li>
+                );
+              })}
+            </ol>
+          </div>
+        ) : null}
+
+        {result.removed.length > 0 ? (
+          <details className="text-xs text-ink-muted">
+            <summary className="cursor-pointer">
+              {result.removed.length} generated{" "}
+              {result.removed.length === 1 ? "statement was" : "statements were"} removed because the cited
+              evidence did not support {result.removed.length === 1 ? "it" : "them"}
+            </summary>
+            <ul className="mt-1.5 space-y-1 border-l-2 border-line pl-3">
+              {result.removed.map((item) => (
+                <li key={`${item.section}-${item.text}`}>
+                  <span className="text-ink-faint line-through">{item.text}</span>{" "}
+                  <span className="text-ink-faint">({item.reason})</span>
+                </li>
+              ))}
+            </ul>
+          </details>
+        ) : null}
+
+        <p className="flex flex-wrap items-center gap-2 text-2xs text-ink-faint">
+          <ProvenanceBadge value="COMPUTED" />
+          {result.model === null ? (
+            "No language model was used: no reviewed passage covers what the question asks about."
+          ) : (
+            <>
+              Every statement was checked: it cites a passage, and each number in it appears in that passage.
+              Generated by <span className="font-mono">{result.model}</span>. Check statements against the
+              passages below.
+            </>
+          )}
         </p>
       </div>
     </section>

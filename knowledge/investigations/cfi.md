@@ -7,7 +7,7 @@ description: >-
   ISS droplet combustion investigation in the MDCA that set out to study the low-temperature "cool
   flame" burning and extinction of alkane, bio-fuel and surrogate fuel droplets that follows hot
   flame extinction in microgravity.
-status: draft
+status: stable
 
 safetyCategories: []
 
@@ -86,12 +86,15 @@ generated:
   at: 2026-11-14
   tool: claude-assisted extraction
 
-verified: []
+verified:
+  - by: human:member3
+    at: 2026-11-14
+    note: "Scope: all. Checked against the cited NASA sources, using the docs/reviews source-check report."
 ---
 
 # Objective
 
-The Cool Flames Investigation (CFI) was designed to use the quasi-steady burning and extinction of cool flames, first observed in FLEX microgravity droplet tests, to further understanding of low-temperature combustion chemistry. NASA's 2014 science concept review lists three objectives: understand the combustion of normal alkanes in the low-temperature region with droplet tests in low gravity; investigate the low-temperature burning of pure fuels, bio-fuel constituents and surrogate fuels to relate cool-flame behaviour to octane and cetane behaviour; and explore low-temperature chemistry with fuel additives (ground-based only). NASA's 2017 station report describes CFI as giving new insight into fuels that burn very hot, appear to go out, and keep burning at a much lower temperature with no visible flame, which helps develop more efficient, less polluting engines and fuels.
+The Cool Flames Investigation (CFI) was designed to use the quasi-steady burning and extinction of cool flames, first observed in FLEX microgravity droplet tests, to further understanding of low-temperature combustion chemistry. NASA's 2014 science concept review lists three objectives: understand the combustion of normal alkanes in the low-temperature region with droplet tests in low gravity; investigate the low-temperature burning of pure fuels, bio-fuel constituents and surrogate fuels to relate cool-flame behaviour to octane and cetane behaviour; and explore low-temperature chemistry with fuel additives (ground-based only). NASA's 2017 station report describes CFI as giving new insight into fuels that burn very hot, appear to go out, and keep burning at a much lower temperature with no visible flame, which helps develop engines and fuels that are more efficient and less harmful to the environment.
 
 # Experimental Conditions
 
@@ -103,7 +106,7 @@ The values below are planned requirements from the 2014 science concept review a
 - Planned pressure: 0.5 to 3.0 atm required, up to 5 atm desired (2014); the 2015 overview gives 0.50 to 5.0 atm.
 - Planned oxygen mole fraction: 0.10 to 0.40, similar to FLEX.
 - Planned diluents: primarily nitrogen, with helium and xenon (2014); the 2015 overview names nitrogen and xenon.
-- Planned hardware changes: support fiber reduced from 80 um to 40 um, and larger camera fields of view.
+- Planned hardware changes: support fiber reduced from 80 um to 40 um, and the droplet-imaging field of view increased from 30 mm (FLEX) to 50 mm.
 - Expected timeline per test: droplet deployment (~10 s), hot-flame burning (5 to 10 s), hot-flame extinction, cool-flame burning (5 to 60 s), cool-flame extinction.
 
 # Variables
@@ -112,7 +115,7 @@ Planned independent variables: fuel composition, ambient pressure, ambient oxyge
 
 # Sensors and Measurements
 
-The sources consulted give requirements, not the as-flown diagnostics. The 2014 review states there was no way to image cool flames with the CIR/MDCA cameras at the time and that cool flames were expected to be very dim and about half the size of the hot flame; the 2015 overview states cool flames are invisible to the CIR cameras as configured and that an intensified camera was being used to visualize them. The as-flown sensor list is therefore left empty.
+The sources consulted give requirements, not the as-flown diagnostics. The 2014 review states there was no way to image cool flames with the CIR/MDCA cameras at the time and that cool flames were expected to be about half the size of the hot flame; the 2015 overview states cool flames are invisible to the CIR cameras as configured and that an intensified camera was being used to visualize them. The as-flown sensor list is therefore left empty.
 
 # Key Findings
 
@@ -128,11 +131,11 @@ Team interpretation: CFI is fundamental combustion research aimed at engine chem
 - No flight results were found; the record describes the planned investigation and confirms only that the MDCA was configured for CFI in January 2017.
 - All conditions listed are pre-flight requirements and may differ from what was flown.
 - The planned pressure and diluent lists differ slightly between the 2014 and 2015 sources.
-- This record should be treated as a placeholder until a NASA CFI results source is found.
+- Until a NASA CFI results source is found, this record documents the planned investigation only and supports no findings.
 
 # Source Notes
 
-- grc-cfi-scr-2014: NASA Glenn Science Concept Review, May 2014. Supports the objectives, planned fuels, 0.5 to 3.0 atm (up to 5 atm desired), 0.10 to 0.40 oxygen, nitrogen, helium and xenon diluents, the 40 um fiber, field-of-view changes, the test timeline, the cool-flame imaging gap, and the FLEX cool-flame background statements.
+- grc-cfi-scr-2014: NASA Glenn Science Concept Review, May 2014. Supports the objectives, planned fuels, 0.5 to 3.0 atm (up to 5 atm desired), 0.10 to 0.40 oxygen, nitrogen, helium and xenon diluents, the 40 um fiber, the 30 mm to 50 mm field of view, the test timeline, the cool-flame imaging gap, and the FLEX cool-flame background statements.
 - ntrs-20150023100: Urban, "NASA Microgravity Combustion Program", October 2015. Supports the CFI science team, fuels (dodecane, farnesane, dodecane/iso-dodecane), 0.50 to 5.0 atm, nitrogen and xenon dilution, and invisibility of cool flames to CIR cameras.
 - iss-daily-2017-01-24: NASA ISS Daily Summary Report. Supports the January 2017 MDCA reconfiguration for CFI and the stated purpose.
 - Member 3 should check the NASA PSI repository and NTRS for CFI results before verification.

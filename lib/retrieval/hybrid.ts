@@ -344,8 +344,14 @@ export function createHybridRetriever(options: HybridRetrieverOptions): Evidence
             (metadata ?? 0) * weights.metadata) /
           weightTotal;
         const terms = matchedTerms(chunk, understanding.terms);
+        // Lexical support needs a fair share of the question's distinctive terms, not one stray word:
+        // "Which football team won the cup last year?" shares only "last" with an ACME passage.
+        const distinctiveMatched = terms.filter((term) => distinctive.includes(term)).length;
         const supported =
-          terms.some((term) => distinctive.includes(term)) ||
+          (distinctiveMatched > 0 &&
+            distinctiveMatched >= Math.ceil(distinctive.length * RETRIEVAL.minDistinctiveShare)) ||
+          // One rare word is enough when the passage is also close in meaning ("ventilation stops" vs "fan off").
+          (distinctiveMatched > 0 && vector !== null && vector >= RETRIEVAL.vectorWithKeywordFloor) ||
           matches.some((match) => match.facet !== "section") ||
           (vector !== null && vector >= RETRIEVAL.vectorSupportFloor);
         return {

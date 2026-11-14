@@ -8,7 +8,7 @@ description: >-
   cargo vehicles after they left the ISS, burning large fabric and PMMA samples in a flow unit to
   measure flame spread, heat release, and the effect of a fire on spacecraft temperature, pressure,
   carbon dioxide, carbon monoxide and smoke.
-status: draft
+status: stable
 
 safetyCategories:
   - prevention
@@ -133,7 +133,10 @@ generated:
   at: 2026-11-14
   tool: claude-assisted extraction
 
-verified: []
+verified:
+  - by: human:member3
+    at: 2026-11-14
+    note: "Scope: all. Checked against the cited NASA sources, using the docs/reviews source-check report."
 ---
 
 # Objective

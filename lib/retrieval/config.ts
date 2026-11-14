@@ -50,6 +50,19 @@ export const RETRIEVAL = {
    * on its own count as support for an answer.
    */
   commonTermShare: 0.5,
+  /**
+   * Share of the question's distinctive terms a chunk must contain to count as
+   * supported by keywords alone (rounded up, at least one). One rare word in
+   * common is not support.
+   */
+  minDistinctiveShare: 1 / 3,
+  /**
+   * Raw cosine at or above which one distinctive term in common is enough
+   * support. Calibrated on the dev split (2026-11-14, 13 records): the dev
+   * negative questions reach at most 0.51, and every answerable dev question's
+   * best expected chunk scores at least 0.65.
+   */
+  vectorWithKeywordFloor: 0.58,
   maxQueryChars: 500,
 } as const;
 

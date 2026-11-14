@@ -8,7 +8,7 @@ description: >-
   materials to produce smoke, measured the smoke particle size distribution with three moment
   instruments, and exposed the smoke to Space Shuttle and ISS smoke detectors, to inform the design
   of spacecraft smoke detectors.
-status: draft
+status: stable
 
 safetyCategories:
   - detection
@@ -103,7 +103,10 @@ generated:
   at: 2026-11-14
   tool: claude-assisted extraction
 
-verified: []
+verified:
+  - by: human:member3
+    at: 2026-11-14
+    note: "Scope: all. Checked against the cited NASA sources, using the docs/reviews source-check report."
 ---
 
 # Objective

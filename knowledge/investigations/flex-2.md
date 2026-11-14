@@ -7,7 +7,7 @@ description: >-
   Follow-on to FLEX in the ISS Combustion Integrated Rack that burns single droplets and droplet
   pairs of pure, bi-component and surrogate fuels to study burning rates, soot formation, slow
   convective flow effects and droplet-droplet interactions.
-status: draft
+status: stable
 
 safetyCategories: []
 
@@ -76,7 +76,10 @@ generated:
   at: 2026-11-14
   tool: claude-assisted extraction
 
-verified: []
+verified:
+  - by: human:member3
+    at: 2026-11-14
+    note: "Scope: all. Checked against the cited NASA sources, using the docs/reviews source-check report."
 ---
 
 # Objective
@@ -104,11 +107,11 @@ Independent variables described for FLEX-2:
 - Droplet configuration: single droplet or binary droplet array.
 - Sub-buoyant convective flow, imposed by moving a tethered droplet through the gas.
 
-Dependent variables described: burning rate, flame extinction (or burning to completion), soot formation and liquid-phase mixing of fuel components.
+Dependent variables described: combustion (burning) rate, flame extinction (or burning to completion) and soot formation.
 
 # Sensors and Measurements
 
-The sources consulted do not list FLEX-2-specific diagnostics. NASA states that FLEX-2 studies the rate and manner in which fuel is burned, the conditions necessary for soot to form, and the way a mixture of fuels evaporates before burning. The MDCA and CIR diagnostics used for FLEX are described in the FLEX record; this record does not assume they were identical for FLEX-2.
+The sources consulted do not list FLEX-2-specific diagnostics. They describe what FLEX-2 studies: combustion rates under sub-buoyant convective flow, whether droplets burn to completion or extinguish at a finite radius, soot formation, and droplet-droplet interactions (FLEX fact sheet; Researcher's Guide). The MDCA and CIR diagnostics used for FLEX are described in the FLEX record; this record does not assume they were identical for FLEX-2.
 
 # Key Findings
 
@@ -130,7 +133,7 @@ Team interpretation: FLEX-2 is primarily fundamental combustion research aimed a
 
 # Source Notes
 
-- nasa-flex-fact-sheet: NASA FLEX fact sheet PDF, FLEX-2 section. Supports the objective, 2 mm to 4 mm droplets, single and binary droplet configurations, tethered convective-flow tests, the four test groups of 30 to 60 tests each, and the study of burning rate, soot and fuel-mixture evaporation. The PI team is listed there (lead: Prof. Forman Williams, UCSD).
-- researchers-guide-combustion: NASA "A Researcher's Guide to: Combustion Science". Supports the FLEX-2 description (mixtures of pure fuels, real fuel surrogates, soot, slow sub-buoyant convective flow, droplet-droplet interactions), the MDCA facility capability (1 to 5 mm, 0 to 3 atm, up to 40% O2), the Figure 3 FLEX-2 example (ethanol, 30% O2, 2.4 atm), and the combined FLEX/FLEX-2 statements in Key Findings.
+- nasa-flex-fact-sheet: NASA FLEX fact sheet PDF, FLEX-2 section. Supports the objective, 2 mm to 4 mm droplets, single and binary droplet configurations, tethered convective-flow tests, burning to completion or extinction at a finite radius, and the four test groups of 30 to 60 tests each. The PI team is listed there (lead: Prof. Forman Williams, UCSD).
+- researchers-guide-combustion: NASA "A Researcher's Guide to: Combustion Science". Supports the FLEX-2 description (mixtures of pure fuels, real fuel surrogates, soot formation, slow sub-buoyant convective flow, droplet-droplet interactions), the energy-conversion motivation, the MDCA facility capability (1 to 5 mm, 0 to 3 atm, up to 40% O2), the Figure 3 FLEX-2 example (ethanol, 30% O2, 2.4 atm), and the combined FLEX/FLEX-2 statements in Key Findings.
 - The ACME fact sheet (see the ACME records) supports the 2012 cool flame discovery statement.
 - Candidate sources not used: a 2014 NASA-authored conference paper on cool-flame extinction (NTRS 20140006750) attributes its results to "FLEX experiments" without naming FLEX-2, so it was not used here. The NASA PSI record for FLEX-2 was not consulted. Member 3 should check whether a FLEX-2-specific NASA results source exists.

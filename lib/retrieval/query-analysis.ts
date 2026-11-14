@@ -151,6 +151,47 @@ function detectPhrases(query: string, phrases: string[]): string[] {
   return phrases.filter((phrase) => nameSpans(query, phrase).length > 0);
 }
 
+/**
+ * Ways a reader may write a hardware name: as recorded, without its
+ * parenthetical, or as the acronym in the parenthetical. "Microgravity
+ * Science Glovebox (MSG)" is matched by "Microgravity Science Glovebox" and by
+ * "MSG".
+ */
+export function hardwareAliases(name: string): string[] {
+  const aliases = [name];
+  const bare = name
+    .replace(/\s*\([^)]*\)/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (bare && bare !== name) aliases.push(bare);
+  for (const [, inner] of name.matchAll(/\(([^)]*)\)/g)) {
+    if (/^[A-Z][A-Z0-9-]{1,}$/.test(inner.trim())) aliases.push(inner.trim());
+  }
+  return unique(aliases);
+}
+
+/** Hardware named in the question, and where, so the words of the name are not read as other facets. */
+function detectHardware(query: string, hardware: string[]): { names: string[]; spans: Span[] } {
+  const names: string[] = [];
+  const spans: Span[] = [];
+  for (const name of hardware) {
+    const found = hardwareAliases(name).flatMap((alias) => nameSpans(query, alias));
+    if (found.length > 0) {
+      names.push(name);
+      spans.push(...found);
+    }
+  }
+  return { names, spans };
+}
+
+/** The canonical query with the given spans blanked out. */
+function withoutSpans(lower: string, spans: Span[]): string {
+  let out = lower;
+  for (const span of spans)
+    out = out.slice(0, span.start) + " ".repeat(span.end - span.start) + out.slice(span.end);
+  return out;
+}
+
 const SAFETY_PATTERNS: Record<SafetyObjective, RegExp> = {
   prevention:
     /\b(prevent\w*|ignit\w*|flammab\w*|flame spread\w*|spread\w* (?:of |over )?flame\w*|burn\w*|combustib\w*|fire hazard\w*|material selection)\b/,
@@ -209,9 +250,16 @@ const CONDITION_PATTERNS: [ConditionField, RegExp][] = [
 const ENUMERATIVE =
   /^\s*(?:which|what)\s+(?:nasa\s+)?(?:investigations?|experiments?|studies|tests?|projects?)\b|\blist\b|\bhow many\b|\ball (?:the )?(?:investigations|experiments|studies)\b|\bany (?:investigations|experiments|studies)\b/;
 
+/** "How was smoke detection studied?" asks how the work was done: objective, conditions and measurements. */
+const METHOD_QUESTION =
+  /\bhow (?:was|were|did|is|are|do|does)\b.{0,60}?\b(?:stud(?:y|ied)|test(?:ed)?|measur(?:e|ed)|investigat(?:e|ed)|examin(?:e|ed)|conduct(?:ed)?|perform(?:ed)?|evaluat(?:e|ed)|assess(?:ed)?)\b/;
+const METHOD_SECTIONS: ChunkType[] = ["OBJECTIVE", "CONDITIONS", "MEASUREMENT"];
+
 export function analyzeQuery(text: string, vocabulary: CorpusVocabulary): QueryUnderstanding {
-  const lower = canonical(text);
-  const spaced = ` ${words(text).join(" ")} `;
+  const hardware = detectHardware(text, vocabulary.hardware);
+  // "Microgravity Science Glovebox" names hardware; its "microgravity" is not a gravity condition.
+  const lower = withoutSpans(canonical(text), hardware.spans);
+  const spaced = hardware.spans.length > 0 ? lower : ` ${words(text).join(" ")} `;
   const match = (pattern: RegExp) => pattern.test(lower) || pattern.test(spaced);
 
   return {
@@ -223,10 +271,13 @@ export function analyzeQuery(text: string, vocabulary: CorpusVocabulary): QueryU
     gravity: GRAVITY_PATTERNS.filter(([, pattern]) => match(pattern)).map(([condition]) => condition),
     materials: detectPhrases(text, vocabulary.materials),
     fuels: detectPhrases(text, vocabulary.fuels),
-    hardware: detectPhrases(text, vocabulary.hardware),
-    sectionIntent: SECTION_PATTERNS.filter(([, pattern]) => match(pattern)).map(([type]) => type),
+    hardware: hardware.names,
+    sectionIntent: unique([
+      ...SECTION_PATTERNS.filter(([, pattern]) => match(pattern)).map(([type]) => type),
+      ...(match(METHOD_QUESTION) ? METHOD_SECTIONS : []),
+    ]),
     conditionFields: CONDITION_PATTERNS.filter(([, pattern]) => match(pattern)).map(([field]) => field),
-    enumerative: ENUMERATIVE.test(lower),
+    enumerative: ENUMERATIVE.test(canonical(text)),
   };
 }
 

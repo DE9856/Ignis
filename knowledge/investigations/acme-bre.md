@@ -8,7 +8,7 @@ description: >-
   gaseous fuel to emulate the burning of solid and liquid materials in still microgravity
   atmospheres, including elevated-oxygen and reduced-pressure atmospheres considered for future crew
   vehicles, to study material flammability and the relevance of existing flammability tests.
-status: draft
+status: stable
 
 safetyCategories:
   - prevention
@@ -93,7 +93,10 @@ generated:
   at: 2026-11-14
   tool: claude-assisted extraction
 
-verified: []
+verified:
+  - by: human:member3
+    at: 2026-11-14
+    note: "Scope: all. Checked against the cited NASA sources, using the docs/reviews source-check report."
 ---
 
 # Objective
