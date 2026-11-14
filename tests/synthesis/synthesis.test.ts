@@ -7,6 +7,7 @@ import { groundOutput, numbersIn, parseModelOutput, type ParsedOutput } from "@/
 import { completeChat, GROQ_CHAT_URL, readLlmConfig } from "@/lib/synthesis/groq";
 import { buildMessages, SYSTEM_PROMPT } from "@/lib/synthesis/prompt";
 import { synthesize, type ChatFunction } from "@/lib/synthesis/server";
+import { VERIFIER_PROMPT } from "@/lib/synthesis/verify";
 
 import {
   TEST_CHUNK_ALPHA_CONDITIONS,
@@ -32,6 +33,26 @@ function output(partial: Partial<ParsedOutput>): ParsedOutput {
     limitations: [],
     insufficient: false,
     ...partial,
+  };
+}
+
+/**
+ * Wraps a fake summary writer with a fake reviewer. The reviewer marks every
+ * statement with `verdict` unless `judge` decides per statement text.
+ */
+function withReviewer(
+  writer: ChatFunction,
+  judge: (text: string) => "supported" | "unsupported" = () => "supported",
+): ChatFunction {
+  return async (messages, config) => {
+    if (messages[0].content !== VERIFIER_PROMPT) return writer(messages, config);
+    const statements = messages[1].content.matchAll(/\[(T\d+)\] cites [^\n]*\n([^\n]*)/g);
+    const verdicts = [...statements].map(([, id, text]) => ({
+      id,
+      verdict: judge(text),
+      reason: "TEST reviewer",
+    }));
+    return JSON.stringify({ verdicts });
   };
 }
 
@@ -168,10 +189,8 @@ describe("groundOutput", () => {
 describe("synthesize()", () => {
   const store = createMemoryStore(CHUNKS);
   const llm = { apiKey: "test-key", model: "test-model" };
-  const reply =
-    (partial: Partial<ParsedOutput>): ChatFunction =>
-    async () =>
-      JSON.stringify(output(partial));
+  const reply = (partial: Partial<ParsedOutput>): ChatFunction =>
+    withReviewer(async () => JSON.stringify(output(partial)));
 
   it("is unavailable without a key, and never calls the model", async () => {
     const chat = vi.fn();
@@ -208,10 +227,10 @@ describe("synthesize()", () => {
 
   it("sends only the selected passages, numbered in order, and returns grounded sections", async () => {
     let sent = "";
-    const chat: ChatFunction = async (messages) => {
+    const chat = withReviewer(async (messages) => {
       sent = messages[1].content;
       return JSON.stringify(output({ answer: [{ text: "Pressure was 1,000 Pa.", sources: ["S1"] }] }));
-    };
+    });
     const response = await synthesize("What pressure was used?", [CONDITIONS.id], { store, llm, chat });
     expect(sent).toContain("[S1]");
     expect(sent).not.toContain("[S2]");
@@ -320,10 +339,10 @@ describe("synthesize(): scope to the investigation the question names", () => {
 
   it("summarises only the named investigation's passages, and says what was left out", async () => {
     let sent = "";
-    const chat: ChatFunction = async (messages) => {
+    const chat = withReviewer(async (messages) => {
       sent = messages[1].content;
       return JSON.stringify(output({ answer: [{ text: "TEST_FUEL_B was extinguished.", sources: ["S1"] }] }));
-    };
+    });
     const response = await synthesize(
       "What did TEST_INVESTIGATION_BETA find?",
       [OBJECTIVE.id, BETA_VERIFIED.id],
@@ -352,6 +371,96 @@ describe("synthesize(): scope to the investigation the question names", () => {
   });
 
   function reply(partial: Partial<ParsedOutput>): ChatFunction {
-    return async () => JSON.stringify(output(partial));
+    return withReviewer(async () => JSON.stringify(output(partial)));
   }
+});
+
+describe("synthesize(): second pass checks meaning against the cited passages", () => {
+  const store = createMemoryStore(CHUNKS);
+  const llm = { apiKey: "test-key", model: "test-model" };
+  const writer: ChatFunction = async () =>
+    JSON.stringify(
+      output({
+        answer: [
+          { text: "Pressure was 1,000 Pa.", sources: ["S1"] },
+          { text: "Oxygen was 16 to 21 percent in opposed flow.", sources: ["S1"] },
+        ],
+        limitations: [{ text: "The passage does not report temperatures.", sources: ["S1"] }],
+      }),
+    );
+
+  it("sends each statement with only the passages it cites, as a separate reviewer", async () => {
+    const calls: { system: string; user: string }[] = [];
+    const chat = withReviewer(async (messages) => {
+      calls.push({ system: messages[0].content, user: messages[1].content });
+      return writer(messages, llm);
+    });
+    const spy: ChatFunction = async (messages, config) => {
+      if (messages[0].content === VERIFIER_PROMPT)
+        calls.push({ system: messages[0].content, user: messages[1].content });
+      return chat(messages, config);
+    };
+    const response = await synthesize("What were the conditions?", [CONDITIONS.id], {
+      store,
+      llm,
+      chat: spy,
+    });
+    const review = calls.find((call) => call.system === VERIFIER_PROMPT);
+    expect(review?.user).toContain("[T1] cites P1\nPressure was 1,000 Pa.");
+    expect(review?.user).toContain("[T3] cites P1\nThe passage does not report temperatures.");
+    expect(review?.user).toContain(CONDITIONS.content);
+    expect(review?.user).not.toContain(OBJECTIVE.content);
+    expect(response).toMatchObject({ status: "ok", meaningChecked: true });
+  });
+
+  it("removes statements the reviewer finds unsupported, and says why", async () => {
+    const chat = withReviewer(writer, (text) => (text.includes("opposed") ? "unsupported" : "supported"));
+    const response = await synthesize("What were the conditions?", [CONDITIONS.id], { store, llm, chat });
+    if (response.status !== "ok") throw new Error(`expected ok, got ${response.status}`);
+    expect(response.sections.answer.map((statement) => statement.text)).toEqual(["Pressure was 1,000 Pa."]);
+    expect(response.removed).toEqual([
+      {
+        section: "answer",
+        text: "Oxygen was 16 to 21 percent in opposed flow.",
+        reason: "the cited passage does not support it: TEST reviewer",
+      },
+    ]);
+    expect(response.insufficient).toBe(false);
+  });
+
+  it("answers 'insufficient' when the reviewer rejects every answer statement", async () => {
+    const chat = withReviewer(writer, (text) =>
+      text.startsWith("The passage") ? "supported" : "unsupported",
+    );
+    const response = await synthesize("What were the conditions?", [CONDITIONS.id], { store, llm, chat });
+    if (response.status !== "ok") throw new Error(`expected ok, got ${response.status}`);
+    expect(response.insufficient).toBe(true);
+    expect(response.sections.answer).toEqual([{ text: NOT_ESTABLISHED, sources: [] }]);
+    expect(response.sections.limitations).toHaveLength(1);
+  });
+
+  it("treats a missing verdict as unsupported", async () => {
+    const chat: ChatFunction = async (messages, config) =>
+      messages[0].content === VERIFIER_PROMPT
+        ? JSON.stringify({ verdicts: [{ id: "T1", verdict: "supported" }] })
+        : writer(messages, config);
+    const response = await synthesize("What were the conditions?", [CONDITIONS.id], { store, llm, chat });
+    if (response.status !== "ok") throw new Error(`expected ok, got ${response.status}`);
+    expect(response.sections.answer.map((statement) => statement.text)).toEqual(["Pressure was 1,000 Pa."]);
+    expect(response.sections.limitations).toEqual([]);
+  });
+
+  it("fails closed: no summary is shown when the review fails or is malformed", async () => {
+    for (const reviewer of [
+      async () => {
+        throw new Error("timeout");
+      },
+      async () => "not json",
+    ]) {
+      const chat: ChatFunction = async (messages, config) =>
+        messages[0].content === VERIFIER_PROMPT ? reviewer() : writer(messages, config);
+      const response = await synthesize("What were the conditions?", [CONDITIONS.id], { store, llm, chat });
+      expect(response).toMatchObject({ status: "unavailable" });
+    }
+  });
 });

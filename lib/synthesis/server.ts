@@ -6,10 +6,19 @@ import { analyzeQuery, buildVocabulary } from "@/lib/retrieval/query-analysis";
 import type { EvidenceStore } from "@/lib/retrieval/store";
 import type { EvidenceChunk } from "@/lib/retrieval/types";
 
+import { createSummaryCache, summaryCacheKey, type SummaryCache } from "./cache";
 import { groundOutput, parseModelOutput } from "./grounding";
 import { completeChat, LlmError, readLlmConfig, type LlmConfig } from "./groq";
-import { buildMessages, type ChatMessage } from "./prompt";
+import { buildMessages, PROMPT_VERSION, type ChatMessage } from "./prompt";
 import { scopeToNamedInvestigations, type InvestigationName } from "./scope";
+import {
+  applyVerdicts,
+  buildVerificationMessages,
+  parseVerdicts,
+  reviewItems,
+  type Verdicts,
+  VERIFIER_VERSION,
+} from "./verify";
 import {
   SYNTHESIS_LIMITS,
   type SynthesisResponse,
@@ -33,7 +42,12 @@ import { loadKnowledgeBase } from "@/lib/okf/loader";
  *   5. If the question names investigations, only their passages are
  *      summarised (`scope.ts`). If none of them has a passage, the answer is
  *      "insufficient" without calling the model.
- * Then the model is called once, and its output goes through `groundOutput`.
+ * Then the model writes the summary, which goes through `groundOutput` (form:
+ * citations, numbers, sections), and a second call reviews every remaining
+ * statement against its cited passages (`verify.ts`, meaning). Unsupported
+ * statements are removed and listed; if the review fails, nothing is shown.
+ * Finished summaries are cached (`cache.ts`), so a repeated question costs no
+ * model calls.
  */
 
 export type ChatFunction = (messages: ChatMessage[], config: LlmConfig) => Promise<string>;
@@ -44,6 +58,8 @@ export interface SynthesisDeps {
   chat?: ChatFunction;
   /** Every investigation record, verified or not, to recognise names in the question. */
   records?: InvestigationName[];
+  /** Finished summaries by question and passages. Omit to always call the model. */
+  cache?: SummaryCache;
 }
 
 function emptySections(): Record<SynthesisSection, SynthesisStatement[]> {
@@ -53,7 +69,7 @@ function emptySections(): Record<SynthesisSection, SynthesisStatement[]> {
 export async function synthesize(
   question: string,
   chunkIds: string[],
-  { store, llm, chat = completeChat, records = [] }: SynthesisDeps,
+  { store, llm, chat = completeChat, records = [], cache }: SynthesisDeps,
 ): Promise<SynthesisResponse> {
   if (!llm) return { status: "unavailable", reason: DEGRADED_MESSAGES.noSynthesis };
 
@@ -85,10 +101,20 @@ export async function synthesize(
       removed: [],
       insufficient: true,
       notes,
+      meaningChecked: false,
       model: null,
       sources: [],
     };
   }
+
+  const cacheKey = summaryCacheKey({
+    question,
+    chunks,
+    model: llm.model,
+    versions: [PROMPT_VERSION, VERIFIER_VERSION],
+  });
+  const cached = cache?.get(cacheKey);
+  if (cached) return cached;
 
   let raw: string;
   try {
@@ -108,12 +134,41 @@ export async function synthesize(
     };
   }
 
-  const { sections, removed, insufficient } = groundOutput({ output, chunks, question });
-  return {
+  const grounded = groundOutput({ output, chunks, question });
+
+  // Second pass: each remaining statement is judged against the passages it cites.
+  const items = reviewItems(grounded.sections);
+  let sections = grounded.sections;
+  let removed = grounded.removed;
+  if (items.length > 0) {
+    let verdicts: Verdicts | null;
+    try {
+      verdicts = parseVerdicts(await chat(buildVerificationMessages(items, chunks), llm));
+    } catch {
+      verdicts = null;
+    }
+    // Fail closed: the summary is shown first, so an unchecked summary is not shown at all.
+    if (!verdicts) {
+      return {
+        status: "unavailable",
+        reason: "The summary could not be checked against its sources, so it is not shown. Try again.",
+      };
+    }
+    const verified = applyVerdicts(sections, items, verdicts);
+    sections = verified.sections;
+    removed = [...removed, ...verified.removed];
+  }
+
+  const answered = sections.answer.some((statement) => statement.sources.length > 0);
+  const insufficient = grounded.insufficient || !answered;
+  if (insufficient) sections = { ...sections, answer: [{ text: NOT_ESTABLISHED, sources: [] }] };
+
+  const result: SynthesisResponse = {
     status: "ok",
     sections,
     removed,
     insufficient,
+    meaningChecked: items.length > 0,
     notes,
     model: `groq:${llm.model}`,
     sources: chunks.map((chunk, index) => ({
@@ -126,6 +181,9 @@ export async function synthesize(
       sourceUrl: chunk.sourceUrl,
     })),
   };
+  // Only complete, checked summaries are cached; failures above return before this.
+  cache?.set(cacheKey, result);
+  return result;
 }
 
 const requestSchema = z.object({
@@ -146,6 +204,9 @@ function rateLimited(address: string): boolean {
   if (recent.size > 5_000) recent.clear();
   return times.length > MAX_PER_WINDOW;
 }
+
+/** One cache per server process: 500 summaries, 6 hours each. */
+const summaryCache = createSummaryCache();
 
 let names: { at: number; records: InvestigationName[] } | null = null;
 const NAMES_TTL_MS = 60_000;
@@ -197,6 +258,7 @@ export async function handleSynthesisRequest(
         store: getStore(),
         llm: readLlmConfig(),
         records: investigationNames(),
+        cache: summaryCache,
       }),
     );
   } catch {
