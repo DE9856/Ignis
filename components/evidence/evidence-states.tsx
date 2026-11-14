@@ -95,7 +95,7 @@ const BOUNDARY_LABELS: Record<BoundaryKind, string> = {
   CORPUS_COVERAGE: "Coverage of the reviewed records",
   VALUE_NOT_REPORTED: "Not reported",
   INSUFFICIENT_EVIDENCE: "Answer",
-  PARTIAL_GRAVITY_BOUND: "Partial gravity not tested",
+  PARTIAL_GRAVITY_BOUND: "Evidence is from microgravity only",
 };
 
 /**
