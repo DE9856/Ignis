@@ -76,6 +76,11 @@ sources:
       Experiment (Ferkul et al., ASGSR 2013 presentation)
     sourceClass: NASA_SOURCE
     accessed: 2026-11-14
+  - id: psi-26
+    resource: "https://psi.nasa.gov/physci/repo/data/investigations/PSI-26"
+    title: NASA PSI investigation record PSI-26 (BASS)
+    sourceClass: NASA_SOURCE
+    accessed: 2026-11-14
 
 related:
   - id: investigations/bass-ii
@@ -160,6 +165,7 @@ Team interpretation: BASS is direct microgravity evidence about how small solid-
 - Sample sizes are small (centimetre scale), so results describe small flames, not large-scale spacecraft fires.
 - All tests were in microgravity; no partial-gravity (lunar or Martian) conditions were tested.
 - Nitrogen suppression was tested only at the hardware's limited flow rate (up to 500 cc/min); the sources do not give general suppressant requirements.
+- The results presentation mentions nitrogen vitiation down to 16% O2, but the BASS-II summary report states BASS-II was the first ISS use of MSG nitrogen dilution; the frontmatter therefore uses only the stated BASS test values (17% to 22%).
 
 # Source Notes
 
