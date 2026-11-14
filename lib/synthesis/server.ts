@@ -92,7 +92,16 @@ export async function synthesize(
   const boundary = classifyBoundary(question, analyzeQuery(question, buildVocabulary(catalog)), catalog);
   if (boundary && blocksSynthesis(boundary)) return { status: "refused", boundary };
 
-  const { chunks, notes } = scopeToNamedInvestigations(question, requested, catalog, records);
+  const scoped = scopeToNamedInvestigations(question, requested, catalog, records);
+  const { chunks } = scoped;
+  // A partial-gravity question: the notice travels with the summary, and its Limitations must say so.
+  const partialGravity = boundary?.kind === "PARTIAL_GRAVITY_BOUND";
+  const notes = partialGravity ? [boundary.message, ...scoped.notes] : scoped.notes;
+  const extraRules = partialGravity
+    ? [
+        'No evidence block was tested in lunar, Martian or partial gravity. State this in "limitations", and do not present microgravity results as partial-gravity results.',
+      ]
+    : [];
   if (chunks.length === 0) {
     // The question is about investigations none of these passages cover. Nothing to summarise.
     return {
@@ -118,7 +127,7 @@ export async function synthesize(
 
   let raw: string;
   try {
-    raw = await chat(buildMessages(question, chunks), llm);
+    raw = await chat(buildMessages(question, chunks, extraRules), llm);
   } catch (error) {
     return {
       status: "unavailable",

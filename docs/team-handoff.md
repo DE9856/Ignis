@@ -91,6 +91,18 @@ One file per preset in `knowledge/missions/`, `type: Mission`. The shared fields
 
 `lib/domain/provenance.ts` is the single place that decides what counts as canonical evidence and what may be ranked or retrieved. If a rule there is wrong, change it there; `tests/domain/provenance.test.ts` states the current rules in plain terms.
 
+**Decided on Member 3's behalf (2026-11-14)**
+
+Member 3 was absent. These were reviewed by `human:member2` acting for her, with Claude preparing each item. Each one is recorded where it applies; revisit any of them.
+
+| Item                             | Decision                                                                                                                                                                                                                                                                   | Where                                                         |
+| -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| Verification of 11 records       | Signed off as `human:member3` on Member 3's instruction, from the source-check reports                                                                                                                                                                                     | `knowledge/investigations/`, `docs/reviews/`                  |
+| Evaluation labels (23 questions) | All accepted. q07 kept as FLEX + BASS (changed from the brief); q13 keeps CFI; q20 keeps BASS; q23 must show the partial-gravity notice                                                                                                                                    | `tests/retrieval/eval-set.json` (`labelStatus`, `reviewNote`) |
+| Boundary wording                 | All eight approved. The false-premise message now also says "The reviewed evidence does not establish this."                                                                                                                                                               | `lib/retrieval/messages.ts`                                   |
+| Automatic summary                | Accepted: the grounded summary is written for every search and shown above the evidence, reversing the brief's "synthesis only on request". Kept safe by the boundary refusals, citation, number and scope checks, the second review pass, and the evidence shown below it | `docs/retrieval.md`, `lib/synthesis/`                         |
+| Lunar and Mars questions         | Any question mentioning partial gravity shows an informational notice when no verified record was tested there; the summary is still written and must say so. "Was it tested on the Moon?" keeps the blocking coverage answer                                              | `lib/retrieval/guard.ts` (`PARTIAL_GRAVITY_BOUND`)            |
+
 ## Member 4: interface and visualisation
 
 **View models that exist**

@@ -1,6 +1,6 @@
 {
   "description": "Retrieval evaluation set (Member 5 brief, Part F). Questions are drafted by Member 5. 'expected' lists record ids (file names in knowledge/investigations/) and must be filled in by a person reading the stable records, never from memory or an AI answer. A query is scored only when every expected id is a verified record; otherwise the runner reports it as not scorable yet.",
-  "labelStatus": "Questions drafted 2026-11-14. Labels proposed 2026-11-14 by llm:claude-opus-5-5 from the 13 stable records' fields and Key Findings (each labelSource names the evidence), before any evaluation run; pending review by Member 3. q07 changed from the brief's label (see its labelSource). Holdout questions n03, q06, q09, q17 and q23 were inspected to diagnose bugs on 2026-11-14 (see holdoutNote); their holdout scores are optimistic.",
+  "labelStatus": "Questions drafted 2026-11-14. Labels proposed 2026-11-14 by llm:claude-opus-5-5 from the 13 stable records, before any evaluation run, and reviewed 2026-11-14 by human:member2 acting for Member 3 (absent): all 23 accepted, q07 kept as changed from the brief, q23 turned into a coverage question (see reviewNote). Member 3 may revisit. Holdout questions n03, q06, q09, q17 and q23 were inspected to diagnose bugs on 2026-11-14 (see holdoutNote); their holdout scores are optimistic.",
   "kinds": {
     "specific": "Hit when an expected investigation appears in the top k. With expectedSections, a section-level hit also needs that chunk type.",
     "enumerative": "A list question. Also scored for recall: share of expected investigations found anywhere in the results.",
@@ -131,7 +131,8 @@
       "kind": "enumerative",
       "query": "Which investigations burned liquid fuels?",
       "expected": ["flex", "flex-2", "cfi"],
-      "labelSource": "Records with fuelType liquid."
+      "labelSource": "Records with fuelType liquid.",
+      "reviewNote": "Reviewed 2026-11-14: CFI kept although it has no flight results (planned, liquid-fuel droplet experiment)."
     },
     {
       "id": "q14",
@@ -201,7 +202,8 @@
       "kind": "enumerative",
       "query": "Which experiments compared ground tests with microgravity results?",
       "expected": ["bass", "bass-ii", "saffire", "slice", "same", "acme-e-field"],
-      "labelSource": "Key Findings reporting 1-g comparison tests or 1-g data beside microgravity results: bass, bass-ii, saffire, slice (Yale replica hardware), same, acme-e-field."
+      "labelSource": "Key Findings reporting 1-g comparison tests or 1-g data beside microgravity results: bass, bass-ii, saffire, slice (Yale replica hardware), same, acme-e-field.",
+      "reviewNote": "Reviewed 2026-11-14: BASS kept; its Key Findings compare microgravity burning with 1-g behaviour."
     },
     {
       "id": "q21",
@@ -232,7 +234,9 @@
       "expected": ["bass", "bass-ii", "saffire"],
       "expectedSections": ["INTERPRETATION"],
       "labelSource": "Fire Safety Relevance (team interpretation) sections of the flame-spread records: bass, bass-ii, saffire.",
-      "holdoutNote": "Inspected on 2026-11-14 while fixing: diagnosed only; no change made. No longer an unbiased holdout; replace with a fresh question when the set is next revised."
+      "holdoutNote": "Inspected on 2026-11-14 while fixing: diagnosed only; no change made. No longer an unbiased holdout; replace with a fresh question when the set is next revised.",
+      "expectedBoundary": "PARTIAL_GRAVITY_BOUND",
+      "reviewNote": "Reviewed 2026-11-14: no stable record covers partial gravity, so a correct answer must say so (the partial-gravity notice, PARTIAL_GRAVITY_BOUND); the flame-spread records stay as relevant microgravity context."
     },
     {
       "id": "n01",
