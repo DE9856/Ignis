@@ -108,6 +108,19 @@ describe("parseOkfDocument", () => {
     expect(brokenYaml.ok).toBe(false);
   });
 
+  it("reads related links as bare ids or objects, and rejects malformed ids", () => {
+    const { metadata } = parseInvestigation(
+      "---\ntype: Investigation\ntitle: T\nrelated:\n  - hardware/rig-one\n  - id: investigations/other\n    relation: follow-on\n---\n",
+    );
+    expect(metadata.related).toEqual([
+      { id: "hardware/rig-one", relation: null, note: null },
+      { id: "investigations/other", relation: "follow-on", note: null },
+    ]);
+
+    const bad = parseOkfDocument("---\ntype: Investigation\ntitle: T\nrelated:\n  - Rig One\n---\n", "x.md");
+    expect(bad.ok).toBe(false);
+  });
+
   it("rejects status 'verified' without a reviewer entry", () => {
     const result = parseOkfDocument("---\ntype: Investigation\ntitle: T\nstatus: verified\n---\n", "x.md");
     expect(result.ok).toBe(false);

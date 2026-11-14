@@ -27,12 +27,30 @@ knowledge/_templates/              starting points, never loaded
 | `status`      | `draft` `in_review` `verified` `deprecated`    | no       | Defaults to `draft`                |
 | `tags`        | list of text                                   | no       |                                    |
 | `sources`     | list of source entries                         | no       | Required in practice before review |
+| `related`     | list of links                                  | no       | See "Related records" below        |
 | `generated`   | `{ by, at, tool }`                             | no       | Who wrote the record               |
 | `verified`    | list of `{ by, at, scope }`                    | no       | One entry per reviewer             |
 
 Source entry: `id` and `resource` (URL) are required. `title`, `accessed` (YYYY-MM-DD) and `sourceClass` are optional; `sourceClass` defaults to `UNVERIFIED`.
 
 `by` values use a prefix: `human:member2`, or `llm:<model>` if a model drafted the text.
+
+### Related records
+
+`related` links a record to other records: an investigation to the hardware it ran in, to a concept page, or to another investigation that shares hardware, fuel class or measurement approach.
+
+```yaml
+related:
+  - hardware/msg
+  - id: investigations/bass
+    relation: follow-on
+    note: Same hardware, extended test matrix
+```
+
+- The target is written `<folder>/<record-id>`, where the folder is `investigations`, `hardware`, `concepts` or `missions` and the id is the target's file name without `.md`.
+- A bare id is enough. `relation` and `note` are optional free text.
+- A link may point at a record that has not been written yet; it is shown as plain text until the target exists.
+- Only add a link for a real relationship the sources support. No decorative links.
 
 ## Frontmatter: Investigation only
 

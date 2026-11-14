@@ -62,6 +62,21 @@ export interface VerificationRecord {
   scope: string | null;
 }
 
+/** Folders a `related` link may point into. */
+export const RELATED_FOLDERS = ["investigations", "hardware", "concepts", "missions"] as const;
+
+/**
+ * A link from one record to another, e.g. an investigation to the hardware it ran in.
+ * Links must reflect a real, sourced relationship; they are not decoration.
+ */
+export interface RelatedReference {
+  /** Target record as `<folder>/<record-id>`, e.g. `hardware/msg`. */
+  id: string;
+  /** Short label for the relationship, e.g. `uses-hardware`. Free text for now. */
+  relation: string | null;
+  note: string | null;
+}
+
 export interface Investigation {
   id: string;
   title: string;
@@ -106,6 +121,7 @@ export interface Investigation {
   tags: string[];
 
   sources: SourceReference[];
+  related: RelatedReference[];
 
   generated: GenerationRecord | null;
   verified: VerificationRecord[];

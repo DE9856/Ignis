@@ -36,6 +36,7 @@ export function makeInvestigation(overrides: Partial<Investigation> = {}): Inves
     limitations: [],
     tags: [],
     sources: [],
+    related: [],
     generated: null,
     verified: [{ by: "human:test", at: null, scope: null }],
     status: "verified",

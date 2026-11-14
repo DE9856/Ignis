@@ -161,6 +161,7 @@ export function toInvestigation(document: InvestigationDocument): Investigation 
     limitations: parseBulletList(sectionText(sections, "limitations") ?? ""),
     tags: metadata.tags,
     sources: metadata.sources,
+    related: metadata.related,
     generated: metadata.generated,
     verified: metadata.verified,
     status: metadata.status,

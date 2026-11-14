@@ -64,6 +64,35 @@ export function ExperimentDetail({ investigation }: { investigation: Investigati
             <BulletBlock title="Limitations" items={investigation.limitations} />
           </div>
 
+          {investigation.related.length > 0 ? (
+            <div>
+              <h3 className="text-[11px] font-medium tracking-wide text-ink-muted uppercase">
+                Related records
+              </h3>
+              <ul className="mt-2 space-y-1 text-[13px]">
+                {investigation.related.map((link) => (
+                  <li
+                    key={`${link.id}-${link.relation ?? ""}`}
+                    className="flex flex-wrap items-baseline gap-x-3"
+                  >
+                    {link.id.startsWith("investigations/") ? (
+                      <a
+                        href={`#${link.id.slice("investigations/".length)}`}
+                        className="font-mono text-ink underline underline-offset-2 hover:text-accent"
+                      >
+                        {link.id}
+                      </a>
+                    ) : (
+                      <span className="font-mono text-ink">{link.id}</span>
+                    )}
+                    {link.relation ? <span className="text-ink-muted">{link.relation}</span> : null}
+                    {link.note ? <span className="text-ink-faint">{link.note}</span> : null}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+
           <div>
             <h3 className="text-[11px] font-medium tracking-wide text-ink-muted uppercase">Sources</h3>
             {investigation.sources.length > 0 ? (

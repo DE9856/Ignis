@@ -40,6 +40,13 @@ sources: []
 #   sourceClass: NASA_SOURCE
 #   accessed: <YYYY-MM-DD>
 
+related: []
+# Links to other records, as <folder>/<record-id>. Only real, sourced relationships.
+# - hardware/<id>
+# - id: investigations/<id>
+#   relation: <short label, e.g. follow-on, shares-hardware>
+#   note: <one line on why they are related>
+
 generated:
   by: human:memberN
 

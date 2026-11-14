@@ -5,6 +5,7 @@ import {
   GRAVITY_CONDITIONS,
   OKF_DOCUMENT_TYPES,
   PROVENANCE_CLASSES,
+  RELATED_FOLDERS,
   SAFETY_OBJECTIVES,
 } from "./types";
 
@@ -45,6 +46,17 @@ export const verificationRecordSchema = z.object({
   scope: optionalText,
 });
 
+const relatedId = text.regex(
+  new RegExp(`^(${RELATED_FOLDERS.join("|")})/[a-z0-9]+(-[a-z0-9]+)*$`),
+  "must look like <folder>/<record-id>, e.g. hardware/msg",
+);
+
+/** Either a bare id (`- hardware/msg`) or an object with `id`, `relation` and `note`. */
+export const relatedReferenceSchema = z.union([
+  relatedId.transform((id) => ({ id, relation: null as string | null, note: null as string | null })),
+  z.object({ id: relatedId, relation: optionalText, note: optionalText }),
+]);
+
 /** Fields shared by every OKF document type. */
 export const baseFrontmatterSchema = z.object({
   type: z.enum(OKF_DOCUMENT_TYPES),
@@ -55,6 +67,7 @@ export const baseFrontmatterSchema = z.object({
   status: z.enum(DOCUMENT_STATUSES).default("draft"),
   tags: textList,
   sources: z.array(sourceReferenceSchema).default([]),
+  related: z.array(relatedReferenceSchema).default([]),
   generated: generationRecordSchema.nullable().default(null),
   verified: z.array(verificationRecordSchema).default([]),
 });
