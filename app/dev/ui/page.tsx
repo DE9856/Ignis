@@ -91,6 +91,7 @@ export default async function DevUiPage() {
                 status: "ok",
                 model: "groq:test-model",
                 insufficient: false,
+                meaningChecked: true,
                 notes: ["TEST note: passages about TEST_INVESTIGATION_BETA were not summarised."],
                 sections: {
                   answer: [

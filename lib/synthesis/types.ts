@@ -72,6 +72,8 @@ export type SynthesisResponse =
       insufficient: boolean;
       /** Deterministic reasons for passages left out, e.g. an unverified investigation. Labelled COMPUTED. */
       notes: string[];
+      /** True when a second model pass confirmed each kept statement against its cited passages. */
+      meaningChecked: boolean;
       /** Provider and model id, e.g. `groq:openai/gpt-oss-120b`; null when no model was called. */
       model: string | null;
     }
