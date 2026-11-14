@@ -169,7 +169,7 @@ The rules for what each class may be used for live in `lib/domain/provenance.ts`
 ## TypeScript shapes
 
 - `Investigation`, `SourceReference`, `RelatedReference`, `OkfDocument`, `OkfSection`: `lib/okf/types.ts`
-- `MissionScenario`, `RelevanceResult`, `GapFinding`, and the draft `RelevanceBreakdown`, `GapResult`: `lib/ranking/types.ts`
+- `MissionScenario`, `RelevanceResult`, `GapFinding`, `RelevanceBreakdown`, `GapResult`, `ResearchQuestion`: `lib/ranking/types.ts` (meanings in `docs/methodology.md`)
 - `MethodologyConfig`: `lib/ranking/methodology.ts`
 - `EvidenceChunk`, `RetrievalQuery`, `EvidenceRetriever`: `lib/retrieval/types.ts`
 - `EvidenceChunkRow`, `Database`: `lib/supabase/types.ts`

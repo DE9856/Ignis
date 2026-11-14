@@ -37,6 +37,7 @@ sensors:
   - TEST_SENSOR_A
 measurements:
   - TEST_MEASUREMENT_A
+  - TEST_FLAME_SPREAD_RATE
 variables:
   - TEST_VARIABLE_A
 
