@@ -66,7 +66,7 @@ describe("summary for a partial-gravity question", () => {
   const store = createMemoryStore(microgravityOnly);
   const llm = { apiKey: "test-key", model: "test-model" };
 
-  it("is allowed, carries the notice, and tells the writer to state the limit", async () => {
+  it("is allowed, does not repeat the notice, and tells the writer the limit", async () => {
     let system = "";
     const chat: ChatFunction = async (messages) => {
       if (messages[0].content === VERIFIER_PROMPT) {
@@ -82,7 +82,7 @@ describe("summary for a partial-gravity question", () => {
     });
     expect(response.status).toBe("ok");
     if (response.status !== "ok") return;
-    expect(response.notes[0]).toBe(BOUNDARY_MESSAGES.PARTIAL_GRAVITY_BOUND);
+    expect(response.notes).not.toContain(BOUNDARY_MESSAGES.PARTIAL_GRAVITY_BOUND);
     expect(system).toMatch(/No evidence block was tested in lunar, Martian or partial gravity/);
   });
 });

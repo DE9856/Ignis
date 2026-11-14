@@ -96,7 +96,8 @@ export async function synthesize(
   const { chunks } = scoped;
   // A partial-gravity question: the notice travels with the summary, and its Limitations must say so.
   const partialGravity = boundary?.kind === "PARTIAL_GRAVITY_BOUND";
-  const notes = partialGravity ? [boundary.message, ...scoped.notes] : scoped.notes;
+  // The partial-gravity notice is shown once, beside the summary, by the search response; not repeated here.
+  const notes = scoped.notes;
   const extraRules = partialGravity
     ? [
         // Not asked into Limitations: no passage states it, so the reviewer would rightly reject it.
