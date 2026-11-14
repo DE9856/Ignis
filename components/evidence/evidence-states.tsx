@@ -260,6 +260,12 @@ export function GeneratedSummary({ result, className }: { result: GroundedSummar
               <p className="mb-1 font-mono text-2xs tracking-[0.08em] text-ink-faint uppercase">
                 {SYNTHESIS_SECTION_LABELS[section]}
               </p>
+              {section === "answer" && result.answerWithheld ? (
+                <p className="text-sm text-ink-muted">
+                  The summary&apos;s direct answer did not pass the review check, so it is not shown. The
+                  supported findings below still apply; the removed sentence is listed at the end.
+                </p>
+              ) : null}
               <ul
                 className={cn(
                   "space-y-1 leading-relaxed text-ink",

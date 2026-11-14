@@ -70,6 +70,8 @@ export type SynthesisResponse =
       removed: RemovedStatement[];
       /** True when nothing grounded survived, or the model said the evidence is insufficient. */
       insufficient: boolean;
+      /** The answer sentences failed the checks, but supported findings remain and are shown. */
+      answerWithheld: boolean;
       /** Deterministic reasons for passages left out, e.g. an unverified investigation. Labelled COMPUTED. */
       notes: string[];
       /** True when a second model pass confirmed each kept statement against its cited passages. */

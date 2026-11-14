@@ -464,3 +464,40 @@ describe("synthesize(): second pass checks meaning against the cited passages", 
     }
   });
 });
+
+describe("synthesize(): a rejected answer with supported findings is withheld, not 'insufficient'", () => {
+  const store = createMemoryStore(CHUNKS);
+  const llm = { apiKey: "test-key", model: "test-model" };
+  // The airflow case from the first UI check (2026-11-14): one chained answer sentence misread a
+  // finding and was rejected, while the separate NASA-evidence statements were supported.
+  const writer: ChatFunction = async () =>
+    JSON.stringify(
+      output({
+        answer: [{ text: "Pressure was 1,000 Pa in opposed flow.", sources: ["S1"] }],
+        nasaEvidence: [{ text: "Pressure was 1,000 Pa.", sources: ["S1"] }],
+      }),
+    );
+
+  it("keeps the findings and flags the answer as withheld", async () => {
+    const chat = withReviewer(writer, (text) => (text.includes("opposed") ? "unsupported" : "supported"));
+    const response = await synthesize("What were the conditions?", [CONDITIONS.id], { store, llm, chat });
+    if (response.status !== "ok") throw new Error(`expected ok, got ${response.status}`);
+    expect(response.insufficient).toBe(false);
+    expect(response.answerWithheld).toBe(true);
+    expect(response.sections.answer).toEqual([]);
+    expect(response.sections.nasaEvidence).toEqual([
+      { text: "Pressure was 1,000 Pa.", sources: [CONDITIONS.id] },
+    ]);
+  });
+
+  it("is still 'insufficient' when the model itself says the evidence does not answer", async () => {
+    const chat = withReviewer(async () =>
+      JSON.stringify(
+        output({ nasaEvidence: [{ text: "Pressure was 1,000 Pa.", sources: ["S1"] }], insufficient: true }),
+      ),
+    );
+    const response = await synthesize("What were the conditions?", [CONDITIONS.id], { store, llm, chat });
+    if (response.status !== "ok") throw new Error(`expected ok, got ${response.status}`);
+    expect(response).toMatchObject({ insufficient: true, answerWithheld: false });
+  });
+});
