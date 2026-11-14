@@ -84,7 +84,7 @@ export function toEvidenceDisplayModels(
 const CHUNK_TYPE_FROM_ROW: Record<string, ChunkType> = {
   OBJECTIVE: "objective",
   CONDITIONS: "conditions",
-  VARIABLES: "other",
+  VARIABLES: "variables",
   MEASUREMENT: "measurements",
   FINDING: "findings",
   LIMITATION: "limitations",

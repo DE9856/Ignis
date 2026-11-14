@@ -118,9 +118,37 @@ Requirements:
 3. Results are ordered best first.
 4. When the real retriever is in place, set `RETRIEVAL_IMPLEMENTED = true` in `lib/retrieval/index.ts`. The application then stops showing "retrieval not available" and stops offering the development mock.
 
-`rowToEvidenceChunk()` in `lib/integration/evidence.ts` converts a database row to an `EvidenceChunk` and maps the upper-case `chunk_type` values onto the current `ChunkType` union. VARIABLES currently maps to `"other"`; if you want a dedicated value, add it to `ChunkType` in a `contract:` pull request.
+`rowToEvidenceChunk()` in `lib/integration/evidence.ts` converts a database row to an `EvidenceChunk` and maps the upper-case `chunk_type` values onto the `ChunkType` union. VARIABLES maps to `"variables"`.
 
-To extend `RetrievedEvidence` (for example matched terms or a metadata score for the why-retrieved view), add optional fields in a `contract:` pull request so Member 4 can use them.
+### Optional fields (added for the why-retrieved view and bounded answers)
+
+All optional. A retriever that never sets them still meets the contract, and `retrieveEvidence()` passes them through unchanged.
+
+On each `RetrievedEvidence`:
+
+| Field             | Type                          | Meaning                                                             |
+| ----------------- | ----------------------------- | ------------------------------------------------------------------- |
+| `rank`            | number                        | 1-based position in the final list                                  |
+| `metadataScore`   | number or null                | Share of the facets detected in the question that the chunk matches |
+| `matchedTerms`    | string[]                      | Question terms found in the chunk                                   |
+| `matchedMetadata` | `{ facet, value, because }[]` | Metadata matches, each with a plain-language reason                 |
+| `neighbors`       | `EvidenceChunk[]`             | Adjacent pieces of the same section when it was split               |
+
+On an `ok` `RetrievalResponse`:
+
+| Field           | Type                                                      | Meaning                                                                                                                                                                                     |
+| --------------- | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `mode`          | `"hybrid"` or `"lexical_only"`                            | Whether vector search was used                                                                                                                                                              |
+| `boundary`      | `{ kind, message, details }` or null                      | A bounded answer, e.g. a refused probability or "The reviewed evidence does not establish this." Show it as an intentional answer, not an error. Evidence may still be listed alongside it. |
+| `listing`       | `{ facet, value, description, investigationIds }` or null | A list question answered from metadata                                                                                                                                                      |
+| `understanding` | `QueryUnderstanding`                                      | What the retriever detected in the question                                                                                                                                                 |
+| `notice`        | string or null                                            | Operational note, e.g. why vector search was skipped                                                                                                                                        |
+
+`boundary.kind` is one of PROBABILITY_REQUEST, UNIVERSAL_GUARANTEE, PREDICTION_REQUEST, DESIGN_PRESCRIPTION, FALSE_PREMISE, CORPUS_COVERAGE, VALUE_NOT_REPORTED, INSUFFICIENT_EVIDENCE. The wording of each message is reviewed by Member 3.
+
+`EvidenceChunk` itself is unchanged.
+
+Pinned by `tests/contract/retrieval-optional-fields.test.ts`.
 
 Pinned by `tests/contract/retrieval.test.ts`, which checks shape only, never retrieval quality.
 

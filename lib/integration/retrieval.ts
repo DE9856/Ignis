@@ -55,7 +55,9 @@ export async function retrieveEvidence(
     const origin: RetrievalOrigin = useMock ? "dev-mock" : RETRIEVAL_IMPLEMENTED ? "live" : "none";
     if (response.status !== "ok") return { ...response, origin };
 
+    // Spread first so optional fields (boundary, listing, notice, mode) reach the interface.
     return {
+      ...response,
       status: "ok",
       results: response.results.filter((result) => isTrusted(result, options.includeUnverified === true)),
       origin,

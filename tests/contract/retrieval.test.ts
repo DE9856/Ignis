@@ -40,8 +40,14 @@ const CHUNK_KEYS: (keyof EvidenceChunk)[] = [
   "verificationStatus",
 ];
 
+const REQUIRED_RESULT_KEYS = ["chunk", "combinedScore", "lexicalScore", "vectorScore"];
+/** Optional, added for the why-retrieved view (H14). Never required. */
+const OPTIONAL_RESULT_KEYS = ["matchedMetadata", "matchedTerms", "metadataScore", "neighbors", "rank"];
+
 function expectRetrievedShape(result: RetrievedEvidence) {
-  expect(Object.keys(result).sort()).toEqual(["chunk", "combinedScore", "lexicalScore", "vectorScore"]);
+  const keys = Object.keys(result);
+  expect(keys).toEqual(expect.arrayContaining(REQUIRED_RESULT_KEYS));
+  for (const key of keys) expect([...REQUIRED_RESULT_KEYS, ...OPTIONAL_RESULT_KEYS]).toContain(key);
   expect(Object.keys(result.chunk).sort()).toEqual(CHUNK_KEYS);
   expect(typeof result.combinedScore).toBe("number");
   expect(result.chunk).not.toHaveProperty("embedding");
