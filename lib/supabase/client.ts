@@ -9,11 +9,22 @@ export interface SupabasePublicConfig {
   anonKey: string;
 }
 
+/** A malformed URL makes createClient throw; treat it as "not configured" instead. */
+function isUsableUrl(value: string): boolean {
+  try {
+    const { protocol, hostname } = new URL(value);
+    return protocol === "https:" || hostname === "localhost" || hostname === "127.0.0.1";
+  } catch {
+    return false;
+  }
+}
+
 /** Public Supabase settings, or null when the app runs without Supabase. */
 export function getSupabasePublicConfig(): SupabasePublicConfig | null {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim();
-  return url && anonKey ? { url, anonKey } : null;
+  if (!url || !anonKey || !isUsableUrl(url)) return null;
+  return { url, anonKey };
 }
 
 let browserClient: IgnisSupabaseClient | null = null;

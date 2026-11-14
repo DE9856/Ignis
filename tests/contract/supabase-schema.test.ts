@@ -3,7 +3,7 @@ import path from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-import { EMBEDDING_DIMENSIONS } from "@/lib/retrieval/types";
+import { EMBEDDING_DIMENSIONS, EMBEDDING_MODEL } from "@/lib/retrieval/types";
 import { EVIDENCE_CHUNKS_TABLE, type EvidenceChunkRow } from "@/lib/supabase/types";
 
 /**
@@ -31,6 +31,7 @@ const COLUMNS = [
   "next_chunk_id",
   "embedding_version",
   "embedding",
+  "metadata",
   "fts",
 ] as const satisfies readonly (keyof EvidenceChunkRow)[];
 
@@ -62,6 +63,26 @@ describe("contract: Supabase migration", () => {
   it("enables row-level security and exposes only verified chunks", () => {
     expect(sql).toMatch(/enable row level security/);
     expect(sql).toMatch(/for select\s+using \(human_verified\)/);
+  });
+
+  it("enables pgvector and indexes the filter columns, without a premature vector index", () => {
+    expect(sql).toMatch(/create extension if not exists vector/);
+    for (const column of ["concept_id", "investigation", "human_verified", "source_class", "chunk_type"]) {
+      expect(sql, column).toMatch(new RegExp(`on public\\.evidence_chunks \\(${column}\\)`));
+    }
+    expect(sql).not.toMatch(/^create index[^;]*(hnsw|ivfflat)/im);
+  });
+
+  it("gives the browser roles no write access", () => {
+    expect(sql).toMatch(
+      /revoke insert, update, delete, truncate on public\.evidence_chunks from anon, authenticated/,
+    );
+    expect(sql).not.toMatch(/for\s+(insert|update|delete|all)\b/i);
+  });
+
+  it("keeps the dimension health helper and the embedding contract in step", () => {
+    expect(sql).toContain("ignis_embedding_dimension");
+    expect(EMBEDDING_MODEL).toBe("BAAI/bge-small-en-v1.5");
   });
 
   it("creates schema only: no rows, no embeddings", () => {

@@ -104,7 +104,9 @@ const PROVENANCE_VALUES: ReadonlySet<string> = new Set([
  * Database row -> frontend EvidenceChunk. The embedding is dropped here on
  * purpose. Unrecognised values degrade to the least-trusted reading.
  */
-export function rowToEvidenceChunk(row: Omit<EvidenceChunkRow, "embedding" | "fts">): EvidenceChunk {
+export function rowToEvidenceChunk(
+  row: Omit<EvidenceChunkRow, "embedding" | "fts" | "metadata">,
+): EvidenceChunk {
   const [folder, recordId] = row.concept_id.split("/");
   return {
     id: row.chunk_id,
