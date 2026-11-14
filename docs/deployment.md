@@ -63,16 +63,16 @@ If the SQL editor reports an error, fix the SQL in the repository and re-run; do
 
 ### What the migration sets up
 
-| Item               | Detail                                                                                                                                                                                         |
-| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| pgvector           | `create extension if not exists vector`                                                                                                                                                        |
-| Table              | `public.evidence_chunks`, columns documented in `docs/retrieval-contract.md`; `embedding vector(384)` (nullable), `metadata jsonb`, `created_at`, `updated_at` (kept current by a trigger)     |
-| Embedding contract | `BAAI/bge-small-en-v1.5`, 384 dimensions. Constants `EMBEDDING_MODEL` / `EMBEDDING_DIMENSIONS` in `lib/retrieval/types.ts`. The model is never loaded in the Next.js app                       |
-| Indexes            | btree on `concept_id`, `investigation`, `human_verified`, `source_class`, `chunk_type`; GIN on `safety_category`, `tags` and the generated full-text column                                    |
-| Vector index       | **None, on purpose.** For a few hundred chunks an exact scan takes milliseconds with perfect recall. Add HNSW in a new migration only if the corpus passes ~10⁴ rows (SQL is in the migration) |
-| Row-level security | Enabled. The anon key can `select` rows where `human_verified` is true. No insert/update/delete policy exists, and those privileges are revoked from `anon` and `authenticated`                |
-| Writes             | Only the service-role key (which bypasses RLS), used by Member 5's ingestion script                                                                                                            |
-| Helper functions   | `ignis_vector_available()`, `ignis_embedding_dimension()` (health check); `match_evidence_chunks()` (minimal similarity lookup, not the hybrid search)                                         |
+| Item               | Detail                                                                                                                                                                                                                             |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| pgvector           | `create extension if not exists vector`                                                                                                                                                                                            |
+| Table              | `public.evidence_chunks`, columns documented in `docs/retrieval-contract.md`; `embedding vector(384)` (nullable), `metadata jsonb`, `created_at`, `updated_at` (kept current by a trigger)                                         |
+| Embedding contract | `BAAI/bge-small-en-v1.5`, 384 dimensions. Constants `EMBEDDING_MODEL` / `EMBEDDING_DIMENSIONS` in `lib/retrieval/types.ts`. Queries are embedded in `/api/evidence/search` with the bundled q8 model ("Embedding model on Vercel") |
+| Indexes            | btree on `concept_id`, `investigation`, `human_verified`, `source_class`, `chunk_type`; GIN on `safety_category`, `tags` and the generated full-text column                                                                        |
+| Vector index       | **None, on purpose.** For a few hundred chunks an exact scan takes milliseconds with perfect recall. Add HNSW in a new migration only if the corpus passes ~10⁴ rows (SQL is in the migration)                                     |
+| Row-level security | Enabled. The anon key can `select` rows where `human_verified` is true. No insert/update/delete policy exists, and those privileges are revoked from `anon` and `authenticated`                                                    |
+| Writes             | Only the service-role key (which bypasses RLS), used by Member 5's ingestion script                                                                                                                                                |
+| Helper functions   | `ignis_vector_available()`, `ignis_embedding_dimension()` (health check); `match_evidence_chunks()` (minimal similarity lookup, not the hybrid search)                                                                             |
 
 **Read access is a decision, not an assumption.** Today the anon key can read verified chunks. If that is not wanted, drop the `read verified chunks` policy; the app then needs a server route using the service-role key for retrieval. Decide before Member 5's retrieval ships.
 
@@ -80,14 +80,17 @@ The migration is pinned by `tests/contract/supabase-schema.test.ts` (no live dat
 
 ## Environment variables
 
-| Variable                        | Class                     | Purpose                                                 |
-| ------------------------------- | ------------------------- | ------------------------------------------------------- |
-| `NEXT_PUBLIC_SUPABASE_URL`      | PUBLIC, optional          | Project URL (https only; localhost allowed)             |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | PUBLIC, optional          | Read-only key. Safe to expose because RLS limits it     |
-| `SUPABASE_SERVICE_ROLE_KEY`     | **SERVER-ONLY**, optional | Admin key for ingestion and server code. Bypasses RLS   |
-| `OPTIONAL_LLM_API_KEY`          | SERVER-ONLY, optional     | Groq key for grounded synthesis                         |
-| `OPTIONAL_LLM_MODEL`            | SERVER-ONLY, optional     | Groq model id; defaults to `openai/gpt-oss-120b`        |
-| `NEXT_PUBLIC_IGNIS_DEV_MOCKS`   | PUBLIC, dev only          | Synthetic TEST data. Ignored when `NODE_ENV=production` |
+| Variable                        | Class                     | Purpose                                                                           |
+| ------------------------------- | ------------------------- | --------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`      | PUBLIC, optional          | Project URL (https only; localhost allowed)                                       |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | PUBLIC, optional          | Read-only key. Safe to expose because RLS limits it                               |
+| `SUPABASE_SERVICE_ROLE_KEY`     | **SERVER-ONLY**, optional | Admin key for ingestion and server code. Bypasses RLS                             |
+| `OPTIONAL_LLM_API_KEY`          | SERVER-ONLY, optional     | Groq key for grounded synthesis                                                   |
+| `OPTIONAL_LLM_MODEL`            | SERVER-ONLY, optional     | Groq model id; defaults to `openai/gpt-oss-120b`                                  |
+| `NEXT_PUBLIC_IGNIS_DEV_MOCKS`   | PUBLIC, dev only          | Synthetic TEST data. Ignored when `NODE_ENV=production`                           |
+| `IGNIS_QUERY_EMBEDDINGS`        | SERVER-ONLY, optional     | `local` (default) or `off` (keyword + metadata search only; the emergency switch) |
+| `IGNIS_MODEL_DIR`               | SERVER-ONLY, optional     | Where the model files live; defaults to `models/`                                 |
+| `ONNXRUNTIME_NODE_INSTALL`      | Build only, optional      | Set to `skip` on Vercel so `npm ci` does not download unused CUDA libraries       |
 
 Both Supabase public values must be set together, or neither. `.env.local` is git-ignored (`.env*` except `.env.example`). `npm run check:env` also flags a service-role key placed in a `NEXT_PUBLIC_` variable.
 
@@ -142,12 +145,33 @@ Audit result: no route uses the Edge runtime; `fs`/`path` are used only in `lib/
    - Do **not** set `NEXT_PUBLIC_IGNIS_DEV_MOCKS`.
 4. `NEXT_PUBLIC_*` values are inlined at build time: changing them requires a **redeploy**.
 
+## Embedding model on Vercel
+
+The search route embeds each query with `Xenova/bge-small-en-v1.5`, 8-bit quantized (34 MB). Stored chunks must use the same weights: the version `bge-small-en-v1.5/onnx-q8/cls-norm/chunker-v1` is recorded on every row, and search falls back to keyword search if the index holds another version.
+
+How it ships:
+
+1. `prebuild` runs `npm run fetch:model`: downloads the four model files at a pinned Hugging Face revision into `models/` (git-ignored) and checks each sha256. Nothing is downloaded at request time (`allowRemoteModels = false`).
+2. `next.config.ts` adds to the search function, by name, what the tracer cannot find: the model files, `onnxruntime-node`'s `dist/` and its Linux x64 CPU binary (`onnxruntime_binding.node`, `libonnxruntime.so.1`), and the CommonJS build of `onnxruntime-common` with its `dist/cjs/package.json` (`onnxruntime-node` requires it; the tracer only follows the ESM import). It excludes the developer download cache and the browser runtime.
+3. `postbuild` runs `scripts/check-bundle.ts`, which fails the build (also on Vercel) if the model or runtime is missing, a CUDA/TensorRT library or another platform's binary is traced, or the function exceeds 200 MB. It then copies only the traced files into an empty folder and embeds a query from there, so a file the tracer missed fails the build instead of the deployed route. On Vercel's Linux builder this runs the exact binary that ships. Measured: 101.6 MB, against Vercel's 250 MB limit.
+
+Cold start: loading the model takes about 1 s; a warm query embeds in a few milliseconds. The 20 s embedding timeout in `lib/retrieval/hybrid.ts` falls back to keyword search if anything goes wrong, and the response says so.
+
+Quantization check (local corpus, full hybrid, 31 questions): q8 and fp32 match on Hit@1/3/5 (93/100/100%), MRR (0.96), section hit@3 (85%) and negatives (100%); list recall 87% vs 89%.
+
+**Check a deployment:** `GET /api/evidence/search` loads the model and embeds a fixed string. Expect `"ready": true` and the q8 version. `"ready": false` (HTTP 503) means the model did not load; the function log has the reason (`Embedding probe failed`).
+
+**Emergency switch:** set `IGNIS_QUERY_EMBEDDINGS=off` in Vercel and redeploy. Search keeps working on keywords and metadata.
+
+**Rolling back to fp32** (code and index must move together): revert this change, re-ingest from `main`, redeploy. Until both are done, search runs keyword-only, which is degraded but correct.
+
 ## Production checklist
 
 Before every production deploy:
 
 - [ ] `npm run check` passes (format, lint, types, tests, knowledge validation)
-- [ ] `npm run build` passes
+- [ ] `npm run build` passes, including the bundle check ("Bundle check passed")
+- [ ] Index and code agree: `ingest.ts --verify` reports no embedding-version drift
 - [ ] `git status` clean; no `.env.local` or other env file committed (`git ls-files | Select-String "\.env"` shows only `.env.example`)
 - [ ] No keys, tokens or URLs with credentials in the diff
 - [ ] Service-role key is server-only (the deployment contract test passes)
@@ -163,7 +187,7 @@ Do not deploy until the checklist is green. Nothing in the repository deploys au
 
 1. Merge `feat/infrastructure` to `main` once reviewed and CI is green.
 2. Vercel → **Add New → Project** → import the GitHub repo.
-3. Framework: Next.js. Set Node 22.x and the environment variables above.
+3. Framework: Next.js. Set Node 22.x and the environment variables above, including `ONNXRUNTIME_NODE_INSTALL=skip`.
 4. **Deploy.**
 5. Open `https://<deployment>/api/health`. Expect `"status":"ok"`, counts, and `false` for anything not set up.
 6. If Supabase is connected, open `/api/health?deep=1`. Expect `"check":{"status":"READY"...}`.

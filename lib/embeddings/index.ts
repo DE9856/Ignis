@@ -1,6 +1,8 @@
 import { CHUNKER_VERSION } from "@/lib/retrieval/config";
 import { EMBEDDING_DIMENSIONS, EMBEDDING_MODEL } from "@/lib/retrieval/types";
 
+import { localModelRoot, MODEL_REPO } from "./model-files";
+
 /**
  * One embedding function for both stored chunks and incoming queries, so the
  * index and the search can never use different models (Member 5 brief, Part B).
@@ -11,10 +13,11 @@ import { EMBEDDING_DIMENSIONS, EMBEDDING_MODEL } from "@/lib/retrieval/types";
  * - Queries take the prefix below; passages take none
  * - Inputs longer than 512 tokens are truncated by the model
  *
- * Server and scripts only. The model loads lazily on first use.
+ * Server and scripts only. The model loads lazily on first use, from the pinned files in
+ * `models/` (`npm run fetch:model`), never from the network.
  */
 
-export const ONNX_MODEL_ID = "Xenova/bge-small-en-v1.5";
+export const ONNX_MODEL_ID = MODEL_REPO;
 export const QUERY_INSTRUCTION = "Represent this sentence for searching relevant passages: ";
 export const MODEL_MAX_TOKENS = 512;
 
@@ -27,9 +30,14 @@ export interface Embedder {
   embed(texts: string[], kind: EmbeddingKind): Promise<number[][]>;
 }
 
-const DTYPE = "fp32";
+/**
+ * 8-bit quantized weights (`onnx/model_quantized.onnx`, 34 MB instead of 133 MB for fp32), so the
+ * model fits inside the search function on Vercel. Changing this changes the version below, and
+ * search then refuses the stored vectors until the corpus is re-ingested.
+ */
+const DTYPE = "q8";
 
-/** `bge-small-en-v1.5/onnx-fp32/cls-norm/chunker-v1`: model, weights, pooling, chunk boundaries. */
+/** `bge-small-en-v1.5/onnx-q8/cls-norm/chunker-v1`: model, weights, pooling, chunk boundaries. */
 export const LOCAL_EMBEDDING_VERSION = `${EMBEDDING_MODEL.split("/")[1]}/onnx-${DTYPE}/cls-norm/${CHUNKER_VERSION}`;
 
 export function withInstruction(text: string, kind: EmbeddingKind): string {
@@ -54,15 +62,36 @@ type FeatureExtractor = (
   options: { pooling: "cls"; normalize: boolean },
 ) => Promise<{ tolist(): unknown }>;
 
-/** Runs the model in-process with onnxruntime. Downloads about 130 MB on first use, then caches it. */
-export function createLocalEmbedder(options: { cacheDir?: string; batchSize?: number } = {}): Embedder {
+type Transformers = typeof import("@huggingface/transformers");
+
+/** Load transformers.js pointed at the local model files only. */
+async function loadTransformers(): Promise<Transformers> {
+  const transformers = await import("@huggingface/transformers");
+  transformers.env.localModelPath = localModelRoot();
+  transformers.env.allowLocalModels = true;
+  transformers.env.allowRemoteModels = false;
+  return transformers;
+}
+
+function missingModel(error: unknown): Error {
+  const detail = error instanceof Error ? error.message : String(error);
+  return new Error(
+    `Could not load ${MODEL_REPO} from ${localModelRoot()}. Run \`npm run fetch:model\`. (${detail})`,
+  );
+}
+
+/** Runs the model in-process with onnxruntime, from the files in `models/`. */
+export function createLocalEmbedder(options: { batchSize?: number } = {}): Embedder {
   let extractor: Promise<FeatureExtractor> | null = null;
   const batchSize = options.batchSize ?? 16;
 
   async function load(): Promise<FeatureExtractor> {
-    const transformers = await import("@huggingface/transformers");
-    if (options.cacheDir) transformers.env.cacheDir = options.cacheDir;
-    const pipe = await transformers.pipeline("feature-extraction", ONNX_MODEL_ID, { dtype: DTYPE });
+    const transformers = await loadTransformers();
+    const pipe = await transformers
+      .pipeline("feature-extraction", ONNX_MODEL_ID, { dtype: DTYPE })
+      .catch((error: unknown) => {
+        throw missingModel(error);
+      });
     return pipe as unknown as FeatureExtractor;
   }
 
@@ -98,28 +127,19 @@ export function getQueryEmbedder(): Embedder | null {
   return sharedLocalEmbedder;
 }
 
-/**
- * Where the model is cached. The package folder is read-only on serverless hosts, so on
- * Vercel the cache goes to /tmp (lost between cold starts). Override with IGNIS_MODEL_CACHE_DIR.
- */
-function modelCacheDir(): string | undefined {
-  return (
-    process.env.IGNIS_MODEL_CACHE_DIR?.trim() || (process.env.VERCEL ? "/tmp/ignis-model-cache" : undefined)
-  );
-}
-
-const sharedLocalEmbedder = createLocalEmbedder({ cacheDir: modelCacheDir() });
+const sharedLocalEmbedder = createLocalEmbedder();
 
 /**
  * Exact token count with the model's own tokenizer, including [CLS] and [SEP].
  * Ingestion uses it to refuse any chunk the model would silently truncate.
  */
-export async function loadModelTokenCounter(
-  options: { cacheDir?: string } = {},
-): Promise<(text: string) => number> {
-  const transformers = await import("@huggingface/transformers");
-  if (options.cacheDir) transformers.env.cacheDir = options.cacheDir;
-  const tokenizer = await transformers.AutoTokenizer.from_pretrained(ONNX_MODEL_ID);
+export async function loadModelTokenCounter(): Promise<(text: string) => number> {
+  const transformers = await loadTransformers();
+  const tokenizer = await transformers.AutoTokenizer.from_pretrained(ONNX_MODEL_ID).catch(
+    (error: unknown) => {
+      throw missingModel(error);
+    },
+  );
   return (text: string) => tokenizer.encode(text).length;
 }
 

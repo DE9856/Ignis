@@ -4,7 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "prebuild": "tsx scripts/fetch-model.ts",
     "build": "next build",
+    "postbuild": "tsx scripts/check-bundle.ts",
+    "fetch:model": "tsx scripts/fetch-model.ts",
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "next typegen && tsc --noEmit",

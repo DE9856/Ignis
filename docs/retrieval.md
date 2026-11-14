@@ -56,13 +56,13 @@ Each record's section headings are the boundaries:
 
 ## 4. Embedding model and store
 
-| Item    | Choice                                                                                                                                                                    |
-| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Model   | BAAI/bge-small-en-v1.5, ONNX conversion `Xenova/bge-small-en-v1.5`, run locally with `@huggingface/transformers`                                                          |
-| Vector  | 384 dimensions, CLS pooling, unit length (from the model card)                                                                                                            |
-| Queries | Prefixed with "Represent this sentence for searching relevant passages: " as the model card recommends; passages are not prefixed                                         |
-| Store   | Supabase PostgreSQL with pgvector; text, metadata and vector in the same row                                                                                              |
-| Version | Every row records `bge-small-en-v1.5/onnx-fp32/cls-norm/chunker-v1`. Search refuses to compare vectors from a different version and falls back to keyword search instead. |
+| Item    | Choice                                                                                                                                                                                                                                                                                                                                                                              |
+| ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Model   | BAAI/bge-small-en-v1.5, ONNX conversion `Xenova/bge-small-en-v1.5`, run locally with `@huggingface/transformers`. 8-bit quantized weights (`onnx/model_quantized.onnx`, 34 MB), pinned to one Hugging Face revision and sha256-checked in `lib/embeddings/model-files.ts`, fetched into `models/` by `npm run fetch:model`. Loaded from disk only, never downloaded at request time |
+| Vector  | 384 dimensions, CLS pooling, unit length (from the model card)                                                                                                                                                                                                                                                                                                                      |
+| Queries | Prefixed with "Represent this sentence for searching relevant passages: " as the model card recommends; passages are not prefixed                                                                                                                                                                                                                                                   |
+| Store   | Supabase PostgreSQL with pgvector; text, metadata and vector in the same row                                                                                                                                                                                                                                                                                                        |
+| Version | Every row records `bge-small-en-v1.5/onnx-q8/cls-norm/chunker-v1`. Search refuses to compare vectors from a different version and falls back to keyword search instead.                                                                                                                                                                                                             |
 
 One function (`lib/embeddings/index.ts`) embeds both chunks and queries, so the index and the search cannot drift apart.
 
@@ -148,7 +148,7 @@ Retrieval-specific:
 
 ## 10. For the rest of the team
 
-- **Member 1:** apply `supabase/migrations/0002_hybrid_search.sql` (adapted from the earlier proposal; `lib/supabase/types.ts` now matches `lib/retrieval/rows.ts`), and send me the keys privately (H10). The route is `app/api/evidence/search/route.ts`, three lines calling `lib/retrieval/server.ts`. No `next.config.ts` change is needed: Next already treats the embedding packages as external.
+- **Member 1:** apply `supabase/migrations/0002_hybrid_search.sql` (adapted from the earlier proposal; `lib/supabase/types.ts` now matches `lib/retrieval/rows.ts`), and send me the keys privately (H10). The route is `app/api/evidence/search/route.ts`, three lines calling `lib/retrieval/server.ts`. Next treats the embedding packages as external; `next.config.ts` ships the model files and the Linux runtime with the search route (see `docs/deployment.md`, "Embedding model on Vercel").
 - **Member 4:** the response shape is in `lib/retrieval/types.ts` (H14). The current Evidence Desk ignores `boundary`, `listing`, `notice` and the scores. A refusal currently shows "No verified passages match", so `boundary.message` needs its own intentional-looking state.
 - **Member 3:** please review `lib/retrieval/messages.ts`, the safety-role keywords in `lib/retrieval/query-analysis.ts`, and `tests/retrieval/boundary.json` (H13), and this document (H15).
 - **Member 2:** keep the eight section headings exactly; unknown headings are reported and not indexed. SAME needs its capitalised name in the title or short title.
