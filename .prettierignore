@@ -8,3 +8,6 @@ next-env.d.ts
 AGENTS.md
 # Knowledge records are hand-edited; do not let a formatter rewrap evidence text.
 knowledge/**/*.md
+
+# Fixture knowledge bases contain deliberately broken files.
+tests/fixtures/**/*.md
