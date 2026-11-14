@@ -1,6 +1,6 @@
 {
   "description": "Retrieval evaluation set (Member 5 brief, Part F). Questions are drafted by Member 5. 'expected' lists record ids (file names in knowledge/investigations/) and must be filled in by a person reading the stable records, never from memory or an AI answer. A query is scored only when every expected id is a verified record; otherwise the runner reports it as not scorable yet.",
-  "labelStatus": "Questions drafted 2026-11-14. Labels proposed 2026-11-14 by llm:claude-opus-5-5 from the 13 stable records, before any evaluation run, and reviewed 2026-11-14 by human:member2 acting for Member 3 (absent): all 23 accepted, q07 kept as changed from the brief, q23 turned into a coverage question (see reviewNote). Member 3 may revisit. Holdout questions n03, q06, q09, q17 and q23 were inspected to diagnose bugs on 2026-11-14 (see holdoutNote); their holdout scores are optimistic.",
+  "labelStatus": "Questions drafted 2026-11-14. Labels proposed 2026-11-14 by llm:claude-opus-5-5 from the 13 stable records, before any evaluation run, and reviewed 2026-11-14 by human:member2 acting for Member 3 (absent): all 23 accepted, q07 kept as changed from the brief, q23 turned into a coverage question (see reviewNote). Member 3 may revisit. Holdout questions n03, q06, q09, q17 and q23 were inspected to diagnose bugs on 2026-11-14 (see holdoutNote); their holdout scores are optimistic. On 2026-11-14 the five inspected holdout questions were moved to dev and replaced by fresh holdout questions h01-h04 and n04, approved by human:member2 before their first evaluation run.",
   "kinds": {
     "specific": "Hit when an expected investigation appears in the top k. With expectedSections, a section-level hit also needs that chunk type.",
     "enumerative": "A list question. Also scored for recall: share of expected investigations found anywhere in the results.",
@@ -57,14 +57,14 @@
     },
     {
       "id": "q06",
-      "split": "holdout",
+      "split": "dev",
       "category": "detection",
       "kind": "specific",
       "query": "How was smoke detection studied?",
       "expected": ["same", "same-r"],
       "expectedSections": ["OBJECTIVE", "MEASUREMENT"],
       "labelSource": "Objective: SAME and SAME-R measured smoke particle size to support spacecraft smoke-detector design.",
-      "holdoutNote": "Inspected on 2026-11-14 while fixing: method-question section intent. No longer an unbiased holdout; replace with a fresh question when the set is next revised."
+      "holdoutNote": "Inspected on 2026-11-14 while fixing: method-question section intent. Moved to dev on 2026-11-14 and replaced in holdout by a fresh question."
     },
     {
       "id": "q07",
@@ -87,14 +87,14 @@
     },
     {
       "id": "q09",
-      "split": "holdout",
+      "split": "dev",
       "category": "suppression",
       "kind": "specific",
       "query": "How were suppressants tested on burning fuel?",
       "expected": ["bass", "flex"],
       "expectedSections": ["CONDITIONS", "MEASUREMENT"],
       "labelSource": "Conditions: bass nitrogen suppressant flow and nozzle distance; flex diluent type and amount.",
-      "holdoutNote": "Inspected on 2026-11-14 while fixing: method-question section intent. No longer an unbiased holdout; replace with a fresh question when the set is next revised."
+      "holdoutNote": "Inspected on 2026-11-14 while fixing: method-question section intent. Moved to dev on 2026-11-14 and replaced in holdout by a fresh question."
     },
     {
       "id": "q10",
@@ -166,14 +166,14 @@
     },
     {
       "id": "q17",
-      "split": "holdout",
+      "split": "dev",
       "category": "airflow",
       "kind": "specific",
       "query": "What happens to a flame when ventilation airflow stops?",
       "expected": ["saffire", "acme-bre", "bass", "bass-ii"],
       "expectedSections": ["FINDING"],
       "labelSource": "Key Findings on flames with little or no airflow: saffire (cotton regrew with the fan off), acme-bre (burn for minutes in the absence of an air flow), bass and bass-ii (flames sustained below 1 cm/s).",
-      "holdoutNote": "Inspected on 2026-11-14 while fixing: compound split airflow/air flow and keyword-plus-meaning support. No longer an unbiased holdout; replace with a fresh question when the set is next revised."
+      "holdoutNote": "Inspected on 2026-11-14 while fixing: compound split airflow/air flow and keyword-plus-meaning support. Moved to dev on 2026-11-14 and replaced in holdout by a fresh question."
     },
     {
       "id": "q18",
@@ -227,14 +227,14 @@
     },
     {
       "id": "q23",
-      "split": "holdout",
+      "split": "dev",
       "category": "interpretation",
       "kind": "specific",
       "query": "Why does flame spread matter for lunar habitat design?",
       "expected": ["bass", "bass-ii", "saffire"],
       "expectedSections": ["INTERPRETATION"],
       "labelSource": "Fire Safety Relevance (team interpretation) sections of the flame-spread records: bass, bass-ii, saffire.",
-      "holdoutNote": "Inspected on 2026-11-14 while fixing: diagnosed only; no change made. No longer an unbiased holdout; replace with a fresh question when the set is next revised.",
+      "holdoutNote": "Inspected on 2026-11-14 while fixing: diagnosed only; no change made. Moved to dev on 2026-11-14 and replaced in holdout by a fresh question.",
       "expectedBoundary": "PARTIAL_GRAVITY_BOUND",
       "reviewNote": "Reviewed 2026-11-14: no stable record covers partial gravity, so a correct answer must say so (the partial-gravity notice, PARTIAL_GRAVITY_BOUND); the flame-spread records stay as relevant microgravity context."
     },
@@ -256,12 +256,66 @@
     },
     {
       "id": "n03",
-      "split": "holdout",
+      "split": "dev",
       "category": "negative",
       "kind": "negative",
       "query": "Which football team won the cup last year?",
       "expected": [],
-      "holdoutNote": "Inspected on 2026-11-14 while fixing: support rule (one rare word is not support). No longer an unbiased holdout; replace with a fresh question when the set is next revised."
+      "holdoutNote": "Inspected on 2026-11-14 while fixing: support rule (one rare word is not support). Moved to dev on 2026-11-14 and replaced in holdout by a fresh question."
+    },
+    {
+      "id": "h01",
+      "split": "holdout",
+      "category": "detection",
+      "kind": "specific",
+      "query": "How big were the smoke particles given off by overheated spacecraft materials?",
+      "expected": ["same", "same-r"],
+      "expectedSections": ["FINDING"],
+      "labelSource": "Drafted 2026-11-14 by llm:claude-opus-5-5 from the stable records, approved by human:member2 before any evaluation run. SAME: substantial portion below 500 nm; SAME-R: 200 nm to 400 nm range.",
+      "replaces": "q06"
+    },
+    {
+      "id": "h02",
+      "split": "holdout",
+      "category": "suppression",
+      "kind": "specific",
+      "query": "Could a jet of nitrogen put out the burning samples in BASS?",
+      "expected": ["bass"],
+      "expectedSections": ["FINDING"],
+      "labelSource": "Drafted 2026-11-14 by llm:claude-opus-5-5 from the stable records, approved by human:member2 before any evaluation run. BASS: extinction with the nitrogen jet was not possible for the given flow rate; 500 cc/min weakened but did not extinguish.",
+      "replaces": "q09"
+    },
+    {
+      "id": "h03",
+      "split": "holdout",
+      "category": "airflow",
+      "kind": "specific",
+      "query": "Does fire spread faster over cloth when the air moves with the flame or against it?",
+      "expected": ["bass", "bass-ii", "saffire"],
+      "expectedSections": ["FINDING"],
+      "labelSource": "Drafted 2026-11-14 by llm:claude-opus-5-5 from the stable records, approved by human:member2 before any evaluation run. BASS: thin fabric concurrent 2.55 mm/s vs opposed 1.21 mm/s; BASS-II: SIBAL fabric in concurrent flow; Saffire: SIBAL spread.",
+      "replaces": "q17"
+    },
+    {
+      "id": "h04",
+      "split": "holdout",
+      "category": "interpretation",
+      "kind": "specific",
+      "query": "What do these experiments mean for picking cabin materials for future crewed vehicles?",
+      "expected": ["bass", "bass-ii", "saffire", "acme-bre", "spice"],
+      "expectedSections": ["INTERPRETATION"],
+      "labelSource": "Drafted 2026-11-14 by llm:claude-opus-5-5 from the stable records, approved by human:member2 before any evaluation run. Each record's Fire Safety Relevance section names material selection or material screening.",
+      "replaces": "q23"
+    },
+    {
+      "id": "n04",
+      "split": "holdout",
+      "category": "negative",
+      "kind": "negative",
+      "query": "How many minutes does it take to soft-boil an egg?",
+      "expected": [],
+      "labelSource": "Drafted 2026-11-14 by llm:claude-opus-5-5 from the stable records, approved by human:member2 before any evaluation run. No answer in the corpus; worded without refusal-rule trigger words.",
+      "replaces": "n03"
     }
   ]
 }
