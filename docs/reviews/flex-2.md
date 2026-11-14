@@ -39,6 +39,6 @@
 ## Open for the reviewer
 
 - The removed sentence reads like a NASA web page about FLEX-2. If the author has that page, it could be added as a source and the sentence restored.
-- `ACME fact sheet` is used for one Key Finding but is not in this record's `sources` list. Add it, or move that statement.
+- ~~`ACME fact sheet` is used for one Key Finding but is not in this record's `sources` list.~~ Added to `sources` on 2026-11-14 after verification, with no change to any value or finding. Member3 may want to confirm the entry.
 - `sensors` is empty; no FLEX-2 diagnostics are given in the sources.
 - The NASA PSI record for FLEX-2 was not consulted.

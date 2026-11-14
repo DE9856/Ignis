@@ -60,14 +60,28 @@ describe("checkDatabaseHealth", () => {
     expect(health.status).toBe("PGVECTOR_UNAVAILABLE");
   });
 
-  it("maps network failures, bad keys and timeouts to CONFIGURED_BUT_UNREACHABLE", async () => {
-    const down = await checkDatabaseHealth(fakeClient(new Error("fetch failed")));
-    expect(down).toMatchObject({ status: "CONFIGURED_BUT_UNREACHABLE", configured: true });
-
+  it("tells a rejected key apart from an unreachable server", async () => {
     const denied = await checkDatabaseHealth(
       fakeClient({ error: { code: "401", message: "Invalid API key" }, count: null }),
     );
-    expect(denied.status).toBe("CONFIGURED_BUT_UNREACHABLE");
+    expect(denied).toMatchObject({ status: "KEY_REJECTED", reachable: true, configured: true });
+    expect(denied.detail).toMatch(/same project/);
+
+    // What supabase-js actually returned for a key from another project: HTTP 401, empty message.
+    const silent = await checkDatabaseHealth(
+      fakeClient({ error: { message: "" }, count: null, status: 401 } as never),
+    );
+    expect(silent.status).toBe("KEY_REJECTED");
+  });
+
+  it("maps network failures and timeouts to CONFIGURED_BUT_UNREACHABLE", async () => {
+    const down = await checkDatabaseHealth(fakeClient(new Error("fetch failed")));
+    expect(down).toMatchObject({ status: "CONFIGURED_BUT_UNREACHABLE", configured: true });
+
+    const serverError = await checkDatabaseHealth(
+      fakeClient({ error: { code: "XX000", message: "internal error" }, count: null }),
+    );
+    expect(serverError.status).toBe("CONFIGURED_BUT_UNREACHABLE");
 
     const slow: HealthCheckClient = {
       from: () => ({ select: () => new Promise(() => {}) }),

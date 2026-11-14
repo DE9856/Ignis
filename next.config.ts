@@ -10,6 +10,9 @@ const nextConfig: NextConfig = {
   cacheComponents: true,
   partialPrefetching: true,
   turbopack: {
+    // Pin the root to this project. Without it Next.js looks upward for a lockfile and
+    // warns about one in a parent folder that belongs to an unrelated project.
+    root: import.meta.dirname,
     rules: {
       "*.css": {
         loaders: ["@tailwindcss/turbopack"],

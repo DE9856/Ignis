@@ -57,12 +57,16 @@ export function SystemStatus({
     {
       label: "Evidence retrieval",
       ready: retrievalReady,
-      detail: retrievalReady ? "Hybrid retrieval available." : "Interfaces only. Not implemented yet.",
+      detail: retrievalReady
+        ? "Hybrid retrieval: meaning, keywords and record metadata."
+        : "Keyword and metadata search over the verified records. Meaning-based search needs Supabase.",
     },
     {
       label: "Generated synthesis",
       ready: synthesisReady,
-      detail: synthesisReady ? "Available on request, from retrieved evidence only." : "Optional and off.",
+      detail: synthesisReady
+        ? "Automatic summary above the evidence, written only from retrieved passages and checked against them."
+        : "Optional and off. Set OPTIONAL_LLM_API_KEY to enable it.",
     },
   ];
   const readyCount = rows.filter((row) => row.ready).length;
