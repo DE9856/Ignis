@@ -1,0 +1,54 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens. Use these names in Tailwind classes (bg-surface, text-ink-muted,
+ * border-line ...) rather than raw hex values, so the palette stays in one place.
+ */
+@theme {
+  --color-canvas: #0a1120;
+  --color-surface: #0f192c;
+  --color-raised: #152138;
+  --color-line: #22314e;
+  --color-line-strong: #344869;
+
+  --color-ink: #e6ebf4;
+  --color-ink-muted: #a3b0c7;
+  --color-ink-faint: #8291ac;
+
+  --color-accent: #e0a040;
+  --color-accent-ink: #1a1204;
+
+  --color-nasa: #7fb0f0;
+  --color-reviewed: #6cc79a;
+  --color-computed: #5cc4cf;
+  --color-interpretation: #b79cf0;
+  --color-generated: #e0a040;
+  --color-unverified: #a3b0c7;
+  --color-danger: #f08a80;
+
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", monospace;
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -1,0 +1,36 @@
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+/build
+
+# env files: real keys stay local, the example is committed
+.env*
+!.env.example
+
+# generated data (embeddings, exports). Keep the folder, not its contents.
+/data/*
+!/data/.gitkeep
+
+# misc
+.DS_Store
+*.pem
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+.vercel
+*.tsbuildinfo
+next-env.d.ts
+
+# editors
+.idea
+.vscode/*
+!.vscode/extensions.json
