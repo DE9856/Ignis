@@ -90,6 +90,23 @@ describe("contract: Investigation -> ranking", () => {
     expect(typeof analyzeScenario(TEST_SCENARIO_ALPHA, investigations).methodologyConfigured).toBe("boolean");
   });
 
+  it("attaches the methodology breakdown, coverage gaps and labelled research questions", () => {
+    const analysis = analyzeScenario(TEST_SCENARIO_ALPHA, investigations);
+    expect(analysis.methodologyId).toBe("ignis-methodology-v1");
+    for (const { result } of analysis.ranked) {
+      expect(result.breakdown?.investigationId).toBe(result.investigationId);
+      expect(result.score).toBe((result.breakdown?.relevanceScore ?? 0) / 100);
+    }
+    expect(analysis.coverage.length).toBeGreaterThan(0);
+    for (const gap of analysis.coverage) {
+      expect(gap.priority).not.toBeNull();
+      expect(["DIRECT", "BOUNDING", "INDIRECT", "MISSING"]).toContain(gap.state);
+    }
+    for (const question of analysis.researchQuestions) {
+      expect(question.label).toBe("PROJECT-GENERATED RESEARCH QUESTION");
+    }
+  });
+
   it("rejects physically impossible scenario values with a typed error", () => {
     expect(findScenarioProblems({ ...TEST_SCENARIO_ALPHA, oxygenPercent: 140 })).toHaveLength(1);
     expect(findScenarioProblems(TEST_SCENARIO_ALPHA)).toEqual([]);

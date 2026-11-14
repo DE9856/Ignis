@@ -32,7 +32,8 @@ describe("getCapabilities", () => {
       retrievalEnabled: false,
       llmEnabled: false,
       verifiedKnowledgeAvailable: false,
-      methodologyConfigured: false,
+      // The approved methodology is installed in code, not configured by environment.
+      methodologyConfigured: true,
       devMocksEnabled: false,
     });
   });
@@ -86,9 +87,13 @@ describe("getDegradedNotices", () => {
       DEGRADED_MESSAGES.noRetrieval,
     ]);
     expect(getDegradedNotices(capabilities, "scoring").map((notice) => notice.reason)).toEqual([
-      "noMethodology",
       "noVerifiedKnowledge",
     ]);
+    expect(
+      getDegradedNotices({ ...capabilities, methodologyConfigured: false }, "scoring").map(
+        (notice) => notice.reason,
+      ),
+    ).toEqual(["noMethodology", "noVerifiedKnowledge"]);
   });
 
   it("is empty when everything is available", () => {

@@ -1,6 +1,8 @@
 import { isVerified } from "@/lib/okf/parser";
 import type { Investigation } from "@/lib/okf/types";
 
+import { activeMethodology, type MethodologyConfig } from "./methodology";
+import { containsTerm, evidenceGravityLevel, scoreInvestigation } from "./scoring";
 import {
   SCENARIO_FACTORS,
   type FactorAssessment,
@@ -12,22 +14,30 @@ import {
 /**
  * Deterministic scenario-to-investigation relevance.
  *
- * PROVISIONAL: equal weights and the gravity tolerance below are scaffold
- * placeholders, not a reviewed methodology. Change them here and record the
- * reasoning on the Methodology page.
+ * With an approved methodology (lib/ranking/methodology.ts) the score is the
+ * methodology relevance from scoring.ts. Without one, it falls back to the
+ * PLACEHOLDER share of matched factors, which the app labels as provisional.
  *
- * Fixed rules that should survive any re-weighting:
+ * The per-factor outcomes below are a simple match/mismatch/unknown view for
+ * display. The methodology's evidence states are in `result.breakdown`.
+ *
+ * Fixed rules that survive any re-weighting:
  * - a missing investigation value is `unknown`, never a match
  * - same inputs always give the same order (ties break on investigation id)
  * - no randomness, no model calls
  */
 
-/** Scenario and investigation gravity levels closer than this count as equal. */
+/** Scenario and investigation gravity levels closer than this count as equal (factor view only). */
 export const GRAVITY_TOLERANCE_G = 0.01;
 
 export interface RankingOptions {
   /** Default false: only human-verified investigations are ranked. */
   includeUnverified?: boolean;
+  /**
+   * Methodology to score with. Defaults to the approved production methodology.
+   * Pass null to force the placeholder score (tests of the fallback path).
+   */
+  methodology?: MethodologyConfig | null;
 }
 
 function assessRange(value: number | null, min: number | null, max: number | null): FactorOutcome {
@@ -40,24 +50,30 @@ function assessRange(value: number | null, min: number | null, max: number | nul
 function assessText(value: string | null, candidate: string | null): FactorOutcome {
   if (value === null) return "not_specified";
   if (candidate === null) return "unknown";
-  return value.trim().toLowerCase() === candidate.trim().toLowerCase() ? "match" : "mismatch";
+  return containsTerm(candidate, value) ? "match" : "mismatch";
 }
 
-function assessGravity(value: number | null, candidate: number | null): FactorOutcome {
+function assessGravity(value: number | null, investigation: Investigation): FactorOutcome {
   if (value === null) return "not_specified";
+  const candidate = evidenceGravityLevel(investigation);
   if (candidate === null) return "unknown";
   return Math.abs(value - candidate) <= GRAVITY_TOLERANCE_G ? "match" : "mismatch";
+}
+
+function resolveMethodology(options: RankingOptions): MethodologyConfig | null {
+  return options.methodology === undefined ? activeMethodology() : activeMethodology(options.methodology);
 }
 
 export function assessInvestigation(
   scenario: MissionScenario,
   investigation: Investigation,
+  options: RankingOptions = {},
 ): RelevanceResult {
   const outcomes: Record<(typeof SCENARIO_FACTORS)[number], FactorOutcome> = {
     oxygen: assessRange(scenario.oxygenPercent, investigation.oxygenMin, investigation.oxygenMax),
     pressure: assessRange(scenario.pressureKPa, investigation.pressureMin, investigation.pressureMax),
     airflow: assessRange(scenario.airflowMetersPerSecond, investigation.airflowMin, investigation.airflowMax),
-    gravity: assessGravity(scenario.gravityG, investigation.gravityValue),
+    gravity: assessGravity(scenario.gravityG, investigation),
     material: assessText(scenario.material, investigation.material),
     fuelType: assessText(scenario.fuelType, investigation.fuelType),
     safetyObjective:
@@ -80,13 +96,24 @@ export function assessInvestigation(
   const unknown = count("unknown");
   const compared = matched + mismatched + unknown;
 
+  const methodology = resolveMethodology(options);
+  const breakdown = methodology === null ? null : scoreInvestigation(scenario, investigation, methodology);
+  const placeholderScore = compared === 0 ? null : matched / compared;
+  const score =
+    breakdown === null
+      ? placeholderScore
+      : breakdown.relevanceScore === null
+        ? null
+        : breakdown.relevanceScore / 100;
+
   return {
     investigationId: investigation.id,
-    score: compared === 0 ? null : matched / compared,
+    score,
     matched,
     mismatched,
     unknown,
     factors,
+    breakdown,
   };
 }
 
@@ -97,10 +124,11 @@ export function rankInvestigations(
 ): RelevanceResult[] {
   return investigations
     .filter((investigation) => options.includeUnverified || isVerified(investigation))
-    .map((investigation) => assessInvestigation(scenario, investigation))
+    .map((investigation) => assessInvestigation(scenario, investigation, options))
     .sort(
       (a, b) =>
         (b.score ?? -1) - (a.score ?? -1) ||
+        (b.breakdown?.directCoverage ?? -1) - (a.breakdown?.directCoverage ?? -1) ||
         a.mismatched - b.mismatched ||
         a.investigationId.localeCompare(b.investigationId),
     );
