@@ -27,6 +27,30 @@ export function slugify(value: string): string {
     .replace(/^-+|-+$/g, "");
 }
 
+function snakeToCamel(key: string): string {
+  return key.replace(/_+([a-z0-9])/g, (_, character: string) => character.toUpperCase());
+}
+
+/** Frontmatter keys whose camelCase form differs from the TypeScript field name. */
+const KEY_ALIASES: Record<string, string> = {
+  safetyCategory: "safetyCategories",
+};
+
+/**
+ * Authors write snake_case (`oxygen_min`); the code uses camelCase (`oxygenMin`).
+ * Converts keys recursively and leaves values untouched.
+ */
+export function normalizeFrontmatterKeys(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(normalizeFrontmatterKeys);
+  if (value === null || typeof value !== "object" || value instanceof Date) return value;
+  return Object.fromEntries(
+    Object.entries(value).map(([key, entry]) => {
+      const camel = snakeToCamel(key);
+      return [KEY_ALIASES[camel] ?? camel, normalizeFrontmatterKeys(entry)];
+    }),
+  );
+}
+
 /** Split Markdown into sections on level 1 and 2 headings, ignoring code fences. */
 export function parseSections(markdown: string): OkfSection[] {
   const sections: OkfSection[] = [];
@@ -66,11 +90,19 @@ export function parseBulletList(content: string): string[] {
     .filter((item) => item.length > 0);
 }
 
+export function camelToSnake(key: string): string {
+  const alias = Object.entries(KEY_ALIASES).find(([, target]) => target === key)?.[0] ?? key;
+  return alias.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
+}
+
+/** Report problems using the snake_case names authors actually typed. */
 function toIssues(error: z.ZodError, filePath: string): OkfIssue[] {
   return error.issues.map((issue) => ({
     filePath,
-    path: issue.path.join("."),
-    message: issue.message,
+    path: issue.path
+      .map((segment) => (typeof segment === "string" ? camelToSnake(segment) : String(segment)))
+      .join("."),
+    message: issue.message.replace(/\b[a-z]+(?:[A-Z][a-z0-9]*)+\b/g, camelToSnake),
   }));
 }
 
@@ -91,7 +123,7 @@ export function parseOkfDocument(
   let content: string;
   try {
     const parsed = matter(raw);
-    data = parsed.data;
+    data = normalizeFrontmatterKeys(parsed.data);
     content = parsed.content;
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unreadable YAML frontmatter";
@@ -138,7 +170,9 @@ export function toInvestigation(document: InvestigationDocument): Investigation 
     shortTitle: metadata.shortTitle,
     program: metadata.program,
     description: metadata.description,
+    resource: metadata.resource,
     objective: sectionText(sections, "objective"),
+    fireSafetyRelevance: sectionText(sections, "fire-safety-relevance"),
     safetyCategories: metadata.safetyCategories,
     fuelType: metadata.fuelType,
     material: metadata.material,
@@ -168,7 +202,7 @@ export function toInvestigation(document: InvestigationDocument): Investigation 
   };
 }
 
-/** Verified means a reviewer signed off AND the status says so. */
+/** Human reviewed means a reviewer signed off AND the status is `stable`. */
 export function isVerified(record: Pick<Investigation, "status" | "verified">): boolean {
-  return record.status === "verified" && record.verified.length > 0;
+  return record.status === "stable" && record.verified.length > 0;
 }

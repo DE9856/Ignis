@@ -1,5 +1,7 @@
 import type { SafetyObjective } from "@/lib/okf/types";
 
+import type { EvidenceState, MethodologyDimension } from "./methodology";
+
 /**
  * A mission fire-safety scenario entered by the user.
  * Any field left blank is `null` and is simply not compared.
@@ -80,3 +82,54 @@ export const FACTOR_LABELS: Record<ScenarioFactor, string> = {
   fuelType: "Fuel type",
   safetyObjective: "Safety objective",
 };
+
+/* -------------------------------------------------------------------------- */
+/* Target result shapes for the validated methodology.                         */
+/*                                                                            */
+/* DRAFT CONTRACT. These follow the vocabulary in Member 3's brief so that     */
+/* Member 4 can build the score explanation and gap views against real types.  */
+/* Nothing produces them yet; field meanings are fixed by docs/methodology.md  */
+/* when Member 3 delivers it. Change them only in a `contract:` pull request.  */
+/* -------------------------------------------------------------------------- */
+
+export interface DimensionAssessment {
+  dimension: MethodologyDimension;
+  state: EvidenceState;
+  weight: number;
+  multiplier: number;
+  /** weight x multiplier. */
+  contribution: number;
+  /** Short reason for the state, written by deterministic code. */
+  explanation: string | null;
+}
+
+export interface RelevanceBreakdown {
+  investigationId: string;
+  /** `MethodologyConfig.id` that produced this result. */
+  methodologyId: string;
+  /** Mission relevance. Not a probability and not a safety score. Null when not computable. */
+  relevanceScore: number | null;
+  /** Direct-condition coverage, a separate output from relevance. Null when not computable. */
+  directCoverage: number | null;
+  dimensions: DimensionAssessment[];
+}
+
+export const GAP_COVERAGE_STATES = ["DIRECT", "BOUNDING", "INDIRECT", "MISSING"] as const;
+export type GapCoverageState = (typeof GAP_COVERAGE_STATES)[number];
+
+export interface GapResult {
+  dimension: MethodologyDimension;
+  state: GapCoverageState;
+  /** Evidence coverage for this dimension. Never a risk level. */
+  coverage: number | null;
+  priority: number | null;
+  supportingInvestigationIds: string[];
+}
+
+export const RESEARCH_QUESTION_LABEL = "PROJECT-GENERATED RESEARCH QUESTION";
+
+export interface ResearchQuestion {
+  label: typeof RESEARCH_QUESTION_LABEL;
+  text: string;
+  basedOn: MethodologyDimension;
+}

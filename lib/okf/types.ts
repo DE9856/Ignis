@@ -22,7 +22,13 @@ export const PROVENANCE_CLASSES = [
 ] as const;
 export type ProvenanceClass = (typeof PROVENANCE_CLASSES)[number];
 
-export const DOCUMENT_STATUSES = ["draft", "in_review", "verified", "deprecated"] as const;
+/**
+ * Review lifecycle of a record.
+ * - draft: written, not yet checked against the source by a second person
+ * - stable: checked by a reviewer; the only state eligible for analytics and retrieval
+ * - deprecated: kept for history, excluded everywhere
+ */
+export const DOCUMENT_STATUSES = ["draft", "stable", "deprecated"] as const;
 export type DocumentStatus = (typeof DOCUMENT_STATUSES)[number];
 
 export const OKF_DOCUMENT_TYPES = ["Investigation", "Hardware", "Concept", "Mission"] as const;
@@ -57,9 +63,10 @@ export interface GenerationRecord {
 export interface VerificationRecord {
   /** Reviewer, e.g. `human:member3`. */
   by: string;
+  /** ISO date or timestamp of the review. */
   at: string | null;
-  /** What was checked, e.g. `frontmatter`, `key-findings`, `all`. */
-  scope: string | null;
+  /** What was checked and against which source. */
+  note: string | null;
 }
 
 /** Folders a `related` link may point into. */
@@ -83,7 +90,11 @@ export interface Investigation {
   shortTitle: string | null;
   program: string | null;
   description: string | null;
+  /** Primary source locator from the frontmatter `resource` field. */
+  resource: string | null;
   objective: string | null;
+  /** The team's own reading of the evidence. Always shown as TEAM_INTERPRETATION. */
+  fireSafetyRelevance: string | null;
 
   safetyCategories: SafetyObjective[];
 

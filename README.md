@@ -12,16 +12,17 @@ Built for NASA Space Apps 2026 by a five-person team. The goal for the event is 
 
 Scaffold. The application runs, every route renders, and the data pipeline from Markdown file to screen works end to end. There is no scientific content yet: pages show "Awaiting verified NASA evidence" until records are added.
 
-| Area                            | State                                    |
-| ------------------------------- | ---------------------------------------- |
-| Routes and layout               | Working shells                           |
-| Domain types and OKF schema     | In place                                 |
-| OKF parser and loader           | Basic: frontmatter, sections, validation |
-| Relevance ranking, gap analysis | Working, with provisional rules          |
-| Knowledge records               | None yet                                 |
-| Supabase                        | Optional client wiring only              |
-| Chunking, embeddings, retrieval | Interfaces only                          |
-| LLM synthesis                   | Not started, optional                    |
+| Area                            | State                                                          |
+| ------------------------------- | -------------------------------------------------------------- |
+| Routes and layout               | Working shells                                                 |
+| Domain types and OKF schema     | In place, aligned with the member briefs                       |
+| OKF parser, loader, validator   | Working: frontmatter, sections, structural validation          |
+| Relevance ranking, gap analysis | Working with placeholder rules; awaiting validated methodology |
+| Provenance and trust rules      | In place, centralised                                          |
+| Knowledge records               | None yet                                                       |
+| Supabase                        | Schema migration and health check; no data                     |
+| Chunking, embeddings, retrieval | Interfaces, contract tests and a development mock              |
+| LLM synthesis                   | Not started, optional                                          |
 
 ## Architecture overview
 
@@ -67,13 +68,17 @@ npm run dev
 
 Open http://localhost:3000. No environment variables are needed.
 
-| Command          | What it does                             |
-| ---------------- | ---------------------------------------- |
-| `npm run dev`    | Development server                       |
-| `npm run build`  | Production build                         |
-| `npm run check`  | Format check, lint, type-check and tests |
-| `npm run test`   | Unit tests                               |
-| `npm run format` | Format everything with Prettier          |
+| Command                      | What it does                                        |
+| ---------------------------- | --------------------------------------------------- |
+| `npm run dev`                | Development server                                  |
+| `npm run check`              | Format, lint, types, tests and knowledge validation |
+| `npm run check:ci`           | `check` plus a production build                     |
+| `npm run validate:knowledge` | Structural validation of the knowledge base         |
+| `npm run inspect:knowledge`  | Progress statistics for the knowledge base          |
+| `npm run check:env`          | Which environment variables are usable              |
+| `npm run check:db`           | Is Supabase reachable and the schema in place       |
+
+All commands, the post-knowledge-merge checklist and the diagnostics pages are in [docs/development.md](docs/development.md).
 
 ## Environment variables
 
@@ -93,16 +98,21 @@ Never commit real keys. `.env*` is git-ignored except `.env.example`.
 ```
 app/            Routes: / /explore /scenario /compare /evidence /methodology /about
 components/     UI by area: layout, dashboard, experiments, scenario, compare, evidence, charts, shared
-lib/okf/        Domain types, Zod schema, parser, loader
-lib/ranking/    Relevance scoring, gap analysis
+lib/okf/        Domain types, Zod schema, parser, loader, validation
+lib/ranking/    Relevance scoring, gap analysis, methodology configuration
 lib/retrieval/  Retrieval interfaces and placeholder
-lib/supabase/   Optional clients and database types
+lib/supabase/   Optional clients, database types, health check
+lib/core/       Environment, capabilities, degraded states, typed errors
+lib/domain/     Provenance rules, unit conversion
+lib/integration/ View models and adapters between modules
+lib/dev/        Development-only mocks and test configuration
 lib/utils/      Class-name and number helpers
+supabase/       Database migrations
 knowledge/      OKF records: investigations, hardware, concepts, missions
 data/           Generated artefacts (git-ignored)
-scripts/        Chunking and ingestion scripts (to come)
-tests/          Vitest unit tests
-docs/           Architecture, data contract, contribution guide
+scripts/        Knowledge validation and inspection, environment and database checks
+tests/          Unit, contract and integration tests; synthetic fixtures
+docs/           Architecture, data contract, retrieval contract, development, team handoff
 ```
 
 ## Development workflow
@@ -110,7 +120,7 @@ docs/           Architecture, data contract, contribution guide
 1. Pull `main`, then work on your feature branch.
 2. Keep changes small. Run `npm run check` before pushing.
 3. Open a pull request to `main`. CI runs the same checks plus a build.
-4. One other team member reviews. Merge when green.
+4. One other team member reviews. Merge when green, with a merge commit.
 
 Details and conventions are in [docs/contribution-guide.md](docs/contribution-guide.md).
 
@@ -137,8 +147,8 @@ These are primary areas, not fences. Anyone can change anything through a pull r
 1. NASA is the source of scientific evidence. Every scientific statement traces to a cited NASA source.
 2. Never invent data. No sample numbers, no plausible placeholders, no "typical" values.
 3. Missing means `null`. The UI shows "Unknown" or "Awaiting verified NASA evidence".
-4. A record is `draft` until a second person checks it against the source and adds a `verified` entry.
-5. Only verified records feed ranking and retrieval by default.
+4. A record is `draft` until a second person checks it against the source, adds a `verified` entry and sets it to `stable`.
+5. Only `stable`, human-reviewed records feed ranking and retrieval by default.
 6. Every piece of content carries a provenance label: `NASA_SOURCE`, `HUMAN_REVIEWED`, `COMPUTED`, `TEAM_INTERPRETATION`, `GENERATED_SUMMARY` or `UNVERIFIED`.
 7. Team interpretation is labelled as such and kept separate from what the source says.
 8. No NASA logos or insignia, and nothing that implies NASA endorsement.
