@@ -41,3 +41,6 @@ next-env.d.ts
 # Impeccable design tool: local cache and review screenshots
 .impeccable/hook.cache.json
 .impeccable/review/
+
+# Embedding model files, fetched and hash-checked by `npm run fetch:model`
+/models/

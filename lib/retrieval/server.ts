@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { getQueryEmbedder } from "@/lib/embeddings";
+import { getQueryEmbedder, withTimeout } from "@/lib/embeddings";
 import { SAFETY_OBJECTIVES, GRAVITY_CONDITIONS } from "@/lib/okf/types";
 
 import { RETRIEVAL } from "./config";
@@ -113,5 +113,45 @@ export async function handleSearchRequest(request: Request): Promise<Response> {
     return json(await getServerRetriever().search(query));
   } catch (error) {
     return json({ status: "unavailable", reason: `Evidence search failed: ${(error as Error).message}` });
+  }
+}
+
+/**
+ * Handler body for `GET /api/evidence/search`: loads the query embedder and embeds one
+ * fixed string. Proves the bundled model and native runtime work on the deployed function,
+ * independently of the index (search skips the model when the stored vectors are from
+ * another version). Returns no paths or error text; details go to the function log.
+ */
+export async function handleEmbedderProbe(request: Request): Promise<Response> {
+  const address = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "local";
+  const headers = { "Cache-Control": "no-store" };
+  if (rateLimited(address)) return Response.json({ error: "Too many requests." }, { status: 429, headers });
+
+  const embedder = getQueryEmbedder();
+  if (!embedder) return Response.json({ embeddings: "off", ready: false }, { headers });
+
+  const started = Date.now();
+  try {
+    const [vector] = await withTimeout(
+      embedder.embed(["embedding probe"], "query"),
+      20_000,
+      "Embedding probe",
+    );
+    return Response.json(
+      {
+        embeddings: "local",
+        ready: vector.length === embedder.dimensions,
+        version: embedder.version,
+        dimensions: vector.length,
+        milliseconds: Date.now() - started,
+      },
+      { headers },
+    );
+  } catch (error) {
+    console.error("Embedding probe failed:", error);
+    return Response.json(
+      { embeddings: "local", ready: false, version: embedder.version, milliseconds: Date.now() - started },
+      { status: 503, headers },
+    );
   }
 }

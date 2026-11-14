@@ -13,3 +13,4 @@ knowledge/**/*.md
 tests/fixtures/**/*.md
 
 .impeccable/
+/models/
