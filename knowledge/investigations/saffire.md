@@ -1,0 +1,193 @@
+---
+type: Investigation
+title: Spacecraft Fire Safety Demonstration (Saffire)
+shortTitle: Saffire
+program: NASA Spacecraft Fire Safety Demonstration Project
+description: >-
+  Series of six large-scale fire experiments (Saffire I to VI) conducted inside uncrewed Cygnus
+  cargo vehicles after they left the ISS, burning large fabric and PMMA samples in a flow unit to
+  measure flame spread, heat release, and the effect of a fire on spacecraft temperature, pressure,
+  carbon dioxide, carbon monoxide and smoke.
+status: draft
+
+safetyCategories:
+  - prevention
+  - detection
+  - suppression
+
+fuelType: solid
+material: >-
+  SIBAL fabric (75% cotton, 25% fiberglass); cotton jersey; cast PMMA (one-sided 5 mm thick,
+  two-sided 10 mm thick, and a ribbed PMMA sample on Saffire V); Nomex fabric
+sampleShape: Large flat sheets and slabs mounted on a sample card in a flow duct
+sampleSize: >-
+  Saffire I and III SIBAL samples 41 cm wide by 94 cm long; Saffire II thin samples 5 cm wide by
+  30 cm long; Saffire IV and V samples 40 to 41 cm wide, 18 to 50 cm long; Saffire VI samples all
+  41 cm wide, with cotton/fiberglass 50 cm long, PMMA 18 cm long, Nomex 7 cm long
+
+oxygenMin: 21 # percent O2 by volume
+oxygenMax: 31
+pressureMin: 54.1 # kPa
+pressureMax: 100
+airflowMin: 0.05 # m/s
+airflowMax: 0.25
+
+gravityCondition: microgravity
+gravityValue: null
+
+platform: Uncrewed Northrop Grumman (formerly Orbital ATK) Cygnus cargo vehicle, after departure from the ISS
+hardware:
+  - Saffire Flow Unit (SFU)
+  - Far Field Diagnostics (FFD) unit with smoke cleanup system
+sensors:
+  - Front-view and side-view cameras
+  - Radiometer
+  - Vane anemometer
+  - Inlet and outlet oxygen, carbon dioxide and carbon monoxide sensors
+  - Remote sensors with thermocouple and carbon dioxide sensor
+  - Ionization smoke detector
+  - Light-scattering particulate monitor
+measurements:
+  - Flame spread and flame growth
+  - Heat release rate (oxygen consumption calorimetry and fuel consumption)
+  - Spacecraft temperature and pressure rise
+  - Carbon dioxide and carbon monoxide concentration increase
+  - Smoke concentration and smoke detector response
+variables:
+  - Sample material and thickness
+  - Ambient pressure (spacecraft vented and backfilled with oxygen)
+  - Oxygen concentration
+  - Air flow speed in the flow duct
+  - Flow direction relative to spread (concurrent; opposed for some samples)
+
+tags:
+  - combustion
+  - microgravity
+  - large-scale-fire
+  - solid-material
+  - flame-spread
+  - heat-release
+  - combustion-products
+  - smoke-detection
+
+sources:
+  - id: ntrs-20210011521
+    resource: https://ntrs.nasa.gov/citations/20210011521
+    title: >-
+      Fire Safety Implications of Preliminary Results from Saffire IV and V Experiments on Large
+      Scale Spacecraft Fires (Urban et al., ICES-2021-266)
+    sourceClass: NASA_SOURCE
+    accessed: 2026-11-14
+  - id: ntrs-20240002981
+    resource: https://ntrs.nasa.gov/citations/20240002981
+    title: Preliminary Results from the Saffire VI Experiment (Urban et al., ICES-2024-365)
+    sourceClass: NASA_SOURCE
+    accessed: 2026-11-14
+  - id: nasa-release-2016
+    resource: https://www.nasa.gov/news-release/nasa-glenn-successfully-ignites-largest-fire-experiment-in-space/
+    title: NASA Glenn Successfully Ignites Largest Fire Experiment in Space (NASA release 16-021, June 2016)
+    sourceClass: NASA_SOURCE
+    accessed: 2026-11-14
+  - id: nasa-saffire-v-2021
+    resource: https://www.nasa.gov/humans-in-space/saffire-ignites-new-discoveries-in-space/
+    title: Saffire Ignites New Discoveries in Space (NASA, January 2021)
+    sourceClass: NASA_SOURCE
+    accessed: 2026-11-14
+  - id: nasa-saffire-vi-2024
+    resource: https://www.nasa.gov/centers-and-facilities/glenn/flame-burns-out-on-nasas-long-running-spacecraft-fire-experiment/
+    title: Flame Burns Out on NASA's Long-Running Spacecraft Fire Experiment (NASA, February 2024)
+    sourceClass: NASA_SOURCE
+    accessed: 2026-11-14
+
+related:
+  - id: investigations/bass
+    relation: shares-fuel
+    note: Both burned SIBAL cotton-fiberglass fabric and PMMA; BASS at centimetre scale in the MSG, Saffire at large scale in Cygnus
+  - id: investigations/same
+    relation: shares-measurement
+    note: Both address spacecraft smoke detection; Saffire measured smoke and detector response from a real fire
+  - concepts/prevention
+  - concepts/detection
+  - concepts/flame-spread
+  - concepts/smoke-detection
+
+generated:
+  by: human:member2
+  at: 2026-11-14
+  tool: claude-assisted extraction
+
+verified: []
+---
+
+# Objective
+
+Saffire (Spacecraft Fire Safety Demonstration) was a NASA series of six large-scale fire experiments conducted inside uncrewed Cygnus cargo vehicles after they departed the International Space Station. NASA states that the lack of experimental data on spacecraft fire behaviour at practical length scales and geometries has forced spacecraft designers to base designs and safety precautions on 1-g understanding of flame spread, flame self-extinguishment, fire detection and suppression, and that the project was formulated to conduct large-scale experiments in spacecraft environments that represent practical spacecraft fires. A major goal of the final flight, Saffire VI, was to compare the heat and pressure rise from a spacecraft fire with the release of hazardous products (carbon monoxide and carbon dioxide).
+
+# Experimental Conditions
+
+All Saffire burns took place in microgravity inside an uncrewed Cygnus vehicle in orbit after it had left the ISS; no crew was aboard.
+
+- Saffire I launched to the ISS in a Cygnus on March 22, 2016 and its burn took place after the vehicle departed the station on June 14, 2016. The module was 3 feet by 3 feet by 5 feet tall and the sample was approximately 16 inches wide and 37 inches long. Saffire IV and V flew in May 2020 (NG-13) and January 2021 (NG-14).
+- Saffire I to III (thin SIBAL samples, per Table 2 of the IV/V paper): 21% oxygen, 100 kPa, air flow 20 or 25 cm/s, in a 46 cm high duct.
+- Saffire IV and V (Table 1 of the IV/V paper): IV-1 and IV-2 at 100.0 kPa and 22.0 mol% O2; V-2, V-3 and V-4 at 70.7 to 72.6 kPa and 25.4 to 26.2 mol% O2; all at 20 cm/s (four concurrent, one opposed). Free volume 17.9 m3 (IV) and 19.0 m3 (V).
+- For Saffire IV to VI the tests were conducted in a rectangular flow tunnel 30 cm high by 45 cm wide by 109 cm long, with a fan in the inlet duct and a vane anemometer at the inlet.
+- Spacecraft atmosphere: before testing, the Cygnus was vented to a requested pressure and Saffire released oxygen to bring the vehicle to the desired condition. Across the tests tabulated in the two papers, ambient pressure ranged from 54.1 to 100 kPa and oxygen from 21 to 31 percent (mol%, treated as volume percent for a gas mixture). These ranges are used in the frontmatter.
+- Airflow: 20 or 25 cm/s in the tabulated tests; flow was reduced to 5 cm/s in some tests before shutdown (IV-2, V-3, V-4, VI-3). The frontmatter airflow range (0.05 to 0.25 m/s) reflects these stated values only.
+- Free air volume in the vehicle was 16.7 to 19.0 m3 for the tabulated tests; the fires spanned 1.5 to 3.2 kW.
+- Saffire VI samples were all 41 cm wide: SIBAL cotton/fiberglass fabric 50 cm long, two-sided PMMA 1 cm thick and 18 cm long, one-sided PMMA 0.5 cm thick and 18 cm long, and Nomex fabric 7 cm long.
+
+# Variables
+
+Independent variables reported across the Saffire flights:
+
+- Sample material and thickness (SIBAL fabric, cotton jersey, one-sided and two-sided PMMA, ribbed PMMA, Nomex).
+- Ambient pressure and oxygen concentration, set by venting the vehicle and backfilling with oxygen.
+- Air flow speed in the flow duct (for example 20 cm/s reduced to 5 cm/s in test VI-3).
+- Flow direction relative to flame spread (all tabulated IV to VI tests were concurrent).
+
+Dependent variables: flame growth and spread, heat release rate, spacecraft temperature and pressure rise, increases in carbon dioxide and carbon monoxide concentration, and smoke concentration and detector response.
+
+# Sensors and Measurements
+
+For Saffire IV to VI the Saffire Flow Unit carried front-view and side-view cameras, a radiometer, a vane anemometer, and gas sensors at the inlet and outlet measuring oxygen, carbon dioxide and carbon monoxide. On Saffire VI the outlet gas sensor was placed at a verified mixed location so that heat release could be measured by oxygen consumption calorimetry (13.1 kJ per gram of oxygen consumed, per Huggett's method). Six remote sensors, each with a thermocouple and a carbon dioxide sensor, were placed around the vehicle. A Far Field Diagnostics unit near the hatch contained aerosol and species diagnostics, a smoke cleanup system, an ionization smoke detector and a light-scattering particulate monitor.
+
+# Key Findings
+
+- Practical-scale fires of 1.5 to 3.2 kW were tested in uncrewed spacecraft with free air volumes of 17 to 19 cubic meters; despite these fires, temperature increased significantly only very near the fire itself (Saffire VI paper).
+- Ambient carbon monoxide and carbon dioxide rose significantly; the PMMA tests on Saffire VI exceeded the 1-hour carbon dioxide limit and the 24-hour carbon monoxide limit.
+- Smoke was readily detected by an ionization detector and a light-scattering system, but a typical alarm threshold (1 mg/m3 selected by the authors) was only reached at 981 seconds in test VI-3, by which time most of the hazardous gas release had occurred.
+- The authors conclude that the human hazard from a fire in a spacecraft is very similar to terrestrial fires: heat is not the principal hazard, and smoke and gaseous products are a much greater concern.
+- The SIBAL fabric sample reached a steady size and spread rate quite rapidly, whereas the two PMMA samples grew continuously until the flow speed was reduced.
+- The Nomex sample on Saffire VI did not ignite.
+- Earlier flights showed that, under typical spacecraft conditions, fires can develop to significant size, and that average temperature and pressure rise were not of particular concern while the increase in carbon monoxide and carbon dioxide was enough to be a health concern (as summarised in the Saffire VI paper).
+- On Saffire V, NASA reports that a ribbed PMMA sample burned faster on the thinner ribs and that elevated oxygen levels produced more energetic flames.
+- Saffire IV and V fires had heat release rates up to 10 kW and a measurable impact on vehicle pressure, temperature and carbon dioxide, but average vehicle conditions did not rise to unacceptable levels (IV/V paper abstract).
+- Extinguishment of thin charring fuels at increased oxygen, and of bubbling polymers, cannot be assumed to occur rapidly in quiescent conditions: a cotton sample (V-2) regrew after 70 s with the fan off, and a two-sided PMMA sample (IV-2) kept burning through a 15 s no-flow interval (IV/V paper).
+- In some circumstances, reducing air flow to a small value (5 cm/s held for 300 s) rather than stopping it led to immediate extinction when the fan was then turned off (V-3, V-4).
+- Overheated materials in quiescent or low-flow zones produced stratified fuel mixtures that caused strong deflagrations during ignition (IV-2, V-4).
+- Flames reached nearly steady lengths in all configurations (concurrent and opposed, thin and thick fuels), unlike upward spread in normal gravity; on thick PMMA in concurrent flow, flames stayed pinned at the leading edge and advanced only by surface regression.
+- Thick-fuel flame growth was dissimilar from NASA-STD-6001 Test 1; the authors state this does not invalidate the test but affects interpretation of its results. In one case a flame jumped a 4.5 cm gap to ignite a previously warmed PMMA surface.
+
+# Fire Safety Relevance
+
+Team interpretation: Saffire is the only investigation in this knowledge base that burned spacecraft-relevant materials at a large, practical scale inside a real spacecraft volume. Its evidence points to combustion products (carbon monoxide, carbon dioxide, smoke) rather than heat or pressure as the main crew hazard from a moderate cabin fire, and to the possibility that a smoke alarm threshold may be reached only after much of the hazardous gas has been released. This is relevant to detection (sensor choice, placement and thresholds), to prevention (material selection in elevated-oxygen, reduced-pressure exploration atmospheres) and to suppression and post-fire response (shutting off ventilation did not reliably extinguish thin charring fuels or bubbling polymers, and low-flow zones allowed fuel vapour to accumulate and deflagrate). The tests were in microgravity; the authors state further work is needed to extend the results to the partial gravity of the Moon and Mars, and IGNIS does not treat Saffire as direct lunar or Martian evidence.
+
+# Limitations
+
+- Both quantitative sources are preliminary conference papers (ICES-2021 and ICES-2024), not final reports.
+- The pressure, oxygen and airflow ranges in this record cover only the tests tabulated in those papers (I-1, II-5, II-6, III-1, IV-1, IV-2, V-2, V-3, V-4, VI-2, VI-3, VI-4). Conditions for Saffire II PMMA samples and for other Saffire VI runs are not stated in the sources consulted.
+- Duct height is reported inconsistently in the IV/V paper: its text says it was reduced from 25 cm to 15 cm, while its Table 2 lists 46 cm (I to III) and 30 cm (IV, V), and its tunnel description says 30 cm high.
+- On Saffire IV and V the outlet gas sensor was not at a fully mixed location, so those gas measurements were not useful and heat release for the thick PMMA samples was not determined on those flights.
+- The 1 mg/m3 smoke alarm threshold was selected by the authors for analysis; it is not stated to be a flight system setting.
+- Carbon dioxide scrubbing occurred only twice across the Saffire flights and carbon monoxide removal was limited, so reported concentration increases are per-test increases in the vehicle average.
+- All burns were in microgravity in an uncrewed vehicle; no partial-gravity tests were made.
+- Saffire II (oxygen flammability limits on smaller samples) and Saffire III are described only as plans in the 2016 release; their results are not covered here.
+
+# Source Notes
+
+- ntrs-20240002981: Urban, Ruff, Ferkul and others, "Preliminary Results from the Saffire VI Experiment", ICES-2024-365, July 2024 (NASA Glenn lead authors). Supports the objective, flow tunnel dimensions, sensors, Table 1 test conditions (pressure, oxygen, airflow, free volume), Table 2 heat release and gas increases, the 981 s alarm result, and the conclusions used in Key Findings.
+- nasa-release-2016: NASA release 16-021 (June 15, 2016). Supports Saffire I launch and burn dates, the 3 ft by 3 ft by 5 ft module, the approximately 16 in by 37 in sample, and the planned Saffire II and III objectives.
+- nasa-saffire-v-2021: NASA article (January 19, 2021). Supports the ribbed PMMA sample on Saffire V, venting and oxygen backfill, and the statements on thinner ribs and more energetic flames at elevated oxygen.
+- nasa-saffire-vi-2024: NASA article (February 14, 2024). Supports Saffire VI launch (August 2023), conclusion (January 9, 2024), 19 Saffire VI runs, and the materials list.
+- ntrs-20210011521: Urban, Ruff, Ferkul and others, "Fire Safety Implications of Preliminary Results from Saffire IV and V Experiments on Large Scale Spacecraft Fires", ICES-2021-266, July 2021 (NASA Glenn lead authors). Supports Table 1 (IV/V conditions), Table 2 (I to V thin-sample conditions and flame sizes), sample dimensions, the up-to-10 kW heat release statement, and the Summary of Results used in Key Findings (extinguishment, ignition deflagration, steady flame lengths, NASA-STD-6001 Test 1, 4.5 cm gap).
+- The NASA PSI record (search results list PSI-98) was not consulted. Member 3 should check it if available.
