@@ -31,7 +31,7 @@ Ownership means "this person knows that area best and should see changes to it",
 - Merge `main` into your branch often. Small, frequent merges beat one large one at the end.
 - Open pull requests early and keep them small. A 50-line pull request gets reviewed in minutes.
 - Before pushing: `npm run check`. CI runs the same, plus `npm run build`.
-- One approval from another member, then merge. Squash-merge keeps `main` readable.
+- One approval from another member, then merge with a merge commit. Do not squash: the five branches are long-lived, and squashing makes a branch conflict with itself on its next merge.
 - If you change a shared type or the frontmatter schema, put "contract" in the pull request title and tell the team.
 
 Places where two branches are likely to meet, so coordinate first:
@@ -47,9 +47,9 @@ Places where two branches are likely to meet, so coordinate first:
 2. Fill in only what the source states. Leave everything else `null`.
 3. List the source under `sources` with its URL and the date you read it.
 4. Leave `status: draft`. Open a pull request.
-5. A different person checks each value against the source, adds a `verified` entry and sets `status: verified`.
+5. A different person checks each value against the source, adds a `verified` entry and sets `status: stable`.
 
-Run the app and open the Evidence Explorer: a malformed file shows up there with the reason.
+Run `npm run validate:knowledge`, or open the Evidence Explorer: a malformed file shows up in both with the reason.
 
 Format details are in [data-contract.md](data-contract.md).
 
@@ -78,6 +78,8 @@ Tests live in `tests/` and run with Vitest in a Node environment.
 
 - Add a test when you change parsing, ranking or gap analysis.
 - Test data must be obviously synthetic. Do not put real-looking NASA values in tests.
+- Shared synthetic data lives in `tests/fixtures/`. Use the `TEST_...` names; never a real investigation name.
+- `tests/contract/` pins shapes shared between members. If one fails, you changed a contract.
 - Component tests are not set up. If they become necessary, add `jsdom` and `@testing-library/react` then.
 
 ## Commit messages
