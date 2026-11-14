@@ -43,7 +43,7 @@ export function ScenarioCoverageSummary({
   return (
     <div className={cn("space-y-3", className)}>
       <p className="flex items-baseline gap-2">
-        <span className="shrink-0 text-3xl leading-none font-semibold whitespace-nowrap text-ink">
+        <span className="shrink-0 text-3xl leading-none font-medium whitespace-nowrap text-ink">
           <AnimatedNumber value={covered} format={(n) => String(Math.round(n))} />
           <span className="text-ink-faint"> / {analysis.gaps.length}</span>
         </span>

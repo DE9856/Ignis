@@ -28,24 +28,24 @@ export function KnowledgeStatus({ summary, className }: { summary: KnowledgeSumm
   return (
     <section
       aria-labelledby="knowledge-status-title"
-      className={cn("rounded-lg border border-line bg-surface", className)}
+      className={cn("rounded-lg border border-line bg-surface ticks", className)}
     >
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line px-4 py-2.5">
-        <h2 id="knowledge-status-title" className="text-sm font-semibold text-ink">
+        <h2 id="knowledge-status-title" className="text-sm font-medium text-ink">
           Knowledge base
         </h2>
         <Link
           href="/explore"
           className="inline-flex items-center gap-1 text-xs text-ink-muted hover:text-ink"
         >
-          Evidence Explorer
+          Investigations
           <ArrowRight aria-hidden className="size-3.5" />
         </Link>
       </div>
       <GrowIn className="grid gap-px bg-line sm:grid-cols-[minmax(0,1.6fr)_repeat(2,minmax(0,1fr))] lg:grid-cols-[minmax(0,1.6fr)_repeat(4,minmax(0,1fr))]">
         <div className="bg-surface px-4 py-3 sm:row-span-2 lg:row-span-1">
           <p className="text-xs text-ink-muted">Human reviewed</p>
-          <p className="mt-1 text-2xl leading-none font-semibold text-ink">
+          <p className="mt-1 text-2xl leading-none font-medium text-ink">
             {summary.humanReviewed}
             <span className="text-base font-normal text-ink-faint"> of {summary.total} records</span>
           </p>
@@ -71,7 +71,7 @@ export function KnowledgeStatus({ summary, className }: { summary: KnowledgeSumm
             <p className="text-xs text-ink-muted">{stat.label}</p>
             <p
               className={cn(
-                "mt-1 text-2xl leading-none font-semibold",
+                "mt-1 text-2xl leading-none font-medium",
                 stat.value > 0 ? "text-ink" : "text-ink-faint",
               )}
             >

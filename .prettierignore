@@ -11,3 +11,5 @@ knowledge/**/*.md
 
 # Fixture knowledge bases contain deliberately broken files.
 tests/fixtures/**/*.md
+
+.impeccable/

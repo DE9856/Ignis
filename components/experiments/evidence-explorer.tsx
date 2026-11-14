@@ -213,7 +213,7 @@ export function EvidenceExplorer({ investigations }: { investigations: Investiga
           )}
         >
           {view === "table" ? (
-            <div className="min-w-0 overflow-hidden rounded-lg border border-line bg-surface">
+            <div className="min-w-0 overflow-hidden rounded-lg border border-line bg-surface ticks">
               <ExperimentTable
                 investigations={visible}
                 selectedId={selected?.id ?? null}

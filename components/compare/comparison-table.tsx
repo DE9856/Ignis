@@ -110,7 +110,7 @@ function ComparisonWorkspace({ investigations }: { investigations: Investigation
 
   return (
     <div className="space-y-4">
-      <div className="rounded-lg border border-line bg-surface p-4">
+      <div className="rounded-lg border border-line bg-surface ticks p-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <p className="text-xs text-ink-muted">
             Choose {MIN_SELECTED} to {MAX_SELECTED} investigations.{" "}
@@ -509,7 +509,7 @@ function ComparisonGrid({
                   <div className="flex items-start justify-between gap-2">
                     <a
                       href={`/explore#${investigation.id}`}
-                      className="min-w-0 text-sm leading-snug font-semibold text-ink hover:text-accent"
+                      className="min-w-0 text-sm leading-snug font-medium text-ink hover:text-accent"
                     >
                       {displayTitle(investigation)}
                     </a>

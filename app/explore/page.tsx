@@ -8,7 +8,7 @@ import { IssueList } from "@/components/shared/issue-list";
 import { Section } from "@/components/shared/section";
 import { loadKnowledgeBase } from "@/lib/okf/loader";
 
-export const metadata: Metadata = { title: "Evidence Explorer" };
+export const metadata: Metadata = { title: "Investigations" };
 
 export default function ExplorePage() {
   const { investigations, hardware, issues } = loadKnowledgeBase();
@@ -16,8 +16,8 @@ export default function ExplorePage() {
   return (
     <>
       <PageHeader
-        eyebrow="Evidence"
-        title="Evidence Explorer"
+        eyebrow="Investigations"
+        title="NASA combustion investigations"
         description="Every NASA combustion investigation record in IGNIS, with its test conditions, fire-safety role and review status. A condition the source does not state reads Not reported."
       />
       <ScrollReveal>

@@ -72,7 +72,7 @@ export function ExperimentDetail({
   return (
     <article
       aria-label={`Record: ${displayTitle(investigation)}`}
-      className={cn("rounded-lg border border-line bg-surface", className)}
+      className={cn("rounded-lg border border-line bg-surface ticks", className)}
     >
       <header className="border-b border-line px-5 pt-4 pb-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
@@ -80,9 +80,7 @@ export function ExperimentDetail({
             <p className="font-mono text-2xs tracking-[0.1em] text-ink-faint uppercase">
               {investigation.program ?? "Program not reported"}
             </p>
-            <h2 className="mt-1 text-lg leading-tight font-semibold text-ink">
-              {displayTitle(investigation)}
-            </h2>
+            <h2 className="mt-1 text-lg leading-tight font-medium text-ink">{displayTitle(investigation)}</h2>
             {showFullTitle ? <p className="mt-0.5 text-xs text-ink-muted">{investigation.title}</p> : null}
           </div>
           <StatusBadge status={investigation.status} />
@@ -154,7 +152,7 @@ export function ExperimentDetail({
           </Block>
         </div>
 
-        <section className="rounded-md border border-l-2 border-interpretation/30 border-l-interpretation/70 bg-interpretation/[0.04] px-4 py-3">
+        <section className="rounded-md border border-interpretation/40 bg-interpretation/[0.05] px-4 py-3">
           <h3 className="mb-1.5 flex flex-wrap items-center gap-2 font-mono text-2xs tracking-[0.1em] text-interpretation uppercase">
             Fire-safety relevance
             <ProvenanceBadge value="TEAM_INTERPRETATION" />

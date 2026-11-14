@@ -1,5 +1,6 @@
 "use client";
 
+import { ArrowDown } from "lucide-react";
 import { Suspense, useMemo, useState } from "react";
 
 import { ConditionEnvelopes } from "@/components/charts/condition-envelopes";
@@ -50,11 +51,21 @@ function ScenarioWorkspaceContent({ investigations, presets = [] }: ScenarioWork
   const fuelOptions = useMemo(() => distinctValues(investigations, "fuelType"), [investigations]);
 
   return (
-    <div className="grid items-start gap-5 xl:grid-cols-[23rem_minmax(0,1fr)]">
+    <div className="grid items-start gap-5 lg:grid-cols-[20rem_minmax(0,1fr)] xl:grid-cols-[23rem_minmax(0,1fr)]">
       <Section
         title="Scenario"
-        description="Leave a field blank if it is not part of the scenario."
-        className="xl:sticky xl:top-20"
+        description="Leave a field blank if it is not part of the scenario. Results update as you type."
+        actions={
+          <a
+            href="#ranking"
+            className="inline-flex items-center gap-1 text-xs font-medium text-ink-muted underline decoration-line-strong underline-offset-4 hover:text-ink hover:decoration-accent lg:hidden"
+          >
+            Jump to results
+            <ArrowDown aria-hidden className="size-3.5" />
+          </a>
+        }
+        className="ticks lg:sticky lg:top-24 lg:flex lg:max-h-[calc(100vh-7rem)] lg:flex-col"
+        bodyClassName="lg:min-h-0 lg:overflow-y-auto lg:[scrollbar-width:thin]"
       >
         <ScenarioForm
           draft={draft}
