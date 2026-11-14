@@ -1,0 +1,237 @@
+{
+  "description": "Retrieval evaluation set (Member 5 brief, Part F). Questions are drafted by Member 5. 'expected' lists record ids (file names in knowledge/investigations/) and must be filled in by a person reading the stable records, never from memory or an AI answer. A query is scored only when every expected id is a verified record; otherwise the runner reports it as not scorable yet.",
+  "labelStatus": "Questions drafted 2026-11-14. Labels pending stable records; review by Member 3.",
+  "kinds": {
+    "specific": "Hit when an expected investigation appears in the top k. With expectedSections, a section-level hit also needs that chunk type.",
+    "enumerative": "A list question. Also scored for recall: share of expected investigations found anywhere in the results.",
+    "negative": "No answer exists in the corpus. Pass when the response is INSUFFICIENT_EVIDENCE with no results."
+  },
+  "cases": [
+    {
+      "id": "q01",
+      "split": "dev",
+      "category": "prevention",
+      "kind": "specific",
+      "query": "How does airflow affect flame spread over solid materials?",
+      "expected": [],
+      "expectedSections": ["FINDING"]
+    },
+    {
+      "id": "q02",
+      "split": "dev",
+      "category": "prevention",
+      "kind": "enumerative",
+      "query": "Which investigations studied material flammability?",
+      "expected": []
+    },
+    {
+      "id": "q03",
+      "split": "holdout",
+      "category": "prevention",
+      "kind": "specific",
+      "query": "What did BASS-II find about flames in low-speed flow?",
+      "expected": [],
+      "expectedSections": ["FINDING"]
+    },
+    {
+      "id": "q04",
+      "split": "dev",
+      "category": "detection",
+      "kind": "enumerative",
+      "query": "Which investigations studied smoke detection?",
+      "expected": ["same", "same-r"],
+      "labelSource": "Member 5 brief, Part F"
+    },
+    {
+      "id": "q05",
+      "split": "dev",
+      "category": "detection",
+      "kind": "specific",
+      "query": "What instruments measured smoke particles?",
+      "expected": [],
+      "expectedSections": ["MEASUREMENT"]
+    },
+    {
+      "id": "q06",
+      "split": "holdout",
+      "category": "detection",
+      "kind": "specific",
+      "query": "How was smoke detection studied?",
+      "expected": [],
+      "expectedSections": ["OBJECTIVE", "MEASUREMENT"]
+    },
+    {
+      "id": "q07",
+      "split": "dev",
+      "category": "suppression",
+      "kind": "enumerative",
+      "query": "Which experiments studied fire suppression?",
+      "expected": ["flex", "flex-2"],
+      "labelSource": "Member 5 brief, Part F"
+    },
+    {
+      "id": "q08",
+      "split": "dev",
+      "category": "suppression",
+      "kind": "specific",
+      "query": "What did FLEX find about flame extinction?",
+      "expected": [],
+      "expectedSections": ["FINDING"]
+    },
+    {
+      "id": "q09",
+      "split": "holdout",
+      "category": "suppression",
+      "kind": "specific",
+      "query": "How were suppressants tested on burning fuel?",
+      "expected": [],
+      "expectedSections": ["CONDITIONS", "MEASUREMENT"]
+    },
+    {
+      "id": "q10",
+      "split": "dev",
+      "category": "hardware",
+      "kind": "enumerative",
+      "query": "Which investigations ran in the Microgravity Science Glovebox?",
+      "expected": []
+    },
+    {
+      "id": "q11",
+      "split": "holdout",
+      "category": "hardware",
+      "kind": "enumerative",
+      "query": "Which experiments used the Combustion Integrated Rack?",
+      "expected": []
+    },
+    {
+      "id": "q12",
+      "split": "dev",
+      "category": "hardware",
+      "kind": "specific",
+      "query": "What hardware did Saffire use?",
+      "expected": [],
+      "expectedSections": ["CONDITIONS", "OBJECTIVE"]
+    },
+    {
+      "id": "q13",
+      "split": "dev",
+      "category": "fuel-material",
+      "kind": "enumerative",
+      "query": "Which investigations burned liquid fuels?",
+      "expected": []
+    },
+    {
+      "id": "q14",
+      "split": "holdout",
+      "category": "fuel-material",
+      "kind": "specific",
+      "query": "What materials were tested in Saffire?",
+      "expected": [],
+      "expectedSections": ["CONDITIONS"]
+    },
+    {
+      "id": "q15",
+      "split": "dev",
+      "category": "oxygen",
+      "kind": "specific",
+      "query": "What oxygen concentrations were used in the BASS experiments?",
+      "expected": [],
+      "expectedSections": ["CONDITIONS"]
+    },
+    {
+      "id": "q16",
+      "split": "dev",
+      "category": "oxygen",
+      "kind": "specific",
+      "query": "How does oxygen concentration change flammability in microgravity?",
+      "expected": [],
+      "expectedSections": ["FINDING"]
+    },
+    {
+      "id": "q17",
+      "split": "holdout",
+      "category": "airflow",
+      "kind": "specific",
+      "query": "What happens to a flame when ventilation airflow stops?",
+      "expected": [],
+      "expectedSections": ["FINDING"]
+    },
+    {
+      "id": "q18",
+      "split": "dev",
+      "category": "airflow",
+      "kind": "enumerative",
+      "query": "Which investigations varied the forced airflow speed?",
+      "expected": [],
+      "expectedSections": ["VARIABLES", "CONDITIONS"]
+    },
+    {
+      "id": "q19",
+      "split": "dev",
+      "category": "gravity",
+      "kind": "specific",
+      "query": "How do flames behave differently in microgravity than on Earth?",
+      "expected": [],
+      "expectedSections": ["FINDING"]
+    },
+    {
+      "id": "q20",
+      "split": "holdout",
+      "category": "gravity",
+      "kind": "enumerative",
+      "query": "Which experiments compared ground tests with microgravity results?",
+      "expected": []
+    },
+    {
+      "id": "q21",
+      "split": "dev",
+      "category": "spacecraft-scale",
+      "kind": "specific",
+      "query": "What did the spacecraft-scale fire experiments show?",
+      "expected": [],
+      "expectedSections": ["FINDING"]
+    },
+    {
+      "id": "q22",
+      "split": "dev",
+      "category": "spacecraft-scale",
+      "kind": "specific",
+      "query": "What are the limitations of the Saffire results?",
+      "expected": [],
+      "expectedSections": ["LIMITATION"]
+    },
+    {
+      "id": "q23",
+      "split": "holdout",
+      "category": "interpretation",
+      "kind": "specific",
+      "query": "Why does flame spread matter for lunar habitat design?",
+      "expected": [],
+      "expectedSections": ["INTERPRETATION"]
+    },
+    {
+      "id": "n01",
+      "split": "dev",
+      "category": "negative",
+      "kind": "negative",
+      "query": "What is the capital of France?",
+      "expected": []
+    },
+    {
+      "id": "n02",
+      "split": "dev",
+      "category": "negative",
+      "kind": "negative",
+      "query": "How do I bake sourdough bread?",
+      "expected": []
+    },
+    {
+      "id": "n03",
+      "split": "holdout",
+      "category": "negative",
+      "kind": "negative",
+      "query": "Which football team won the cup last year?",
+      "expected": []
+    }
+  ]
+}

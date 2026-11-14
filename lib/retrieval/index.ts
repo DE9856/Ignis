@@ -1,18 +1,19 @@
+import { createHttpRetriever } from "./http-client";
 import type { EvidenceRetriever } from "./types";
 
+/**
+ * Public entry point for the UI. Safe in client components: it only exports
+ * types, constants and the HTTP retriever. Server code that needs the
+ * database or the model imports `lib/retrieval/server` instead.
+ */
+
 export * from "./types";
+export { NOT_ESTABLISHED, BOUNDARY_MESSAGES } from "./messages";
+export { SEARCH_ENDPOINT } from "./http-client";
 
-export const RETRIEVAL_NOT_IMPLEMENTED =
-  "Evidence retrieval is not implemented yet. Chunking, embedding and hybrid search are planned on feat/search-rag.";
+const retriever = createHttpRetriever();
 
-/** Placeholder retriever. It never returns evidence, so it cannot invent any. */
-const unavailableRetriever: EvidenceRetriever = {
-  async search() {
-    return { status: "unavailable", reason: RETRIEVAL_NOT_IMPLEMENTED };
-  },
-};
-
-/** Single entry point for the UI. Swap the implementation here when it exists. */
+/** Single entry point for the UI. Calls `POST /api/evidence/search`. */
 export function getRetriever(): EvidenceRetriever {
-  return unavailableRetriever;
+  return retriever;
 }
