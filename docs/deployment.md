@@ -152,12 +152,14 @@ The search route embeds each query with `Xenova/bge-small-en-v1.5`, 8-bit quanti
 How it ships:
 
 1. `prebuild` runs `npm run fetch:model`: downloads the four model files at a pinned Hugging Face revision into `models/` (git-ignored) and checks each sha256. Nothing is downloaded at request time (`allowRemoteModels = false`).
-2. `next.config.ts` adds to the search function, by name, what the tracer cannot find: the model files, `onnxruntime-node`'s `dist/` and its Linux x64 CPU binary (`onnxruntime_binding.node`, `libonnxruntime.so.1`). It excludes the developer download cache and the browser runtime.
-3. `postbuild` runs `scripts/check-bundle.ts`, which fails the build (also on Vercel) if the model or runtime is missing, a CUDA/TensorRT library or another platform's binary is traced, or the function exceeds 200 MB. Measured: 101.5 MB, against Vercel's 250 MB limit.
+2. `next.config.ts` adds to the search function, by name, what the tracer cannot find: the model files, `onnxruntime-node`'s `dist/` and its Linux x64 CPU binary (`onnxruntime_binding.node`, `libonnxruntime.so.1`), and the CommonJS build of `onnxruntime-common` with its `dist/cjs/package.json` (`onnxruntime-node` requires it; the tracer only follows the ESM import). It excludes the developer download cache and the browser runtime.
+3. `postbuild` runs `scripts/check-bundle.ts`, which fails the build (also on Vercel) if the model or runtime is missing, a CUDA/TensorRT library or another platform's binary is traced, or the function exceeds 200 MB. It then copies only the traced files into an empty folder and embeds a query from there, so a file the tracer missed fails the build instead of the deployed route. On Vercel's Linux builder this runs the exact binary that ships. Measured: 101.6 MB, against Vercel's 250 MB limit.
 
 Cold start: loading the model takes about 1 s; a warm query embeds in a few milliseconds. The 20 s embedding timeout in `lib/retrieval/hybrid.ts` falls back to keyword search if anything goes wrong, and the response says so.
 
 Quantization check (local corpus, full hybrid, 31 questions): q8 and fp32 match on Hit@1/3/5 (93/100/100%), MRR (0.96), section hit@3 (85%) and negatives (100%); list recall 87% vs 89%.
+
+**Check a deployment:** `GET /api/evidence/search` loads the model and embeds a fixed string. Expect `"ready": true` and the q8 version. `"ready": false` (HTTP 503) means the model did not load; the function log has the reason (`Embedding probe failed`).
 
 **Emergency switch:** set `IGNIS_QUERY_EMBEDDINGS=off` in Vercel and redeploy. Search keeps working on keywords and metadata.
 

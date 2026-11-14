@@ -20,6 +20,12 @@ const nextConfig: NextConfig = {
       "./models/**/*",
       "./node_modules/onnxruntime-node/package.json",
       "./node_modules/onnxruntime-node/dist/**/*.js",
+      // onnxruntime-node is CommonJS and requires the CJS build of onnxruntime-common; the
+      // tracer only follows transformers.js's ESM import, so it ships the ESM build alone.
+      // dist/cjs/package.json marks that folder as CommonJS; without it Node loads it as ESM.
+      "./node_modules/onnxruntime-common/package.json",
+      "./node_modules/onnxruntime-common/dist/cjs/package.json",
+      "./node_modules/onnxruntime-common/dist/cjs/**/*.js",
       "./node_modules/onnxruntime-node/bin/napi-v6/linux/x64/onnxruntime_binding.node",
       "./node_modules/onnxruntime-node/bin/napi-v6/linux/x64/libonnxruntime.so.1",
     ],
