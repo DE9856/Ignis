@@ -13,6 +13,13 @@ export { SEARCH_ENDPOINT } from "./http-client";
 
 const retriever = createHttpRetriever();
 
+/**
+ * The real retriever is wired in. `lib/core/capabilities.ts` reads this to
+ * decide whether the app offers search; search still needs Supabase
+ * configured before `retrievalEnabled` turns on.
+ */
+export const RETRIEVAL_IMPLEMENTED = true;
+
 /** Single entry point for the UI. Calls `POST /api/evidence/search`. */
 export function getRetriever(): EvidenceRetriever {
   return retriever;

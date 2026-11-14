@@ -19,6 +19,9 @@
 /data/*
 !/data/.gitkeep
 
+# local synthetic knowledge records for layout work; never committed
+knowledge/**/zz-local-*.md
+
 # misc
 .DS_Store
 *.pem

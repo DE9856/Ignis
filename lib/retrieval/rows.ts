@@ -4,11 +4,11 @@ import type { GravityCondition, ProvenanceClass, SafetyObjective } from "@/lib/o
 import { CHUNK_TYPES, type ChunkMetadata, type ChunkType, type EvidenceChunk } from "./types";
 
 /**
- * Database row for one chunk, as proposed in `scripts/sql/evidence_chunks.proposal.sql`.
+ * Database row for one chunk, as created by `supabase/migrations/0001` and `0002`.
  * snake_case columns; the vector and the full-text column are never selected for the app.
  *
- * Member 1 owns the migration and `lib/supabase/types.ts`. This type mirrors
- * the proposal so the retrieval code compiles before the migration exists.
+ * Stricter than `EvidenceChunkRow` in `lib/supabase/types.ts`: enum columns are
+ * typed, so the pipeline cannot write a value the migration's checks reject.
  */
 export interface EvidenceChunkRecord {
   chunk_id: string;

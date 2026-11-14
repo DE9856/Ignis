@@ -33,9 +33,16 @@ export function defaultKnowledgeRoot(): string {
   return path.join(process.cwd(), "knowledge");
 }
 
+/**
+ * Files named `zz-local-*.md` are git-ignored synthetic records for layout work.
+ * They load in development and tests only, never in a production build.
+ */
+export const LOCAL_FIXTURE_PREFIX = "zz-local-";
+
 /** Markdown files in a directory, skipping READMEs and `_`-prefixed templates. */
-function listOkfFiles(directory: string): string[] {
+export function listOkfFiles(directory: string): string[] {
   if (!fs.existsSync(directory)) return [];
+  const isProduction = process.env.NODE_ENV === "production";
   return fs
     .readdirSync(directory, { withFileTypes: true })
     .filter(
@@ -43,6 +50,7 @@ function listOkfFiles(directory: string): string[] {
         entry.isFile() &&
         entry.name.endsWith(".md") &&
         !entry.name.startsWith("_") &&
+        !(isProduction && entry.name.startsWith(LOCAL_FIXTURE_PREFIX)) &&
         entry.name.toLowerCase() !== "readme.md",
     )
     .map((entry) => entry.name)
@@ -57,6 +65,8 @@ export function loadKnowledgeBase(root: string = defaultKnowledgeRoot()): Knowle
     missions: [],
     issues: [],
   };
+
+  const seenIds = new Set<string>();
 
   for (const directory of KNOWLEDGE_DIRECTORIES) {
     // Pages are prerendered at build time, so these files are not needed in the
@@ -82,6 +92,17 @@ export function loadKnowledgeBase(root: string = defaultKnowledgeRoot()): Knowle
         });
         continue;
       }
+
+      const key = `${directory}/${document.id}`;
+      if (seenIds.has(key)) {
+        knowledge.issues.push({
+          filePath,
+          path: "id",
+          message: `duplicate id '${key}'; this file is ignored`,
+        });
+        continue;
+      }
+      seenIds.add(key);
 
       if (isInvestigationDocument(document)) {
         knowledge.investigations.push(toInvestigation(document));

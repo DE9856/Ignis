@@ -12,8 +12,15 @@ import {
 /**
  * Zod schemas for OKF YAML frontmatter.
  *
+ * Authors write snake_case keys (`oxygen_min`, `safety_category`). The parser
+ * converts keys to camelCase before these schemas run, so everything below is
+ * camelCase. See `normalizeFrontmatterKeys` in parser.ts.
+ *
  * Optional scientific fields resolve to `null` when absent. Nothing here
  * substitutes a plausible-looking number for a missing one.
+ *
+ * Investigation frontmatter is strict: an unrecognised key is an error, so a
+ * misspelt field can never be silently dropped and shown as "Unknown".
  */
 
 const text = z.string().trim().min(1);
@@ -21,12 +28,20 @@ const optionalText = text.nullable().default(null);
 const optionalNumber = z.number().finite().nullable().default(null);
 const textList = z.array(text).default([]);
 
-/** YAML turns bare dates into Date objects; store them as YYYY-MM-DD strings. */
-const optionalDate = z
-  .preprocess((value) => (value instanceof Date ? value.toISOString().slice(0, 10) : value), text.nullable())
-  .default(null);
+/** Accepts a list, a single string, or null. Always produces a list. */
+const flexibleTextList = z
+  .preprocess((value) => (value === null ? [] : typeof value === "string" ? [value] : value), z.array(text))
+  .default([]);
 
-export const sourceReferenceSchema = z.object({
+/** YAML turns bare dates into Date objects; store them as ISO strings. */
+function dateToText(value: unknown): unknown {
+  if (!(value instanceof Date) || Number.isNaN(value.getTime())) return value;
+  const iso = value.toISOString();
+  return iso.endsWith("T00:00:00.000Z") ? iso.slice(0, 10) : iso.replace(".000Z", "Z");
+}
+const optionalDate = z.preprocess(dateToText, text.nullable()).default(null);
+
+export const sourceReferenceSchema = z.strictObject({
   id: text,
   resource: text,
   title: optionalText,
@@ -34,16 +49,16 @@ export const sourceReferenceSchema = z.object({
   accessed: optionalDate,
 });
 
-export const generationRecordSchema = z.object({
+export const generationRecordSchema = z.strictObject({
   by: text,
   at: optionalDate,
   tool: optionalText,
 });
 
-export const verificationRecordSchema = z.object({
+export const verificationRecordSchema = z.strictObject({
   by: text,
   at: optionalDate,
-  scope: optionalText,
+  note: optionalText,
 });
 
 const relatedId = text.regex(
@@ -54,23 +69,49 @@ const relatedId = text.regex(
 /** Either a bare id (`- hardware/msg`) or an object with `id`, `relation` and `note`. */
 export const relatedReferenceSchema = z.union([
   relatedId.transform((id) => ({ id, relation: null as string | null, note: null as string | null })),
-  z.object({ id: relatedId, relation: optionalText, note: optionalText }),
+  z.strictObject({ id: relatedId, relation: optionalText, note: optionalText }),
 ]);
 
 /** Fields shared by every OKF document type. */
-export const baseFrontmatterSchema = z.object({
+const baseShape = {
   type: z.enum(OKF_DOCUMENT_TYPES),
   /** Defaults to the file name without `.md` when omitted. */
   id: text.optional(),
   title: text,
   description: optionalText,
+  /** Primary source locator, usually the NASA PSI record URL. */
+  resource: optionalText,
   status: z.enum(DOCUMENT_STATUSES).default("draft"),
   tags: textList,
   sources: z.array(sourceReferenceSchema).default([]),
   related: z.array(relatedReferenceSchema).default([]),
   generated: generationRecordSchema.nullable().default(null),
   verified: z.array(verificationRecordSchema).default([]),
-});
+};
+
+export const BASE_FRONTMATTER_KEYS: readonly string[] = Object.keys(baseShape);
+
+interface ReviewFields {
+  status: (typeof DOCUMENT_STATUSES)[number];
+  verified: unknown[];
+}
+
+function requireReviewerForStable(value: ReviewFields, context: z.RefinementCtx) {
+  if (value.status === "stable" && value.verified.length === 0) {
+    context.addIssue({
+      code: "custom",
+      path: ["status"],
+      message: "status is 'stable' but the 'verified' list has no reviewer entry",
+    });
+  }
+}
+
+/**
+ * Hardware, Concept and Mission records. Loose on purpose: their type-specific
+ * fields are not agreed yet, so extra keys are kept (and reported as warnings
+ * by `npm run validate:knowledge`) instead of rejected.
+ */
+export const baseFrontmatterSchema = z.looseObject(baseShape).superRefine(requireReviewerForStable);
 export type BaseFrontmatter = z.infer<typeof baseFrontmatterSchema>;
 
 const RANGE_FIELDS = [
@@ -79,8 +120,9 @@ const RANGE_FIELDS = [
   ["airflowMin", "airflowMax"],
 ] as const;
 
-export const investigationFrontmatterSchema = baseFrontmatterSchema
-  .extend({
+export const investigationFrontmatterSchema = z
+  .strictObject({
+    ...baseShape,
     type: z.literal("Investigation"),
     shortTitle: optionalText,
     program: optionalText,
@@ -103,10 +145,10 @@ export const investigationFrontmatterSchema = baseFrontmatterSchema
     gravityValue: optionalNumber,
 
     platform: optionalText,
-    hardware: textList,
-    sensors: textList,
-    measurements: textList,
-    variables: textList,
+    hardware: flexibleTextList,
+    sensors: flexibleTextList,
+    measurements: flexibleTextList,
+    variables: flexibleTextList,
   })
   .superRefine((value, context) => {
     for (const [minKey, maxKey] of RANGE_FIELDS) {
@@ -120,12 +162,6 @@ export const investigationFrontmatterSchema = baseFrontmatterSchema
         });
       }
     }
-    if (value.status === "verified" && value.verified.length === 0) {
-      context.addIssue({
-        code: "custom",
-        path: ["status"],
-        message: "status is 'verified' but the 'verified' list has no reviewer entry",
-      });
-    }
+    requireReviewerForStable(value, context);
   });
 export type InvestigationFrontmatter = z.infer<typeof investigationFrontmatterSchema>;

@@ -23,36 +23,52 @@ Invalid files never crash the app. They are excluded and listed on the Evidence 
 
 ## Modules
 
-| Module              | Responsibility                                                              | Depends on      |
-| ------------------- | --------------------------------------------------------------------------- | --------------- |
-| `lib/okf/types.ts`  | Domain types: `Investigation`, provenance, status, OKF document shapes      | nothing         |
-| `lib/okf/schema.ts` | Zod schemas for frontmatter                                                 | types           |
-| `lib/okf/parser.ts` | String in, typed document or issues out. No file access                     | schema          |
-| `lib/okf/loader.ts` | File access. Server only                                                    | parser          |
-| `lib/ranking/*`     | `MissionScenario`, relevance scoring, gap analysis. Pure functions          | okf types       |
-| `lib/retrieval/*`   | `EvidenceChunk`, retriever interface, placeholder retriever                 | okf types       |
-| `lib/supabase/*`    | Optional clients that return `null` when not configured                     | retrieval types |
-| `components/*`      | Presentation. No file access, no scoring logic beyond calling `lib/ranking` | lib             |
+| Module            | Responsibility                                                                 | Depends on              |
+| ----------------- | ------------------------------------------------------------------------------ | ----------------------- |
+| `lib/okf`         | Domain types, frontmatter schema, parser, loader, structural validation        | nothing                 |
+| `lib/domain`      | Provenance and trust rules; unit conversion and null-safe numeric helpers      | okf types               |
+| `lib/ranking`     | Scenario type, relevance scoring, gap analysis, methodology configuration slot | okf                     |
+| `lib/retrieval`   | Chunk type, retriever interface, placeholder retriever                         | okf types               |
+| `lib/supabase`    | Optional clients that return `null` when not configured; database health check | retrieval types         |
+| `lib/core`        | Environment inspection, capability flags, degraded-state wording, typed errors | okf, ranking, retrieval |
+| `lib/integration` | View models and adapters: the only thing pages need to call                    | everything above        |
+| `lib/dev`         | Development-only mocks and `TEST_CONFIG`                                       | loaded dynamically only |
+| `components`      | Presentation. No file access, no Markdown parsing, no scoring                  | lib                     |
+| `scripts`         | Command-line validation, inspection and checks                                 | lib                     |
 
-Keep the dependency direction: `components -> lib`, never the reverse. Keep `parser.ts` free of file access so it stays easy to test.
+Keep the dependency direction: `app -> lib/integration -> lib/*`, and `components -> lib`, never the reverse. `lib/okf/parser.ts` has no file access, which keeps it easy to test.
+
+## Running with pieces missing
+
+Five people build in parallel, so most of the time something is unfinished. `lib/core/capabilities.ts` reports what this instance can do: Supabase configured, retrieval implemented, synthesis available, verified knowledge loaded, methodology configured. Pages ask for the notices that apply to them (`getDegradedNotices`) and render them with `<DegradedNotice />`. Nothing throws because a teammate's module is not there yet, and nothing substitutes sample data for missing evidence.
+
+Development mocks are a separate, explicit switch (`NEXT_PUBLIC_IGNIS_DEV_MOCKS=1` and a non-production build). They are reached only through `lib/integration/`, by dynamic import. See `docs/development.md`.
+
+## Trust rules
+
+`lib/domain/provenance.ts` is the only place that decides what counts as trusted: generated summaries are never canonical; team interpretation is not NASA evidence; reviewed NASA-sourced content is canonical; unverified content is used only on explicit opt-in; deprecated content never. Ranking inputs go through `canUseForAnalytics`, retrieval results through `canUseForRetrieval`.
+
+## Errors
+
+`lib/core/errors.ts` defines `IgnisError` with a fixed set of codes. Each code has a message that is safe to show. Internal detail is carried on the error and surfaced only outside production; stack traces are never shown. Knowledge files that fail to parse do not raise errors at all: they are excluded and listed, so one bad file cannot take a page down.
 
 ## Server and client components
 
 Server by default. Client components (`"use client"`) are limited to things that hold state: navigation highlight, scenario workspace, comparison selection, evidence search, the chart. Records are passed from server pages to client components as plain objects.
 
-`lib/okf/loader.ts` and `lib/supabase/server.ts` must not be imported from client components.
+`lib/okf/loader.ts`, `lib/okf/validation.ts`, `lib/core/env.ts` and `lib/supabase/server.ts` must not be imported from client components.
 
 ## Ranking and gap analysis
 
-`lib/ranking/relevance.ts` compares each factor a scenario specifies with an investigation record and returns `match`, `mismatch` or `unknown`. Score is matches over factors compared. The weights and the gravity tolerance are provisional and are documented on the Methodology page; change both together.
+`lib/ranking/relevance.ts` and `gap-analysis.ts` hold a working placeholder: each factor a scenario specifies is compared with an investigation record and comes out as match, mismatch or unknown. The weights and thresholds in it are not a methodology.
 
-Rules that should not change: a missing value is never a match; identical inputs give identical order; unverified records are excluded unless explicitly included.
+The validated methodology belongs to Member 3. Its weights and multipliers are installed as `PRODUCTION_METHODOLOGY` in `lib/ranking/methodology.ts`; its rules are implemented from `docs/methodology.md`. Until that is in place the application reports scoring as awaiting methodology. The target result shapes (`RelevanceBreakdown`, `GapResult`) are declared in `lib/ranking/types.ts` so the interface can be built against them now.
 
-`lib/ranking/gap-analysis.ts` summarises the same outcomes per factor: covered, unknown, gap, or no evidence.
+Rules that hold whatever the methodology: a missing value is never a match; identical inputs give identical order; unreviewed records are excluded unless explicitly included; relevance is not a probability and coverage is not a risk level.
 
 ## Planned retrieval
 
-Interfaces exist in `lib/retrieval/types.ts`. Nothing is implemented.
+Interfaces exist in `lib/retrieval/types.ts`, the database schema in `supabase/migrations/`, and the boundary is written down in `docs/retrieval-contract.md`. The retrieval implementation itself is not built.
 
 ```
 OKF Markdown
@@ -74,7 +90,7 @@ Decisions already made:
 
 ## Running without Supabase
 
-`getSupabaseClient()` and `getSupabaseServiceClient()` return `null` when their variables are missing. Callers must handle `null`. The dashboard's System status panel shows what is configured.
+`getSupabaseClient()` and `getSupabaseServiceClient()` return `null` when their variables are missing. Callers must handle `null`. `checkDatabaseHealth()` is on-demand only and is never called during page load. The dashboard's System status panel, `/dev/status` and `/api/health` show what is configured.
 
 ## Framework notes
 

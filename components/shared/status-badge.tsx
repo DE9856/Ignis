@@ -3,8 +3,7 @@ import { cn } from "@/lib/utils/cn";
 
 const STATUS_STYLES: Record<DocumentStatus, { label: string; className: string }> = {
   draft: { label: "Draft", className: "border-line-strong text-ink-muted" },
-  in_review: { label: "In review", className: "border-generated/60 text-generated" },
-  verified: { label: "Verified", className: "border-reviewed/60 text-reviewed" },
+  stable: { label: "Human reviewed", className: "border-reviewed/60 text-reviewed" },
   deprecated: { label: "Deprecated", className: "border-danger/60 text-danger" },
 };
 
