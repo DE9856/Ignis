@@ -99,7 +99,9 @@ export async function synthesize(
   const notes = partialGravity ? [boundary.message, ...scoped.notes] : scoped.notes;
   const extraRules = partialGravity
     ? [
-        'No evidence block was tested in lunar, Martian or partial gravity. State this in "limitations", and do not present microgravity results as partial-gravity results.',
+        // Not asked into Limitations: no passage states it, so the reviewer would rightly reject it.
+        // The notice itself is shown as a computed note beside the summary.
+        "No evidence block was tested in lunar, Martian or partial gravity (IGNIS shows this separately). Never present microgravity results as partial-gravity results.",
       ]
     : [];
   if (chunks.length === 0) {
@@ -109,6 +111,7 @@ export async function synthesize(
       sections: { ...emptySections(), answer: [{ text: NOT_ESTABLISHED, sources: [] }] },
       removed: [],
       insufficient: true,
+      answerWithheld: false,
       notes,
       meaningChecked: false,
       model: null,
@@ -168,15 +171,22 @@ export async function synthesize(
     removed = [...removed, ...verified.removed];
   }
 
-  const answered = sections.answer.some((statement) => statement.sources.length > 0);
-  const insufficient = grounded.insufficient || !answered;
+  const sourced = (list: SynthesisStatement[]) => list.some((statement) => statement.sources.length > 0);
+  const answered = sourced(sections.answer);
+  const findings = sourced(sections.nasaEvidence) || sourced(sections.teamInterpretation);
+  // "Insufficient" only when the model says so or nothing supported survives. If the checks removed
+  // the answer sentence but supported findings remain, say the answer was withheld instead.
+  const insufficient = output.insufficient || (!answered && !findings);
+  const answerWithheld = !insufficient && !answered;
   if (insufficient) sections = { ...sections, answer: [{ text: NOT_ESTABLISHED, sources: [] }] };
+  if (answerWithheld) sections = { ...sections, answer: [] };
 
   const result: SynthesisResponse = {
     status: "ok",
     sections,
     removed,
     insufficient,
+    answerWithheld,
     meaningChecked: items.length > 0,
     notes,
     model: `groq:${llm.model}`,
