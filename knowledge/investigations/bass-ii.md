@@ -22,7 +22,7 @@ sampleSize: >-
   PMMA rods 6.35 to 12.7 mm diameter; PMMA slabs 0.125 to 5 mm thick; section of a 4 cm diameter
   sphere; flat samples 1 or 2 cm wide (SIBAL fabric 1.2 or 2.2 cm wide, 10 cm exposed length)
 
-oxygenMin: 14 # percent O2 by volume
+oxygenMin: 13.6 # percent O2 by volume
 oxygenMax: 21
 pressureMin: 99.2 # kPa
 pressureMax: 101.325
@@ -87,6 +87,16 @@ sources:
       2014 poster)
     sourceClass: NASA_SOURCE
     accessed: 2026-11-14
+  - id: psi-25
+    resource: https://psi.nasa.gov/physci/repo/data/investigations/PSI-25
+    title: NASA PSI investigation record PSI-25 (BASS-II)
+    sourceClass: NASA_SOURCE
+    accessed: 2026-11-14
+  - id: ntrs-20150019858
+    resource: https://ntrs.nasa.gov/citations/20150019858
+    title: Results from On-Board CSA-CP and CDM Sensor Readings during BASS-II (Olson et al., ICES-2015-196)
+    sourceClass: NASA_SOURCE
+    accessed: 2026-11-14
 
 related:
   - id: investigations/bass
@@ -118,7 +128,7 @@ BASS-II (Burning and Suppression of Solids - II) examined the burning and extinc
 BASS-II ran inside the sealed Microgravity Science Glovebox (MSG) in the ISS Destiny Lab. The hardware was a black anodized 7.6 by 7.6 by 17 cm rectangular flow duct, originally built for gas jet diffusion flame studies (SPICE) and adapted for solid samples, with a variable-speed fan, honeycomb flow straightener and a 17 cm test section. The NASA summary report states that 126 tests were conducted, more than the planned 103, because some samples were burned more than once.
 
 - Gravity: microgravity (ISS).
-- Oxygen: for the first time on the ISS, the MSG working volume was diluted with ISS gaseous nitrogen. The summary report states O2 concentrations were varied from ambient ISS levels (about 21% O2) down to about 14% O2 for very near-limit flames; this range (14 to 21) is used in the frontmatter. Dilution typically took 1 to 3 hours per target level, and O2 decreased during each burn.
+- Oxygen: for the first time on the ISS, the MSG working volume was diluted with ISS gaseous nitrogen. The summary report states O2 concentrations were varied from ambient ISS levels (about 21% O2) down to about 14% O2 for very near-limit flames; the 2014 poster reports steady spreading at 13.6% O2 for a PMMA rod, so the frontmatter uses 13.6 to 21. Dilution typically took 1 to 3 hours per target level, and O2 decreased during each burn.
 - Pressure: not a test variable. One sub-study reports total pressure of 99.2 to 99.5 kPa in its tests, and others state 1 atm (101.325 kPa); the frontmatter range spans these stated values.
 - Airflow: with no flow restrictors the maximum duct flow velocity was about 55 cm/s, reduced to about 35 cm/s with two restrictors; the rod sub-study states 0 to 55 cm/s flows. The frontmatter uses 0 to 0.55 m/s. Flow could be opposed or concurrent to flame spread.
 - Samples: cast PMMA rods of 6.35 to 12.7 mm diameter (clear and black), PMMA slabs 0.125 to 5 mm thick, a section of a 4 cm diameter PMMA sphere, and flat cotton-fiberglass (SIBAL, 75% cotton / 25% fiberglass) fabric. Flat samples were 1 or 2 cm wide; one sub-study gives SIBAL widths of 1.2 and 2.2 cm with a 10 cm exposed length.
@@ -150,7 +160,7 @@ BASS-II measurements came mainly from imaging plus onboard gas sensors:
 
 - BASS-II tests produced data on how ambient oxygen, ventilation and fuel affect combustion; with microgravity data, scientists determined thin and thick fuel spread rates and a formula for the transition from thin to thick fuels (NASA fact sheet, Science Results).
 - NASA reports that models predict higher spread rates than observed, so models need improvement; data also allowed calculation of combustion completeness, heat release rates and fuel-to-oxygen global equivalence ratios and supported theoretical models for quenching boundaries.
-- For a 1/4 in PMMA rod, the 1-g blowoff limit is at 16% oxygen, whereas steady spreading was obtained at 13.6% oxygen in BASS-II; the investigators state the material has a negative oxygen margin of safety of 2.4% O2 and that normal-gravity flammability limits should be de-rated by at least that much.
+- For a 1/4 in PMMA rod, the 1-g blowoff limit is at 16% oxygen, whereas steady spreading was obtained at 13.6% oxygen in BASS-II; the investigators state the material has a negative oxygen margin of safety of 2.4% O2 for this material.
 - The minimum oxygen in the PMMA rod flammability boundary occurs at low flow speed, on the order of diffusive flows.
 - Flames are quite sensitive to air flow speed in the range 0 to 5 cm/s; they can be sustained at very low flow speeds of less than 1 cm/s, when they become dim blue and stable, but can flare up quickly with a sudden increase in air flow speed (NTRS abstract).
 - For a 0.1 mm thick PMMA sample, radiative quenching was shown when opposed flow velocity went below 2 cm/s, and the flame neared blowoff extinction as flow velocity crossed 40 cm/s.
@@ -178,10 +188,11 @@ Team interpretation: BASS-II gives microgravity flammability-limit evidence for 
 - The radiometer signal was uncalibrated.
 - Samples are centimetre-scale; results describe small flames.
 - All tests were in microgravity; no partial-gravity conditions were tested.
+-the NTRS abstract gives yet another maximum, air flow speeds up to 53 cm/s. Add “53 cm/s (NTRS abstract)” to the list of differing values
 
 # Source Notes
 
 - ntrs-20210011385: Olson, Ferkul, Bhattacharjee, Miller, Fernandez-Pello, Link, T'ien and Wichman, "Burning and Suppression of Solids-II (BASS-II) Summary Report", NASA/TM-20210011385 (2021). Primary source for this record. Supports the hardware description, 126 tests, nitrogen dilution, the ~21% to ~14% O2 range, ~55 cm/s maximum flow, sample geometries and sizes, the sensors (CSA-CP, CDM, MCA offset, airspeed transducer, radiometer, cameras), heat release, CO/CO2, equivalence ratio and U.S. Lab dilution findings (Sections 1.1 to 1.6), the 99.2 to 99.5 kPa and 1 atm statements (Sections 2.3 and 7.1), and the sub-study conclusions on critical velocity (2.2.8) and rod ignition delay (6.1.6).
 - nasa-fact-sheet: NASA fact sheet PDF, BASS-II section. Supports the objective and hypothesis, modified SPICE hardware in the MSG, 100 fuel samples in three categories, 10 cm by 1 and 2 cm thin flat samples, PMMA and SIBAL materials, nitrogen vitiation of the working volume, 5 to 50 cm/s airflow adjustment, anemometer and radiometer, and the Science Results paragraph used in the first two Key Findings bullets.
 - ntrs-20160000593: Ferkul, Bhattacharjee, Fernandez-Pello, Miller, Olson, Takahashi and T'ien, "Combustion of Solids in Microgravity: Results from the BASS-II Experiment", poster at the 30th Annual ASGSR Conference, October 2014, supported by NASA SLPSRA. Supports the objectives list, oxygen "21% and below", airflow 0 to 55 cm/s and "up to 40 cm/s", the sub-study sample dimensions, the 13.6% O2 versus 16% O2 rod result, quenching and blowoff observations, rod spread-rate trends, and the abstract statements on flow sensitivity and test count.
-- The NASA PSI repository lists this investigation as PSI-25 (confirmed via the PSI search index); the full PSI record was not read. Member 3 should check it if available.
+- The NASA PSI repository lists this investigation as PSI-25 (confirmed via the PSI search index).
