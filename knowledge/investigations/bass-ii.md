@@ -8,7 +8,7 @@ description: >-
   slabs, rods and a spherical section and cotton-fiberglass fabric in a small flow tunnel, varying
   airflow speed and direction and reducing ambient oxygen by nitrogen vitiation, to measure flame
   spread and extinction limits for comparison with normal-gravity material screening.
-status: draft
+status: stable
 
 safetyCategories:
   - prevention
@@ -116,7 +116,10 @@ generated:
   at: 2026-11-14
   tool: claude-assisted extraction
 
-verified: []
+verified:
+  - by: human:member3
+    at: 2026-11-14T15:30:00+05:30
+    note: "Scope: all. Checked against NASA fact sheet, NTRS sources and PSI record."
 ---
 
 # Objective
@@ -183,7 +186,7 @@ Team interpretation: BASS-II gives microgravity flammability-limit evidence for 
 - Oxygen limits are approximate: the summary report gives "~21" to "~14" percent, O2 dropped during each burn, and the O2 sensor was not recalibrated on orbit (offset corrected daily).
 - Airflow figures differ between sources: about 55 cm/s maximum in the summary report and rod sub-study, "up to 40 cm/s" on the 2014 poster's approach slide, and 5 to 50 cm/s in the NASA fact sheet. The frontmatter uses the summary report value.
 - Pressure was not a test variable; the frontmatter range spans values stated in individual sub-studies (99.2 to 99.5 kPa and 1 atm).
-- Sample counts differ between sources: 126 tests (summary report), 100 samples (fact sheet), and the fact sheet's operational text repeats the BASS figures "forty-one test samples ... 89 test points".
+- Sample counts differ between sources: 126 tests (summary report), 100 samples (fact sheet), and the fact sheet's operational text repeats the BASS figures ("forty-one test samples" and "89 test points").
 - Heat release and equivalence ratio are estimates from before/after gas readings, burn times and mass loss of 19 of 34 returned samples.
 - The radiometer signal was uncalibrated.
 - Samples are centimetre-scale; results describe small flames.

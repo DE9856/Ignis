@@ -7,7 +7,7 @@ description: >-
   ISS investigation in the Microgravity Science Glovebox that burned thin and thick flat samples,
   acrylic spheres and wax candles in a small flow tunnel to study flame spread, flame dynamics and
   extinction, including extinction attempts with a nitrogen jet.
-status: draft
+status: stable
 
 safetyCategories:
   - prevention
@@ -100,7 +100,10 @@ generated:
   at: 2026-11-14
   tool: claude-assisted extraction
 
-verified: []
+verified:
+  - by: human:member3
+    at: 2026-11-14T15:30:00+05:30
+    note: "Scope: all. Checked against NASA fact sheet, NTRS sources and PSI record."
 ---
 
 # Objective
