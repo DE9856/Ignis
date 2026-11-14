@@ -3,11 +3,20 @@ import type { Metadata } from "next";
 import { EvidenceSearch } from "@/components/evidence/evidence-search";
 import { PageHeader } from "@/components/layout/page-header";
 import { Section } from "@/components/shared/section";
+import { DegradedNotice } from "@/components/shared/degraded-notice";
+import { getCapabilities } from "@/lib/core/capabilities";
+import { getDegradedNotices } from "@/lib/core/degraded";
 import { EMBEDDING_DIMENSIONS, EMBEDDING_MODEL } from "@/lib/retrieval";
 
 export const metadata: Metadata = { title: "Evidence Desk" };
 
 export default function EvidencePage() {
+  const capabilities = getCapabilities();
+  const notices = [
+    ...getDegradedNotices(capabilities, "retrieval"),
+    ...getDegradedNotices(capabilities, "synthesis"),
+  ];
+
   return (
     <>
       <PageHeader
@@ -16,6 +25,7 @@ export default function EvidencePage() {
         description="Search source passages directly. Every result will carry its NASA citation and review status."
       />
       <div className="space-y-6">
+        <DegradedNotice notices={notices} />
         <Section title="Search" description="Verified passages only">
           <EvidenceSearch />
         </Section>
