@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { PageHeader } from "@/components/layout/page-header";
+import { ScrollReveal } from "@/components/motion/scroll-reveal";
 import { Section } from "@/components/shared/section";
 
 export const metadata: Metadata = { title: "About" };
@@ -22,9 +23,9 @@ export default function AboutPage() {
         title="About IGNIS"
         description="An evidence-first way to explore NASA microgravity combustion research and relate it to fire-safety scenarios for future human spaceflight."
       />
-      <div className="space-y-6">
+      <ScrollReveal>
         <Section title="What it is">
-          <div className="max-w-3xl space-y-3 text-[13px] text-ink-muted">
+          <div className="max-w-3xl space-y-3 text-sm2 text-ink-muted">
             <p>
               Fire behaves differently without buoyancy. NASA has studied this for decades. IGNIS collects
               that research into structured, cited records, then lets you ask which experiments tested
@@ -38,7 +39,7 @@ export default function AboutPage() {
         </Section>
 
         <Section title="Technical overview" description="For the team" flush>
-          <table className="w-full text-left text-[13px]">
+          <table className="w-full text-left text-sm2">
             <tbody className="divide-y divide-line">
               {STACK.map(([layer, detail]) => (
                 <tr key={layer}>
@@ -53,7 +54,7 @@ export default function AboutPage() {
         </Section>
 
         <Section title="Where things live">
-          <dl className="grid grid-cols-[8rem_1fr] gap-x-3 gap-y-1.5 text-[13px]">
+          <dl className="grid grid-cols-[8rem_1fr] gap-x-3 gap-y-1.5 text-sm2">
             <dt className="font-mono text-ink">knowledge/</dt>
             <dd className="text-ink-muted">The source of truth. One Markdown file per record.</dd>
             <dt className="font-mono text-ink">lib/okf</dt>
@@ -68,7 +69,7 @@ export default function AboutPage() {
             <dd className="text-ink-muted">Architecture, data contract, contribution guide.</dd>
           </dl>
         </Section>
-      </div>
+      </ScrollReveal>
     </>
   );
 }

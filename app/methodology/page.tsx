@@ -1,10 +1,15 @@
 import type { Metadata } from "next";
 
-import { PROVENANCE_INFO, ProvenanceBadge } from "@/components/evidence/provenance-badge";
+import { ProvenanceBadge } from "@/components/evidence/provenance-badge";
+import { ProvenanceLegend } from "@/components/evidence/provenance-legend";
+import { CoverageLevelBadge } from "@/components/gaps/coverage-level";
 import { PageHeader } from "@/components/layout/page-header";
+import { ScrollReveal } from "@/components/motion/scroll-reveal";
+import { EvidenceStateBadge, FactorOutcomeBadge, GapStateBadge } from "@/components/scenario/evidence-state";
 import { Section } from "@/components/shared/section";
-import { PROVENANCE_CLASSES } from "@/lib/okf/types";
+import { EVIDENCE_STATES } from "@/lib/ranking/methodology";
 import { GRAVITY_TOLERANCE_G } from "@/lib/ranking/relevance";
+import { GAP_COVERAGE_STATES } from "@/lib/ranking/types";
 
 export const metadata: Metadata = { title: "Methodology" };
 
@@ -39,11 +44,11 @@ export default function MethodologyPage() {
         title="Methodology and provenance"
         description="How evidence enters IGNIS, how it is labelled, what is computed, where AI is used, and what the tool cannot tell you."
       />
-      <div className="space-y-6">
-        <Section title="Evidence pipeline" description="From NASA source to screen">
+      <ScrollReveal>
+        <Section id="pipeline" title="Evidence pipeline" description="From NASA source to screen">
           <ol className="space-y-2.5">
             {PIPELINE.map(([step, text], index) => (
-              <li key={step} className="grid grid-cols-[1.5rem_6rem_1fr] gap-3 text-[13px]">
+              <li key={step} className="grid grid-cols-[1.5rem_5.5rem_1fr] gap-3 text-sm2">
                 <span className="font-mono text-ink-faint tabular-nums">{index + 1}</span>
                 <span className="font-medium text-ink">{step}</span>
                 <span className="text-ink-muted">{text}</span>
@@ -53,27 +58,68 @@ export default function MethodologyPage() {
         </Section>
 
         <Section
+          id="provenance"
           title="Provenance classes"
           description="Every piece of content carries one of these labels"
           flush
         >
-          <table className="w-full text-left text-[13px]">
-            <tbody className="divide-y divide-line">
-              {PROVENANCE_CLASSES.map((value) => (
-                <tr key={value}>
-                  <th scope="row" className="w-48 px-4 py-2.5 align-top font-normal">
-                    <ProvenanceBadge value={value} />
-                  </th>
-                  <td className="px-4 py-2.5 text-ink-muted">{PROVENANCE_INFO[value].meaning}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <ProvenanceLegend variant="table" />
+        </Section>
+
+        <Section
+          id="vocabulary"
+          title="Evidence states"
+          description="The labels used for computed outputs. Definitions and weights come from the validated methodology."
+        >
+          <dl className="grid gap-x-8 gap-y-4 text-sm2 md:grid-cols-2">
+            <div>
+              <dt className="mb-2 text-xs text-ink-muted">Relevance per dimension (validated methodology)</dt>
+              <dd className="flex flex-wrap gap-1.5">
+                {EVIDENCE_STATES.map((state) => (
+                  <EvidenceStateBadge key={state} state={state} />
+                ))}
+              </dd>
+            </div>
+            <div>
+              <dt className="mb-2 text-xs text-ink-muted">
+                Evidence coverage per dimension (validated methodology)
+              </dt>
+              <dd className="flex flex-wrap gap-1.5">
+                {GAP_COVERAGE_STATES.map((state) => (
+                  <GapStateBadge key={state} state={state} />
+                ))}
+              </dd>
+            </div>
+            <div>
+              <dt className="mb-2 text-xs text-ink-muted">Factor outcome (provisional rules, in use now)</dt>
+              <dd className="flex flex-wrap gap-1.5">
+                <FactorOutcomeBadge outcome="match" />
+                <FactorOutcomeBadge outcome="mismatch" />
+                <FactorOutcomeBadge outcome="unknown" />
+                <FactorOutcomeBadge outcome="not_specified" />
+              </dd>
+            </div>
+            <div>
+              <dt className="mb-2 text-xs text-ink-muted">
+                Scenario coverage (provisional rules, in use now)
+              </dt>
+              <dd className="flex flex-wrap gap-1.5">
+                <CoverageLevelBadge level="covered" />
+                <CoverageLevelBadge level="unknown" />
+                <CoverageLevelBadge level="gap" />
+                <CoverageLevelBadge level="no_evidence" />
+              </dd>
+            </div>
+          </dl>
+          <p className="mt-4 text-xs text-ink-faint">
+            Bars show evidence strength in one hue: more filled bars, stronger evidence. Coverage is always
+            evidence coverage of test conditions, never fire risk or probability.
+          </p>
         </Section>
 
         <div className="grid gap-6 lg:grid-cols-2">
-          <Section title="Relevance ranking" description="Deterministic, provisional">
-            <ul className="list-disc space-y-1.5 pl-5 text-[13px] text-ink-muted">
+          <Section id="relevance" title="Relevance ranking" description="Deterministic, provisional">
+            <ul className="list-disc space-y-1.5 pl-5 text-sm2 text-ink-muted">
               <li>Each factor the scenario specifies is compared with the investigation record.</li>
               <li>The outcome is match, mismatch or unknown. A missing value is unknown, never a match.</li>
               <li>Score is matches divided by factors compared, with equal weights.</li>
@@ -86,8 +132,8 @@ export default function MethodologyPage() {
             </ul>
           </Section>
 
-          <Section title="Evidence-gap analysis" description="Deterministic">
-            <ul className="list-disc space-y-1.5 pl-5 text-[13px] text-ink-muted">
+          <Section id="gaps" title="Evidence-gap analysis" description="Deterministic">
+            <ul className="list-disc space-y-1.5 pl-5 text-sm2 text-ink-muted">
               <li>Covered: at least one investigation matches the scenario on that factor.</li>
               <li>Unknown: none match, and at least one record does not state the value.</li>
               <li>Gap: every investigation excludes the scenario value.</li>
@@ -96,8 +142,8 @@ export default function MethodologyPage() {
           </Section>
         </div>
 
-        <Section title="AI-use disclosure">
-          <ul className="list-disc space-y-1.5 pl-5 text-[13px] text-ink-muted">
+        <Section id="ai-use" title="AI-use disclosure">
+          <ul className="list-disc space-y-1.5 pl-5 text-sm2 text-ink-muted">
             <li>
               The initial code scaffold was generated with an AI coding assistant and reviewed by the team.
             </li>
@@ -111,14 +157,14 @@ export default function MethodologyPage() {
           </ul>
         </Section>
 
-        <Section title="Limitations">
-          <ul className="list-disc space-y-1.5 pl-5 text-[13px] text-ink-muted">
+        <Section id="limitations" title="Limitations">
+          <ul className="list-disc space-y-1.5 pl-5 text-sm2 text-ink-muted">
             {LIMITATIONS.map((item) => (
               <li key={item}>{item}</li>
             ))}
           </ul>
         </Section>
-      </div>
+      </ScrollReveal>
     </>
   );
 }

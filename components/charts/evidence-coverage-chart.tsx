@@ -1,6 +1,25 @@
 "use client";
 
-import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+  type TooltipContentProps,
+} from "recharts";
+
+import {
+  axisProps,
+  BAR_GAP_STROKE,
+  BAR_SIZE,
+  categoryAxisProps,
+  CHART_COLORS,
+  gridProps,
+  tooltipCursor,
+} from "./chart-theme";
 
 export interface CoverageDatum {
   /** Category label, e.g. a safety objective. */
@@ -9,60 +28,66 @@ export interface CoverageDatum {
   unverified: number;
 }
 
+const ROW_HEIGHT = 34;
+const AXIS_HEIGHT = 22;
+
 /**
- * Investigation counts per category, split by review status.
- * Only render this with real counts; the caller shows an empty state otherwise.
+ * Investigation counts per category, split by review status, as horizontal
+ * stacked bars. Only render this with real counts; the caller shows an empty
+ * state otherwise, and also prints the numbers so the tooltip never gates them.
  */
 export function EvidenceCoverageChart({ data }: { data: CoverageDatum[] }) {
+  const height = data.length * ROW_HEIGHT + AXIS_HEIGHT + 8;
   return (
-    <div className="h-56 w-full">
+    <div className="w-full" style={{ height }} aria-hidden>
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: -16 }} barCategoryGap="30%">
-          <CartesianGrid stroke="var(--color-line)" vertical={false} />
-          <XAxis
-            dataKey="label"
-            stroke="var(--color-line-strong)"
-            tick={{ fill: "var(--color-ink-muted)", fontSize: 12 }}
-            tickLine={false}
-          />
-          <YAxis
-            allowDecimals={false}
-            stroke="var(--color-line-strong)"
-            tick={{ fill: "var(--color-ink-muted)", fontSize: 12 }}
-            tickLine={false}
-          />
-          <Tooltip
-            cursor={{ fill: "var(--color-raised)" }}
-            contentStyle={{
-              background: "var(--color-surface)",
-              border: "1px solid var(--color-line-strong)",
-              borderRadius: 6,
-              fontSize: 12,
-            }}
-            labelStyle={{ color: "var(--color-ink)" }}
-            itemStyle={{ color: "var(--color-ink-muted)" }}
-          />
-          <Legend
-            iconType="square"
-            wrapperStyle={{ fontSize: 12 }}
-            formatter={(value) => <span style={{ color: "var(--color-ink-muted)" }}>{value}</span>}
-          />
+        <BarChart
+          data={data}
+          layout="vertical"
+          margin={{ top: 4, right: 12, bottom: 0, left: 0 }}
+          barSize={BAR_SIZE}
+        >
+          <CartesianGrid {...gridProps} horizontal={false} />
+          <XAxis type="number" allowDecimals={false} {...axisProps} height={AXIS_HEIGHT} />
+          <YAxis type="category" dataKey="label" width={92} {...categoryAxisProps} />
+          <Tooltip cursor={tooltipCursor} content={CoverageTooltip} isAnimationActive={false} />
           <Bar
             dataKey="verified"
-            name="Verified"
+            name="Human reviewed"
             stackId="status"
-            fill="var(--color-reviewed)"
-            isAnimationActive={false}
+            fill={CHART_COLORS.reviewed}
+            {...BAR_GAP_STROKE}
+            animationDuration={700}
+            animationEasing="ease-out"
           />
           <Bar
             dataKey="unverified"
-            name="Not yet verified"
+            name="Not yet reviewed"
             stackId="status"
-            fill="var(--color-ink-faint)"
-            isAnimationActive={false}
+            fill={CHART_COLORS.notReviewed}
+            radius={[0, 4, 4, 0]}
+            {...BAR_GAP_STROKE}
+            animationDuration={700}
+            animationEasing="ease-out"
           />
         </BarChart>
       </ResponsiveContainer>
+    </div>
+  );
+}
+
+function CoverageTooltip({ active, payload, label }: TooltipContentProps) {
+  if (!active || !payload || payload.length === 0) return null;
+  return (
+    <div className="rounded-md border border-line-strong bg-raised px-3 py-2 text-xs shadow-lg shadow-black/30">
+      <p className="mb-1 font-medium text-ink">{label}</p>
+      {payload.map((entry) => (
+        <p key={String(entry.dataKey)} className="flex items-center gap-2 text-ink-muted">
+          <span aria-hidden className="size-2 rounded-[2px]" style={{ background: entry.color }} />
+          {entry.name}
+          <span className="ml-auto pl-3 font-mono text-ink tabular-nums">{entry.value}</span>
+        </p>
+      ))}
     </div>
   );
 }

@@ -22,7 +22,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full font-sans">
         <a
           href="#main"
-          className="sr-only rounded bg-accent px-3 py-2 text-accent-ink focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50"
+          className="sr-only rounded-md bg-accent px-3 py-2 text-sm font-medium text-accent-ink focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50"
         >
           Skip to content
         </a>
@@ -30,12 +30,14 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <AppSidebar />
           <div className="flex min-w-0 flex-1 flex-col">
             <AppHeader />
-            <main id="main" className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 lg:px-8">
+            <main id="main" className="mx-auto w-full max-w-[84rem] flex-1 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
               {children}
             </main>
-            <footer className="border-t border-line px-4 py-3 text-[11px] text-ink-faint lg:px-8">
-              NASA is the source of scientific evidence. IGNIS is an independent hackathon prototype and is
-              not an official NASA product.
+            <footer className="border-t border-line px-4 py-4 sm:px-6 lg:px-8">
+              <p className="mx-auto max-w-[84rem] text-2xs leading-relaxed text-ink-faint">
+                NASA is the source of scientific evidence. IGNIS is an independent hackathon prototype built
+                for NASA Space Apps 2026 and is not an official NASA product. Not for flight safety decisions.
+              </p>
             </footer>
           </div>
         </div>

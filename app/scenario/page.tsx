@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { PageHeader } from "@/components/layout/page-header";
+import { ScrollReveal } from "@/components/motion/scroll-reveal";
 import { ScenarioWorkspace } from "@/components/scenario/scenario-workspace";
 import { DegradedNotice } from "@/components/shared/degraded-notice";
 import { getCapabilities } from "@/lib/core/capabilities";
@@ -16,14 +17,14 @@ export default function ScenarioPage() {
   return (
     <>
       <PageHeader
-        eyebrow="Scenario"
-        title="Mission Scenario Builder"
-        description="Describe a spacecraft or habitat fire-safety scenario, then see which investigations tested comparable conditions and where the evidence runs out."
+        eyebrow="Scenario Builder"
+        title="Mission scenario analysis"
+        description="Describe a spacecraft or habitat fire-safety scenario. See which reviewed investigations tested comparable conditions, why each scores as it does, and where the evidence runs out."
       />
-      <div className="space-y-6">
+      <ScrollReveal>
         <DegradedNotice notices={notices} />
         <ScenarioWorkspace investigations={investigations} />
-      </div>
+      </ScrollReveal>
     </>
   );
 }

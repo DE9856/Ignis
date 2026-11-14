@@ -1,86 +1,130 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
 
+import { ConditionEnvelopes } from "@/components/charts/condition-envelopes";
+import { ProvenanceBadge } from "@/components/evidence/provenance-badge";
+import { EvidenceGapView } from "@/components/gaps/evidence-gap-view";
+import { LargestGap } from "@/components/gaps/largest-gap";
+import { ResearchQuestionPanel } from "@/components/gaps/research-question";
+import { LoadingState } from "@/components/shared/loading-state";
 import { Section } from "@/components/shared/section";
-import { SAFETY_OBJECTIVES, type Investigation, type SafetyObjective } from "@/lib/okf/types";
-import { analyzeGaps } from "@/lib/ranking/gap-analysis";
-import { rankInvestigations } from "@/lib/ranking/relevance";
+import type { Investigation } from "@/lib/okf/types";
 import type { MissionScenario } from "@/lib/ranking/types";
-import { parseOptionalNumber } from "@/lib/utils/numbers";
 
-import { RelevanceResult } from "./relevance-result";
-import { EMPTY_SCENARIO_DRAFT, ScenarioForm, type ScenarioDraft } from "./scenario-form";
-import { ScenarioSummary } from "./scenario-summary";
+import { RelevanceList } from "./relevance-list";
+import { useScenarioDraft } from "./scenario-draft";
+import { ScenarioForm } from "./scenario-form";
+import { distinctValues, useScenarioAnalysis } from "./use-scenario-analysis";
 
-function optionalText(value: string): string | null {
-  const trimmed = value.trim();
-  return trimmed === "" ? null : trimmed;
+export { toScenario } from "./scenario-draft";
+
+export interface ScenarioWorkspaceProps {
+  investigations: Investigation[];
+  presets?: MissionScenario[];
 }
 
-/** Normalise raw form input. Blank fields become null; nothing is defaulted. */
-export function toScenario(draft: ScenarioDraft): MissionScenario {
-  const objective = SAFETY_OBJECTIVES.find((candidate) => candidate === draft.safetyObjective);
-  return {
-    id: "draft",
-    name: draft.name.trim(),
-    description: optionalText(draft.description),
-    oxygenPercent: parseOptionalNumber(draft.oxygenPercent),
-    pressureKPa: parseOptionalNumber(draft.pressureKPa),
-    airflowMetersPerSecond: parseOptionalNumber(draft.airflowMetersPerSecond),
-    gravityG: parseOptionalNumber(draft.gravityG),
-    material: optionalText(draft.material),
-    fuelType: optionalText(draft.fuelType),
-    safetyObjective: (objective ?? null) as SafetyObjective | null,
-    assumptionNotes: optionalText(draft.assumptionNotes),
-  };
-}
-
-/** Holds scenario state and runs ranking and gap analysis in the browser. */
-export function ScenarioWorkspace({ investigations }: { investigations: Investigation[] }) {
-  const [draft, setDraft] = useState<ScenarioDraft>(EMPTY_SCENARIO_DRAFT);
-  const [includeUnverified, setIncludeUnverified] = useState(false);
-
-  const scenario = useMemo(() => toScenario(draft), [draft]);
-  const results = useMemo(
-    () => rankInvestigations(scenario, investigations, { includeUnverified }),
-    [scenario, investigations, includeUnverified],
+/**
+ * Screens 2 and 5: the Scenario Builder. The form on the left; on the right the
+ * ranked investigations (each score opens its explanation), the evidence gap
+ * view and the tested-condition envelopes, all for the same scenario.
+ */
+export function ScenarioWorkspace(props: ScenarioWorkspaceProps) {
+  return (
+    <Suspense
+      fallback={
+        <LoadingState label="Loading scenario" className="rounded-lg border border-line bg-surface" />
+      }
+    >
+      <ScenarioWorkspaceContent {...props} />
+    </Suspense>
   );
-  const gaps = useMemo(() => analyzeGaps(results), [results]);
-  const hasCriteria = results.some((result) => result.score !== null);
+}
+
+function ScenarioWorkspaceContent({ investigations, presets = [] }: ScenarioWorkspaceProps) {
+  const [draft, setDraft] = useScenarioDraft();
+  const [includeUnverified, setIncludeUnverified] = useState(false);
+  const { errors, analysis } = useScenarioAnalysis(draft, investigations, includeUnverified);
+
+  const materialOptions = useMemo(() => distinctValues(investigations, "material"), [investigations]);
+  const fuelOptions = useMemo(() => distinctValues(investigations, "fuelType"), [investigations]);
 
   return (
-    <div className="grid gap-6 xl:grid-cols-[24rem_1fr]">
-      <Section title="Scenario" description="Leave a field blank if it is not part of the scenario">
-        <ScenarioForm draft={draft} onChange={setDraft} onReset={() => setDraft(EMPTY_SCENARIO_DRAFT)} />
+    <div className="grid items-start gap-5 xl:grid-cols-[23rem_minmax(0,1fr)]">
+      <Section
+        title="Scenario"
+        description="Leave a field blank if it is not part of the scenario."
+        className="xl:sticky xl:top-20"
+      >
+        <ScenarioForm
+          draft={draft}
+          errors={errors}
+          onChange={setDraft}
+          presets={presets}
+          materialOptions={materialOptions}
+          fuelOptions={fuelOptions}
+        />
       </Section>
 
-      <div className="space-y-6">
-        <Section title="Scenario summary" description="Values used for ranking">
-          <ScenarioSummary scenario={scenario} />
-        </Section>
-
+      <div className="min-w-0 space-y-5">
         <Section
+          id="ranking"
           title="Relevant investigations"
-          description="Deterministic ranking against verified records"
+          description="Ranked by fixed, provisional rules against reviewed records. Open any score to see its basis."
+          meta={<ProvenanceBadge value="COMPUTED" />}
           actions={
-            <label className="flex items-center gap-2 text-xs text-ink-muted">
+            <label className="flex cursor-pointer items-center gap-2 text-xs text-ink-muted hover:text-ink">
               <input
                 type="checkbox"
                 checked={includeUnverified}
                 onChange={(event) => setIncludeUnverified(event.target.checked)}
-                className="accent-accent"
+                className="size-3.5 accent-accent"
               />
               Include unverified records
             </label>
           }
+          flush
         >
-          <RelevanceResult
-            investigations={investigations}
-            results={results}
-            gaps={gaps}
-            hasCriteria={hasCriteria}
-          />
+          {includeUnverified ? (
+            <p className="flex flex-wrap items-center gap-2 border-b border-line bg-sunken/50 px-4 py-2 text-xs text-ink-muted">
+              <ProvenanceBadge value="UNVERIFIED" />
+              Draft records are included for review only. Their values have not been checked against the
+              source.
+            </p>
+          ) : null}
+          <RelevanceList analysis={analysis} openFirst emptyClassName="m-4" />
+        </Section>
+
+        <Section
+          id="gaps"
+          eyebrow="Evidence coverage, not fire risk"
+          title="Evidence gap view"
+          description="For each scenario condition: how many reviewed investigations cover it, do not report it, or tested outside it."
+          meta={<ProvenanceBadge value="COMPUTED" />}
+        >
+          <EvidenceGapView analysis={analysis} />
+          <div className="mt-5 grid gap-5 border-t border-line pt-5 lg:grid-cols-2">
+            <div>
+              <h3 className="mb-2.5 font-mono text-2xs tracking-[0.1em] text-ink-faint uppercase">
+                Largest evidence gap
+              </h3>
+              <LargestGap analysis={analysis} />
+            </div>
+            <div>
+              <h3 className="mb-2.5 font-mono text-2xs tracking-[0.1em] text-ink-faint uppercase">
+                Next research step
+              </h3>
+              <ResearchQuestionPanel question={null} />
+            </div>
+          </div>
+        </Section>
+
+        <Section
+          id="envelopes"
+          title="Tested condition envelopes"
+          description="Each record's stated range on a shared axis, with the scenario value drawn across it. Only stated bounds are drawn."
+        >
+          <ConditionEnvelopes analysis={analysis} />
         </Section>
       </div>
     </div>
