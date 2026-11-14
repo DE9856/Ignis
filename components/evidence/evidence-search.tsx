@@ -17,11 +17,12 @@ import {
   type GravityCondition,
   type SafetyObjective,
 } from "@/lib/okf/types";
+import { blocksSynthesis } from "@/lib/retrieval/guard";
 import type { RetrievalFilters } from "@/lib/retrieval/types";
 import { cn } from "@/lib/utils/cn";
 
 import { EvidenceCard } from "./evidence-card";
-import { EvidenceRefusal } from "./evidence-states";
+import { BoundaryAnswer, EvidenceRefusal, ListingSummary, SearchNotice } from "./evidence-states";
 import { ProvenanceBadge } from "./provenance-badge";
 
 const RESULT_LIMIT = 8;
@@ -228,19 +229,41 @@ function SearchResults({
     );
   }
 
+  const { boundary, listing, notice } = response;
+
   if (response.results.length === 0) {
+    // A plain "nothing found" keeps the refusal with its tips; any other boundary is the answer itself.
+    const plainRefusal = boundary === null || boundary.kind === "INSUFFICIENT_EVIDENCE";
     return (
       <Enter key={query}>
-        <EvidenceRefusal query={query} />
+        <div className="space-y-3">
+          {plainRefusal ? (
+            <EvidenceRefusal query={query} details={boundary?.details ?? []} />
+          ) : (
+            <BoundaryAnswer boundary={boundary} />
+          )}
+          <SearchNotice notice={notice} />
+        </div>
       </Enter>
     );
   }
 
+  // Passages under a refusal-type boundary are context, never an answer, and are not summarised.
+  const contextOnly = blocksSynthesis(boundary);
+  const canSummarise = synthesisAvailable && !contextOnly;
+  const names = Object.fromEntries(
+    response.results.flatMap((result) =>
+      result.chunk.investigationId ? [[result.chunk.investigationId, result.chunk.investigation]] : [],
+    ),
+  );
+
   return (
     <section aria-labelledby="retrieved-title" className="space-y-3">
+      {boundary ? <BoundaryAnswer boundary={boundary} /> : null}
+
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 id="retrieved-title" className="text-sm font-semibold text-ink">
-          Retrieved evidence{" "}
+          {contextOnly ? "Closest reviewed evidence, for context only" : "Retrieved evidence"}{" "}
           <span className="font-mono font-normal text-ink-faint">{response.results.length}</span>
         </h2>
         <p className="flex items-center gap-2 text-xs text-ink-muted">
@@ -248,6 +271,9 @@ function SearchResults({
           Ordered by retrieval score, best first
         </p>
       </div>
+
+      {listing ? <ListingSummary listing={listing} names={names} /> : null}
+      <SearchNotice notice={notice} />
 
       {response.origin === "dev-mock" ? (
         <p
@@ -294,15 +320,23 @@ function SearchResults({
             <ProvenanceBadge value="GENERATED_SUMMARY" />
           </p>
           <p className="mt-1 text-ink-faint">
-            {synthesisAvailable
-              ? "The summary is written only from the selected passages and cites each one."
-              : DEGRADED_MESSAGES.noSynthesis}
+            {contextOnly
+              ? "Not offered for this question: a summary could read as the answer IGNIS declined to give."
+              : synthesisAvailable
+                ? "The summary is written only from the selected passages and cites each one."
+                : DEGRADED_MESSAGES.noSynthesis}
           </p>
         </div>
         <button
           type="button"
-          disabled={!synthesisAvailable || selectedIds.length === 0}
-          title={synthesisAvailable ? undefined : DEGRADED_MESSAGES.noSynthesis}
+          disabled={!canSummarise || selectedIds.length === 0}
+          title={
+            canSummarise
+              ? undefined
+              : contextOnly
+                ? "Not offered for this question"
+                : DEGRADED_MESSAGES.noSynthesis
+          }
           className="inline-flex h-8 items-center gap-1.5 rounded-md border border-generated/50 px-3 text-xs font-medium text-ink transition-colors hover:bg-generated/10 disabled:cursor-not-allowed disabled:opacity-45"
         >
           <Layers aria-hidden className="size-3.5" />

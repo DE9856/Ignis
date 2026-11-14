@@ -3,7 +3,13 @@ import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 
 import { EvidenceCard } from "@/components/evidence/evidence-card";
-import { EvidenceRefusal, GeneratedSummary } from "@/components/evidence/evidence-states";
+import {
+  BoundaryAnswer,
+  EvidenceRefusal,
+  GeneratedSummary,
+  ListingSummary,
+  SearchNotice,
+} from "@/components/evidence/evidence-states";
 import { ProvenanceLegend } from "@/components/evidence/provenance-legend";
 import { GapCoverageBars } from "@/components/gaps/gap-coverage-bars";
 import { ResearchQuestionPanel } from "@/components/gaps/research-question";
@@ -15,6 +21,7 @@ import { ErrorState } from "@/components/shared/error-state";
 import { LoadingState } from "@/components/shared/loading-state";
 import { Section } from "@/components/shared/section";
 import { DEGRADED_MESSAGES } from "@/lib/core/degraded";
+import { BOUNDARY_MESSAGES, valueNotReportedMessage } from "@/lib/retrieval/messages";
 
 export const metadata: Metadata = { title: "UI states", robots: { index: false } };
 
@@ -92,7 +99,42 @@ export default async function DevUiPage() {
         </Section>
 
         <Section title="Refusal" description="No reviewed passage supports the question">
-          <EvidenceRefusal query="TEST question with no supporting passage" />
+          <EvidenceRefusal
+            query="TEST question with no supporting passage"
+            details={["Matching passages were excluded by the selected filters."]}
+          />
+        </Section>
+
+        <Section title="Bounded answers" description="Wording from lib/retrieval/messages.ts">
+          <div className="space-y-3">
+            <BoundaryAnswer
+              boundary={{
+                kind: "PROBABILITY_REQUEST",
+                message: BOUNDARY_MESSAGES.PROBABILITY_REQUEST,
+                details: [],
+              }}
+            />
+            <BoundaryAnswer
+              boundary={{ kind: "FALSE_PREMISE", message: BOUNDARY_MESSAGES.FALSE_PREMISE, details: [] }}
+            />
+            <BoundaryAnswer
+              boundary={{
+                kind: "VALUE_NOT_REPORTED",
+                message: valueNotReportedMessage("TEST_INVESTIGATION_ALPHA", ["a pressure"]),
+                details: ["TEST_INVESTIGATION_ALPHA: pressure not reported."],
+              }}
+            />
+            <ListingSummary
+              listing={{
+                facet: "safety",
+                value: "detection",
+                description: "safety category includes detection",
+                investigationIds: ["test-investigation-alpha", "test-investigation-beta"],
+              }}
+              names={{ "test-investigation-alpha": "TEST_INVESTIGATION_ALPHA" }}
+            />
+            <SearchNotice notice="TEST notice: searched by keywords and record metadata only." />
+          </div>
         </Section>
 
         <div className="grid gap-5 lg:grid-cols-2">
