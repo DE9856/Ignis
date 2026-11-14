@@ -1,22 +1,21 @@
-import Link from "next/link";
-
+import { BrandLockup } from "./brand-mark";
 import { NavLinks } from "./nav-links";
 
 export function AppSidebar() {
   return (
-    <aside className="hidden w-56 shrink-0 flex-col border-r border-line bg-surface lg:flex">
+    <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r border-line bg-canvas lg:flex">
       <div className="flex h-14 items-center border-b border-line px-4">
-        <Link href="/" className="flex items-center gap-2.5">
-          <span aria-hidden className="size-2.5 rounded-sm bg-accent" />
-          <span className="font-mono text-sm font-semibold tracking-[0.2em] text-ink">IGNIS</span>
-        </Link>
+        <BrandLockup withTagline />
       </div>
-      <div className="flex-1 px-2 py-3">
+      <div className="flex-1 overflow-y-auto px-3 py-5">
         <NavLinks orientation="vertical" />
       </div>
-      <p className="border-t border-line px-4 py-3 text-[11px] leading-snug text-ink-faint">
-        Independent hackathon prototype. Not an official NASA product.
-      </p>
+      <div className="border-t border-line px-4 py-3.5">
+        <p className="text-2xs leading-relaxed text-ink-faint">
+          Evidence from NASA combustion research. IGNIS is an independent hackathon prototype, not an official
+          NASA product.
+        </p>
+      </div>
     </aside>
   );
 }

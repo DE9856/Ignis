@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 
-import { ExperimentDetail } from "@/components/experiments/experiment-detail";
-import { ExperimentTable } from "@/components/experiments/experiment-table";
+import { EvidenceExplorer } from "@/components/experiments/evidence-explorer";
+import { RelationshipView } from "@/components/experiments/relationship-view";
 import { PageHeader } from "@/components/layout/page-header";
-import { EmptyState } from "@/components/shared/empty-state";
 import { IssueList } from "@/components/shared/issue-list";
 import { Section } from "@/components/shared/section";
 import { loadKnowledgeBase } from "@/lib/okf/loader";
@@ -11,31 +10,25 @@ import { loadKnowledgeBase } from "@/lib/okf/loader";
 export const metadata: Metadata = { title: "Evidence Explorer" };
 
 export default function ExplorePage() {
-  const { investigations, issues } = loadKnowledgeBase();
+  const { investigations, hardware, issues } = loadKnowledgeBase();
 
   return (
     <>
       <PageHeader
-        eyebrow="Explore"
-        title="NASA Evidence Explorer"
-        description="Every investigation record in the knowledge base, with its test conditions and review status. Unknown values are shown as unknown."
+        eyebrow="Evidence"
+        title="Evidence Explorer"
+        description="Every NASA combustion investigation record in IGNIS, with its test conditions, fire-safety role and review status. A condition the source does not state reads Not reported."
       />
       <div className="space-y-6">
         <IssueList issues={issues} />
+        <EvidenceExplorer investigations={investigations} />
         <Section
-          title="Investigations"
-          description={`${investigations.length} record${investigations.length === 1 ? "" : "s"}`}
-          flush={investigations.length > 0}
+          id="relationships"
+          title="Knowledge relationships"
+          description="Investigation, the hardware it names, the facility that hardware sits in, and its fire-safety role. Only links stated in the records are shown."
         >
-          {investigations.length > 0 ? (
-            <ExperimentTable investigations={investigations} />
-          ) : (
-            <EmptyState description="Investigation records are Markdown files in knowledge/investigations. See knowledge/README.md for the format." />
-          )}
+          <RelationshipView investigations={investigations} hardware={hardware} />
         </Section>
-        {investigations.map((investigation) => (
-          <ExperimentDetail key={investigation.id} investigation={investigation} />
-        ))}
       </div>
     </>
   );

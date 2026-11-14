@@ -1,136 +1,249 @@
+import { ArrowUpRight, Columns3 } from "lucide-react";
+import Link from "next/link";
+import type { ReactNode } from "react";
+
 import { EvidenceSource } from "@/components/evidence/evidence-source";
 import { ProvenanceBadge } from "@/components/evidence/provenance-badge";
 import { EmptyState } from "@/components/shared/empty-state";
-import { Section } from "@/components/shared/section";
+import { NOT_REPORTED } from "@/components/shared/labels";
+import { SafetyRole } from "@/components/shared/safety-badges";
 import { StatusBadge } from "@/components/shared/status-badge";
+import { getEffectiveProvenance, isHumanReviewed } from "@/lib/domain/provenance";
 import type { Investigation } from "@/lib/okf/types";
+import { cn } from "@/lib/utils/cn";
 
-import { conditionFields } from "./experiment-fields";
+import { primarySourceUrl } from "./experiment-card";
+import { conditionFields, displayTitle } from "./experiment-fields";
 import { ExperimentValue } from "./experiment-value";
 
-function BulletBlock({ title, items }: { title: string; items: string[] }) {
+function Block({
+  title,
+  badge,
+  children,
+  className,
+}: {
+  title: string;
+  badge?: ReactNode;
+  children: ReactNode;
+  className?: string;
+}) {
   return (
-    <div>
-      <h3 className="text-[11px] font-medium tracking-wide text-ink-muted uppercase">{title}</h3>
-      {items.length > 0 ? (
-        <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-ink">
-          {items.map((item) => (
-            <li key={item}>{item}</li>
-          ))}
-        </ul>
-      ) : (
-        <p className="mt-2 text-sm text-ink-faint italic">Not yet recorded</p>
-      )}
-    </div>
+    <section className={className}>
+      <h3 className="mb-2 flex flex-wrap items-center gap-2 font-mono text-2xs tracking-[0.1em] text-ink-faint uppercase">
+        {title}
+        {badge}
+      </h3>
+      {children}
+    </section>
   );
 }
 
-/** Full record for one investigation: conditions, findings, limitations, sources, review trail. */
-export function ExperimentDetail({ investigation }: { investigation: Investigation }) {
+function Bullets({ items }: { items: string[] }) {
+  if (items.length === 0) return <p className="text-sm2 text-ink-faint italic">{NOT_REPORTED}</p>;
   return (
-    <div id={investigation.id} className="scroll-mt-20">
-      <Section
-        title={investigation.title}
-        description={investigation.program ?? "Program unknown"}
-        actions={<StatusBadge status={investigation.status} />}
-      >
-        <div className="space-y-5">
-          {investigation.description ? <p className="text-sm text-ink">{investigation.description}</p> : null}
+    <ul className="space-y-1.5 text-sm2 leading-snug text-ink">
+      {items.map((item) => (
+        <li key={item} className="flex gap-2">
+          <span aria-hidden className="mt-[0.45rem] size-1 shrink-0 rounded-full bg-ink-faint" />
+          <span>{item}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
 
-          <div>
-            <h3 className="text-[11px] font-medium tracking-wide text-ink-muted uppercase">Objective</h3>
-            <p className="mt-2 text-sm whitespace-pre-line">
-              {investigation.objective ?? <span className="text-ink-faint italic">Not yet recorded</span>}
+/**
+ * The full record for one investigation: objective, every condition, findings
+ * and limitations as the source states them, the team's interpretation kept
+ * visibly apart, related records, sources and the review trail.
+ */
+export function ExperimentDetail({
+  investigation,
+  className,
+}: {
+  investigation: Investigation;
+  className?: string;
+}) {
+  const reviewed = isHumanReviewed(investigation);
+  const sourceBadge = <ProvenanceBadge value={getEffectiveProvenance("NASA_SOURCE", reviewed)} />;
+  const sourceUrl = primarySourceUrl(investigation);
+  const showFullTitle = investigation.shortTitle !== null && investigation.shortTitle !== investigation.title;
+
+  return (
+    <article
+      aria-label={`Record: ${displayTitle(investigation)}`}
+      className={cn("rounded-lg border border-line bg-surface", className)}
+    >
+      <header className="border-b border-line px-5 pt-4 pb-4">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="font-mono text-2xs tracking-[0.1em] text-ink-faint uppercase">
+              {investigation.program ?? "Program not reported"}
             </p>
+            <h2 className="mt-1 text-lg leading-tight font-semibold text-ink">
+              {displayTitle(investigation)}
+            </h2>
+            {showFullTitle ? <p className="mt-0.5 text-xs text-ink-muted">{investigation.title}</p> : null}
           </div>
-
-          <div>
-            <h3 className="text-[11px] font-medium tracking-wide text-ink-muted uppercase">
-              Experimental conditions
-            </h3>
-            <dl className="mt-2 grid gap-x-8 gap-y-1.5 text-[13px] sm:grid-cols-2">
-              {conditionFields(investigation).map((field) => (
-                <div key={field.label} className="flex justify-between gap-4 border-b border-line py-1">
-                  <dt className="shrink-0 text-ink-muted">{field.label}</dt>
-                  <dd className="text-right">
-                    <ExperimentValue value={field.value} numeric={field.numeric} />
-                  </dd>
-                </div>
-              ))}
-            </dl>
+          <StatusBadge status={investigation.status} />
+        </div>
+        <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
+          <SafetyRole objectives={investigation.safetyCategories} variant="list" />
+          <div className="ml-auto flex items-center gap-3 text-xs">
+            <Link
+              href={`/compare?ids=${encodeURIComponent(investigation.id)}`}
+              className="inline-flex items-center gap-1 text-ink-muted hover:text-ink"
+            >
+              <Columns3 aria-hidden className="size-3.5" />
+              Compare
+            </Link>
+            {sourceUrl ? (
+              <a
+                href={sourceUrl}
+                target="_blank"
+                rel="noreferrer noopener"
+                className="inline-flex items-center gap-1 text-ink-muted hover:text-nasa"
+              >
+                Source
+                <ArrowUpRight aria-hidden className="size-3.5" />
+                <span className="sr-only">(opens in a new tab)</span>
+              </a>
+            ) : null}
           </div>
+        </div>
+      </header>
 
-          <div className="grid gap-5 md:grid-cols-2">
-            <BulletBlock title="Key findings" items={investigation.keyFindings} />
-            <BulletBlock title="Limitations" items={investigation.limitations} />
-          </div>
+      <div className="space-y-6 px-5 py-5">
+        {investigation.description ? (
+          <p className="text-sm2 leading-relaxed text-ink-muted">{investigation.description}</p>
+        ) : null}
 
-          {investigation.fireSafetyRelevance ? (
-            <div>
-              <h3 className="flex items-center gap-2 text-[11px] font-medium tracking-wide text-ink-muted uppercase">
-                Fire safety relevance <ProvenanceBadge value="TEAM_INTERPRETATION" />
-              </h3>
-              <p className="mt-2 text-sm whitespace-pre-line">{investigation.fireSafetyRelevance}</p>
-            </div>
-          ) : null}
+        <Block title="Objective" badge={sourceBadge}>
+          <p
+            className={cn(
+              "text-sm leading-relaxed whitespace-pre-line",
+              investigation.objective ? "text-ink" : "text-ink-faint italic",
+            )}
+          >
+            {investigation.objective ?? NOT_REPORTED}
+          </p>
+        </Block>
 
-          {investigation.related.length > 0 ? (
-            <div>
-              <h3 className="text-[11px] font-medium tracking-wide text-ink-muted uppercase">
-                Related records
-              </h3>
-              <ul className="mt-2 space-y-1 text-[13px]">
-                {investigation.related.map((link) => (
+        <Block title="Experimental conditions" badge={sourceBadge}>
+          <dl className="grid gap-x-6 text-sm2 sm:grid-cols-2">
+            {conditionFields(investigation).map((field) => (
+              <div
+                key={field.key}
+                className="flex items-baseline justify-between gap-4 border-b border-line py-1.5"
+              >
+                <dt className="shrink-0 text-ink-muted">{field.label}</dt>
+                <dd className="min-w-0 text-right break-words">
+                  <ExperimentValue value={field.value} numeric={field.numeric} />
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </Block>
+
+        <div className="grid gap-6 md:grid-cols-2">
+          <Block title="Key findings" badge={sourceBadge}>
+            <Bullets items={investigation.keyFindings} />
+          </Block>
+          <Block title="Limitations" badge={sourceBadge}>
+            <Bullets items={investigation.limitations} />
+          </Block>
+        </div>
+
+        <section className="rounded-md border border-l-2 border-interpretation/30 border-l-interpretation/70 bg-interpretation/[0.04] px-4 py-3">
+          <h3 className="mb-1.5 flex flex-wrap items-center gap-2 font-mono text-2xs tracking-[0.1em] text-interpretation uppercase">
+            Fire-safety relevance
+            <ProvenanceBadge value="TEAM_INTERPRETATION" />
+          </h3>
+          <p
+            className={cn(
+              "text-sm2 leading-relaxed whitespace-pre-line",
+              investigation.fireSafetyRelevance ? "text-ink" : "text-ink-faint italic",
+            )}
+          >
+            {investigation.fireSafetyRelevance ?? "No team interpretation recorded."}
+          </p>
+          <p className="mt-2 text-2xs text-ink-faint">
+            The team&apos;s reading of the evidence. Not a NASA statement.
+          </p>
+        </section>
+
+        {investigation.related.length > 0 ? (
+          <Block title="Related records">
+            <ul className="space-y-1.5 text-sm2">
+              {investigation.related.map((link) => {
+                const [folder, id] = link.id.split("/");
+                return (
                   <li
                     key={`${link.id}-${link.relation ?? ""}`}
-                    className="flex flex-wrap items-baseline gap-x-3"
+                    className="flex flex-wrap items-baseline gap-x-2"
                   >
-                    {link.id.startsWith("investigations/") ? (
+                    {folder === "investigations" ? (
                       <a
-                        href={`#${link.id.slice("investigations/".length)}`}
-                        className="font-mono text-ink underline underline-offset-2 hover:text-accent"
+                        href={`#${id}`}
+                        className="font-mono text-xs text-ink underline decoration-line-strong underline-offset-2 hover:decoration-ink"
                       >
                         {link.id}
                       </a>
                     ) : (
-                      <span className="font-mono text-ink">{link.id}</span>
+                      <span className="font-mono text-xs text-ink">{link.id}</span>
                     )}
-                    {link.relation ? <span className="text-ink-muted">{link.relation}</span> : null}
-                    {link.note ? <span className="text-ink-faint">{link.note}</span> : null}
+                    {link.relation ? <span className="text-xs text-ink-muted">{link.relation}</span> : null}
+                    {link.note ? <span className="text-xs text-ink-faint">{link.note}</span> : null}
                   </li>
-                ))}
-              </ul>
-            </div>
-          ) : null}
+                );
+              })}
+            </ul>
+          </Block>
+        ) : null}
 
-          <div>
-            <h3 className="text-[11px] font-medium tracking-wide text-ink-muted uppercase">Sources</h3>
-            {investigation.sources.length > 0 ? (
-              <ul className="mt-2 space-y-2">
-                {investigation.sources.map((source) => (
-                  <li key={source.id}>
-                    <EvidenceSource source={source} />
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <EmptyState
-                className="mt-2 py-6"
-                title="No source cited"
-                description="A record cannot be verified without one."
-              />
-            )}
-          </div>
+        <Block title="Sources">
+          {investigation.sources.length > 0 ? (
+            <ul className="space-y-2">
+              {investigation.sources.map((source) => (
+                <li key={source.id}>
+                  <EvidenceSource source={source} />
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <EmptyState
+              size="compact"
+              title="No source cited"
+              description="A record cannot be verified without one."
+            />
+          )}
+        </Block>
 
-          <p className="border-t border-line pt-3 font-mono text-[11px] text-ink-faint">
-            id {investigation.id}
-            {investigation.generated ? ` · written by ${investigation.generated.by}` : ""}
-            {investigation.verified.length > 0
-              ? ` · verified by ${investigation.verified.map((record) => record.by).join(", ")}`
-              : " · not yet verified"}
+        <footer className="border-t border-line pt-3 font-mono text-2xs leading-relaxed text-ink-faint">
+          <p>
+            id <span className="text-ink-muted">{investigation.id}</span>
+            {investigation.generated ? (
+              <>
+                {" "}
+                · written by <span className="text-ink-muted">{investigation.generated.by}</span>
+              </>
+            ) : null}
           </p>
-        </div>
-      </Section>
-    </div>
+          {investigation.verified.length > 0 ? (
+            <ul className="mt-1 space-y-0.5">
+              {investigation.verified.map((record, index) => (
+                <li key={`${record.by}-${index}`}>
+                  verified by <span className="text-ink-muted">{record.by}</span>
+                  {record.at ? ` on ${record.at.slice(0, 10)}` : ""}
+                  {record.note ? <span className="font-sans"> · {record.note}</span> : null}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-1">not yet verified</p>
+          )}
+        </footer>
+      </div>
+    </article>
   );
 }

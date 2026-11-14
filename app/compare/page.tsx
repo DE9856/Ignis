@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 
 import { ComparisonTable } from "@/components/compare/comparison-table";
 import { PageHeader } from "@/components/layout/page-header";
-import { Section } from "@/components/shared/section";
 import { loadKnowledgeBase } from "@/lib/okf/loader";
 
 export const metadata: Metadata = { title: "Compare" };
@@ -13,13 +12,11 @@ export default function ComparePage() {
   return (
     <>
       <PageHeader
-        eyebrow="Compare"
-        title="Investigation Comparison"
-        description="Put investigations side by side to see how their fuels, atmospheres, flow and gravity conditions differ."
+        eyebrow="Evidence"
+        title="Investigation comparison"
+        description="Up to four investigations side by side: purpose, sample, environment, facility, what was measured and what was found. Rows that differ are marked; a value that is not reported cannot be called the same."
       />
-      <Section title="Comparison" description="Experimental conditions by investigation">
-        <ComparisonTable investigations={investigations} />
-      </Section>
+      <ComparisonTable investigations={investigations} />
     </>
   );
 }

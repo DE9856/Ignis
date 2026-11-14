@@ -1,24 +1,39 @@
-import type { DocumentStatus } from "@/lib/okf/types";
-import { cn } from "@/lib/utils/cn";
+import { Archive, CircleDashed, UserCheck } from "lucide-react";
 
-const STATUS_STYLES: Record<DocumentStatus, { label: string; className: string }> = {
-  draft: { label: "Draft", className: "border-line-strong text-ink-muted" },
-  stable: { label: "Human reviewed", className: "border-reviewed/60 text-reviewed" },
-  deprecated: { label: "Deprecated", className: "border-danger/60 text-danger" },
+import type { DocumentStatus } from "@/lib/okf/types";
+
+import { Badge, type BadgeTone } from "./badge";
+
+const STATUS_STYLES: Record<
+  DocumentStatus,
+  { label: string; tone: BadgeTone; icon: typeof UserCheck; meaning: string }
+> = {
+  draft: {
+    label: "Draft",
+    tone: "unverified",
+    icon: CircleDashed,
+    meaning: "Not yet checked against the source by a second person. Excluded from ranking and retrieval.",
+  },
+  stable: {
+    label: "Human reviewed",
+    tone: "reviewed",
+    icon: UserCheck,
+    meaning: "Checked against the cited NASA source by someone other than the author.",
+  },
+  deprecated: {
+    label: "Deprecated",
+    tone: "danger",
+    icon: Archive,
+    meaning: "Kept for history. Excluded everywhere.",
+  },
 };
 
 /** Review status of a knowledge record. */
 export function StatusBadge({ status, className }: { status: DocumentStatus; className?: string }) {
   const style = STATUS_STYLES[status];
   return (
-    <span
-      className={cn(
-        "inline-flex items-center rounded border px-1.5 py-0.5 font-mono text-[11px] leading-none whitespace-nowrap uppercase",
-        style.className,
-        className,
-      )}
-    >
+    <Badge tone={style.tone} icon={style.icon} title={style.meaning} className={className}>
       {style.label}
-    </span>
+    </Badge>
   );
 }

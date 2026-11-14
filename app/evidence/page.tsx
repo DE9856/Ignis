@@ -2,13 +2,22 @@ import type { Metadata } from "next";
 
 import { EvidenceSearch } from "@/components/evidence/evidence-search";
 import { PageHeader } from "@/components/layout/page-header";
-import { Section } from "@/components/shared/section";
 import { DegradedNotice } from "@/components/shared/degraded-notice";
+import { Disclosure } from "@/components/shared/disclosure";
 import { getCapabilities } from "@/lib/core/capabilities";
 import { getDegradedNotices } from "@/lib/core/degraded";
 import { EMBEDDING_DIMENSIONS, EMBEDDING_MODEL } from "@/lib/retrieval";
 
 export const metadata: Metadata = { title: "Evidence Desk" };
+
+const PIPELINE: [string, string][] = [
+  ["Chunking", "Section-aware, from OKF Markdown"],
+  ["Eligibility", "Human-reviewed records only"],
+  ["Embedding model", `${EMBEDDING_MODEL} (${EMBEDDING_DIMENSIONS} dimensions)`],
+  ["Store", "Supabase PostgreSQL with pgvector"],
+  ["Search", "Metadata filters, lexical match and vector similarity combined"],
+  ["Synthesis", "Optional, written only from retrieved passages, labelled as generated"],
+];
 
 export default function EvidencePage() {
   const capabilities = getCapabilities();
@@ -20,33 +29,27 @@ export default function EvidencePage() {
   return (
     <>
       <PageHeader
-        eyebrow="Evidence"
+        eyebrow="Evidence search"
         title="Evidence Desk"
-        description="Search source passages directly. Every result will carry its NASA citation and review status."
+        description="Search reviewed source passages directly. Each result carries its investigation, section, evidence class and NASA source, and the evidence always comes before any generated summary."
       />
-      <div className="space-y-6">
+      <div className="space-y-5">
         <DegradedNotice notices={notices} />
-        <Section title="Search" description="Verified passages only">
-          <EvidenceSearch />
-        </Section>
-        <Section title="Planned retrieval" description="Not implemented in this scaffold">
-          <dl className="grid grid-cols-[9rem_1fr] gap-x-3 gap-y-1.5 text-[13px]">
-            <dt className="text-ink-muted">Chunking</dt>
-            <dd>Section-aware, from OKF Markdown</dd>
-            <dt className="text-ink-muted">Eligibility</dt>
-            <dd>Verified chunks only</dd>
-            <dt className="text-ink-muted">Embedding model</dt>
-            <dd className="font-mono">
-              {EMBEDDING_MODEL} ({EMBEDDING_DIMENSIONS} dimensions)
-            </dd>
-            <dt className="text-ink-muted">Store</dt>
-            <dd>Supabase PostgreSQL with pgvector</dd>
-            <dt className="text-ink-muted">Search</dt>
-            <dd>Metadata filters, lexical match and vector similarity combined</dd>
-            <dt className="text-ink-muted">Synthesis</dt>
-            <dd>Optional, grounded in retrieved passages, labelled as generated</dd>
-          </dl>
-        </Section>
+        <EvidenceSearch synthesisAvailable={capabilities.llmEnabled} />
+        <div className="rounded-lg border border-line bg-surface px-4 py-3">
+          <Disclosure summary="How retrieval works">
+            <dl className="grid gap-x-4 gap-y-1.5 text-sm2 sm:grid-cols-[10rem_1fr]">
+              {PIPELINE.map(([term, detail]) => (
+                <div key={term} className="contents">
+                  <dt className="text-ink-muted">{term}</dt>
+                  <dd className={term === "Embedding model" ? "font-mono text-xs text-ink" : "text-ink"}>
+                    {detail}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </Disclosure>
+        </div>
       </div>
     </>
   );

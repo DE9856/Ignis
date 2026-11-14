@@ -133,7 +133,7 @@ Screens call `retrieveEvidence(query, options)` in `lib/integration/retrieval.ts
 - converts a thrown error into `status: "unavailable"`;
 - adds `origin`: `"live"`, `"dev-mock"` or `"none"`.
 
-`components/evidence/evidence-search.tsx` still calls `getRetriever()` directly. Switching it to `retrieveEvidence()` is a one-line change, left until Member 4's work on that component has merged, to avoid a conflict.
+`components/evidence/evidence-search.tsx` calls `retrieveEvidence()`, so the trust filter, the dev-mock switch and the `unavailable` fallback all apply to the Evidence Desk. Its "Why retrieved?" drawer shows `lexicalScore`, `vectorScore` and `combinedScore` as returned, and lists which words of the question appear in the passage (a display aid, not a retrieval signal).
 
 For display, `toEvidenceDisplayModel()` decides the badge, whether a chunk is canonical NASA evidence or team interpretation, and whether the source link is safe to render.
 

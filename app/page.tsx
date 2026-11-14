@@ -1,28 +1,52 @@
-import { EvidenceCoverageCard } from "@/components/dashboard/evidence-coverage-card";
-import { MissionOverview } from "@/components/dashboard/mission-overview";
+import { KnowledgeStatus } from "@/components/dashboard/knowledge-status";
+import { MissionDashboard } from "@/components/dashboard/mission-dashboard";
+import { PurposeSteps } from "@/components/dashboard/purpose-steps";
 import { SystemStatus } from "@/components/dashboard/system-status";
-import { TopInvestigations } from "@/components/dashboard/top-investigations";
 import { PageHeader } from "@/components/layout/page-header";
+import { DegradedNotice } from "@/components/shared/degraded-notice";
+import { getCapabilities } from "@/lib/core/capabilities";
+import { getDegradedNotices } from "@/lib/core/degraded";
+import { buildDashboardViewModel } from "@/lib/integration/dashboard";
 import { loadKnowledgeBase } from "@/lib/okf/loader";
+import type { MissionScenario } from "@/lib/ranking/types";
 import { getSupabaseStatus } from "@/lib/supabase/server";
+
+/**
+ * Mission presets from knowledge/missions, as scenarios. Empty until the
+ * Mission field names are agreed (team workflow, open decision 4); map the
+ * documents here then. Never fill a preset value that a record does not state.
+ */
+const MISSION_PRESETS: MissionScenario[] = [];
 
 export default function DashboardPage() {
   const knowledge = loadKnowledgeBase();
+  const capabilities = getCapabilities(knowledge.investigations);
+  const dashboard = buildDashboardViewModel(knowledge, capabilities);
 
   return (
     <>
       <PageHeader
-        eyebrow="Dashboard"
-        title="Fire-safety evidence base"
-        description="What NASA microgravity combustion research is recorded here, how much of it has been reviewed, and where to go next."
-      />
-      <div className="space-y-6">
-        <MissionOverview knowledge={knowledge} />
-        <div className="grid gap-6 lg:grid-cols-2">
-          <EvidenceCoverageCard investigations={knowledge.investigations} />
-          <TopInvestigations investigations={knowledge.investigations} />
-        </div>
-        <SystemStatus supabase={getSupabaseStatus()} issueCount={knowledge.issues.length} />
+        eyebrow="Mission dashboard"
+        title="Space fire evidence for your mission"
+        description="Describe a spacecraft or habitat fire scenario. IGNIS shows which NASA combustion investigations tested comparable conditions, and where reviewed evidence runs out."
+      >
+        <PurposeSteps />
+      </PageHeader>
+      <div className="space-y-5">
+        <DegradedNotice notices={getDegradedNotices(capabilities, "scoring")} />
+        <MissionDashboard
+          investigations={knowledge.investigations}
+          presets={MISSION_PRESETS}
+          coverage={dashboard.coverage}
+        />
+        <KnowledgeStatus summary={dashboard.summary} />
+        <SystemStatus
+          supabase={getSupabaseStatus()}
+          issueCount={knowledge.issues.length}
+          retrievalReady={capabilities.retrievalEnabled}
+          synthesisReady={capabilities.llmEnabled}
+          methodologyReady={capabilities.methodologyConfigured}
+        />
       </div>
     </>
   );
