@@ -29,13 +29,30 @@ export function normalize(text: string): string {
     .toLowerCase();
 }
 
-/** Words of a text, lower-cased. Hyphenated names are kept whole and also split: `bass-ii` -> bass-ii, bass, ii. */
+/**
+ * Closed compounds the records also write as two words or hyphenated ("airflow"
+ * 37 times, "air flow" 13; "coflow" 28, "co-flow" 14). Emitting the parts lets
+ * either spelling match the other, on both the index and the query side.
+ */
+const COMPOUND_PARTS: Record<string, string[]> = {
+  airflow: ["air", "flow"],
+  airflows: ["air", "flows"],
+  coflow: ["co", "flow"],
+  coflowing: ["co", "flowing"],
+};
+
+/**
+ * Words of a text, lower-cased. Hyphenated names are kept whole and also split:
+ * `bass-ii` -> bass-ii, bass, ii. Known closed compounds are also split.
+ */
 export function words(text: string): string[] {
   const out: string[] = [];
   for (const match of normalize(text).matchAll(/[a-z0-9]+(?:[-.][a-z0-9]+)*/g)) {
     const word = match[0];
     out.push(word);
     if (word.includes("-")) out.push(...word.split("-").filter(Boolean));
+    const parts = COMPOUND_PARTS[word];
+    if (parts) out.push(...parts);
   }
   return out;
 }

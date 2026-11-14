@@ -1,6 +1,6 @@
 {
   "description": "Retrieval evaluation set (Member 5 brief, Part F). Questions are drafted by Member 5. 'expected' lists record ids (file names in knowledge/investigations/) and must be filled in by a person reading the stable records, never from memory or an AI answer. A query is scored only when every expected id is a verified record; otherwise the runner reports it as not scorable yet.",
-  "labelStatus": "Questions drafted 2026-11-14. Labels pending stable records; review by Member 3.",
+  "labelStatus": "Questions drafted 2026-11-14. Labels proposed 2026-11-14 by llm:claude-opus-5-5 from the 13 stable records' fields and Key Findings (each labelSource names the evidence), before any evaluation run; pending review by Member 3. q07 changed from the brief's label (see its labelSource). Holdout questions n03, q06, q09, q17 and q23 were inspected to diagnose bugs on 2026-11-14 (see holdoutNote); their holdout scores are optimistic.",
   "kinds": {
     "specific": "Hit when an expected investigation appears in the top k. With expectedSections, a section-level hit also needs that chunk type.",
     "enumerative": "A list question. Also scored for recall: share of expected investigations found anywhere in the results.",
@@ -13,8 +13,9 @@
       "category": "prevention",
       "kind": "specific",
       "query": "How does airflow affect flame spread over solid materials?",
-      "expected": [],
-      "expectedSections": ["FINDING"]
+      "expected": ["bass", "bass-ii", "saffire"],
+      "expectedSections": ["FINDING"],
+      "labelSource": "Records with solid fuels and airflow speed as a variable whose Key Findings report flame spread vs flow: bass, bass-ii, saffire."
     },
     {
       "id": "q02",
@@ -22,7 +23,8 @@
       "category": "prevention",
       "kind": "enumerative",
       "query": "Which investigations studied material flammability?",
-      "expected": []
+      "expected": ["bass", "bass-ii", "saffire", "acme-bre"],
+      "labelSource": "Records whose Objective is material flammability (prevention category): bass, bass-ii, saffire, acme-bre ('materials flammability in still atmospheres')."
     },
     {
       "id": "q03",
@@ -30,8 +32,9 @@
       "category": "prevention",
       "kind": "specific",
       "query": "What did BASS-II find about flames in low-speed flow?",
-      "expected": [],
-      "expectedSections": ["FINDING"]
+      "expected": ["bass-ii"],
+      "expectedSections": ["FINDING"],
+      "labelSource": "Named investigation; bass-ii Key Findings on low flow speeds."
     },
     {
       "id": "q04",
@@ -40,7 +43,7 @@
       "kind": "enumerative",
       "query": "Which investigations studied smoke detection?",
       "expected": ["same", "same-r"],
-      "labelSource": "Member 5 brief, Part F"
+      "labelSource": "Member 5 brief, Part F; confirmed by the records (safetyCategories detection, smoke-detector objectives). Saffire also carries 'detection' but measured smoke rather than studying detection; not required."
     },
     {
       "id": "q05",
@@ -48,8 +51,9 @@
       "category": "detection",
       "kind": "specific",
       "query": "What instruments measured smoke particles?",
-      "expected": [],
-      "expectedSections": ["MEASUREMENT"]
+      "expected": ["same", "same-r"],
+      "expectedSections": ["MEASUREMENT"],
+      "labelSource": "Sensors sections: SAME and SAME-R moment instruments (P-Trak, ionization chamber, DustTrak, MPASS) measured smoke particles."
     },
     {
       "id": "q06",
@@ -57,8 +61,10 @@
       "category": "detection",
       "kind": "specific",
       "query": "How was smoke detection studied?",
-      "expected": [],
-      "expectedSections": ["OBJECTIVE", "MEASUREMENT"]
+      "expected": ["same", "same-r"],
+      "expectedSections": ["OBJECTIVE", "MEASUREMENT"],
+      "labelSource": "Objective: SAME and SAME-R measured smoke particle size to support spacecraft smoke-detector design.",
+      "holdoutNote": "Inspected on 2026-11-14 while fixing: method-question section intent. No longer an unbiased holdout; replace with a fresh question when the set is next revised."
     },
     {
       "id": "q07",
@@ -66,8 +72,8 @@
       "category": "suppression",
       "kind": "enumerative",
       "query": "Which experiments studied fire suppression?",
-      "expected": ["flex", "flex-2"],
-      "labelSource": "Member 5 brief, Part F"
+      "expected": ["flex", "bass"],
+      "labelSource": "Records with safetyCategories suppression and a tested suppressant: flex (inert-gas suppressant efficacy), bass (nitrogen suppressant jet). Changed from the brief's [flex, flex-2]: the flex-2 record assigns no safety category. Saffire excluded: its Limitations say extinction was ventilation-based only, with no suppressant agent."
     },
     {
       "id": "q08",
@@ -75,8 +81,9 @@
       "category": "suppression",
       "kind": "specific",
       "query": "What did FLEX find about flame extinction?",
-      "expected": [],
-      "expectedSections": ["FINDING"]
+      "expected": ["flex"],
+      "expectedSections": ["FINDING"],
+      "labelSource": "Named investigation; flex Key Findings on radiative and diffusive extinction."
     },
     {
       "id": "q09",
@@ -84,8 +91,10 @@
       "category": "suppression",
       "kind": "specific",
       "query": "How were suppressants tested on burning fuel?",
-      "expected": [],
-      "expectedSections": ["CONDITIONS", "MEASUREMENT"]
+      "expected": ["bass", "flex"],
+      "expectedSections": ["CONDITIONS", "MEASUREMENT"],
+      "labelSource": "Conditions: bass nitrogen suppressant flow and nozzle distance; flex diluent type and amount.",
+      "holdoutNote": "Inspected on 2026-11-14 while fixing: method-question section intent. No longer an unbiased holdout; replace with a fresh question when the set is next revised."
     },
     {
       "id": "q10",
@@ -93,7 +102,8 @@
       "category": "hardware",
       "kind": "enumerative",
       "query": "Which investigations ran in the Microgravity Science Glovebox?",
-      "expected": []
+      "expected": ["bass", "bass-ii", "same", "same-r", "slice", "spice"],
+      "labelSource": "Records whose hardware field lists the Microgravity Science Glovebox (MSG)."
     },
     {
       "id": "q11",
@@ -101,7 +111,8 @@
       "category": "hardware",
       "kind": "enumerative",
       "query": "Which experiments used the Combustion Integrated Rack?",
-      "expected": []
+      "expected": ["acme-bre", "acme-cfi-g", "acme-e-field", "cfi", "flex", "flex-2"],
+      "labelSource": "Records whose hardware field lists the Combustion Integrated Rack (CIR)."
     },
     {
       "id": "q12",
@@ -109,8 +120,9 @@
       "category": "hardware",
       "kind": "specific",
       "query": "What hardware did Saffire use?",
-      "expected": [],
-      "expectedSections": ["CONDITIONS", "OBJECTIVE"]
+      "expected": ["saffire"],
+      "expectedSections": ["CONDITIONS", "OBJECTIVE"],
+      "labelSource": "Named investigation; saffire hardware field (Saffire Flow Unit, Far Field Diagnostics)."
     },
     {
       "id": "q13",
@@ -118,7 +130,8 @@
       "category": "fuel-material",
       "kind": "enumerative",
       "query": "Which investigations burned liquid fuels?",
-      "expected": []
+      "expected": ["flex", "flex-2", "cfi"],
+      "labelSource": "Records with fuelType liquid."
     },
     {
       "id": "q14",
@@ -126,8 +139,9 @@
       "category": "fuel-material",
       "kind": "specific",
       "query": "What materials were tested in Saffire?",
-      "expected": [],
-      "expectedSections": ["CONDITIONS"]
+      "expected": ["saffire"],
+      "expectedSections": ["CONDITIONS"],
+      "labelSource": "Named investigation; saffire material field."
     },
     {
       "id": "q15",
@@ -135,8 +149,9 @@
       "category": "oxygen",
       "kind": "specific",
       "query": "What oxygen concentrations were used in the BASS experiments?",
-      "expected": [],
-      "expectedSections": ["CONDITIONS"]
+      "expected": ["bass", "bass-ii"],
+      "expectedSections": ["CONDITIONS"],
+      "labelSource": "'The BASS experiments' covers BASS and BASS-II; both Conditions sections give oxygen."
     },
     {
       "id": "q16",
@@ -144,8 +159,9 @@
       "category": "oxygen",
       "kind": "specific",
       "query": "How does oxygen concentration change flammability in microgravity?",
-      "expected": [],
-      "expectedSections": ["FINDING"]
+      "expected": ["acme-bre", "flex", "bass-ii", "saffire"],
+      "expectedSections": ["FINDING"],
+      "labelSource": "Key Findings on oxygen and flammability: acme-bre (self-extinguish below ~25% O2), flex (limiting oxygen index), bass-ii (oxygen flammability boundary, 1-g blowoff at 16% O2), saffire (elevated oxygen, more energetic flames)."
     },
     {
       "id": "q17",
@@ -153,8 +169,10 @@
       "category": "airflow",
       "kind": "specific",
       "query": "What happens to a flame when ventilation airflow stops?",
-      "expected": [],
-      "expectedSections": ["FINDING"]
+      "expected": ["saffire", "acme-bre", "bass", "bass-ii"],
+      "expectedSections": ["FINDING"],
+      "labelSource": "Key Findings on flames with little or no airflow: saffire (cotton regrew with the fan off), acme-bre (burn for minutes in the absence of an air flow), bass and bass-ii (flames sustained below 1 cm/s).",
+      "holdoutNote": "Inspected on 2026-11-14 while fixing: compound split airflow/air flow and keyword-plus-meaning support. No longer an unbiased holdout; replace with a fresh question when the set is next revised."
     },
     {
       "id": "q18",
@@ -162,8 +180,9 @@
       "category": "airflow",
       "kind": "enumerative",
       "query": "Which investigations varied the forced airflow speed?",
-      "expected": [],
-      "expectedSections": ["VARIABLES", "CONDITIONS"]
+      "expected": ["bass", "bass-ii", "saffire", "same", "same-r", "slice", "spice"],
+      "expectedSections": ["VARIABLES", "CONDITIONS"],
+      "labelSource": "Variables fields listing a forced airflow, flow or coflow speed: bass, bass-ii, saffire, same, same-r, slice, spice. flex-2 excluded: its flow comes from moving the droplet, not forced airflow."
     },
     {
       "id": "q19",
@@ -171,8 +190,9 @@
       "category": "gravity",
       "kind": "specific",
       "query": "How do flames behave differently in microgravity than on Earth?",
-      "expected": [],
-      "expectedSections": ["FINDING"]
+      "expected": ["slice", "flex", "bass-ii", "saffire", "same", "acme-e-field", "spice"],
+      "expectedSections": ["FINDING"],
+      "labelSource": "Key Findings that compare microgravity with normal gravity: slice, flex, bass-ii, saffire, same, acme-e-field, spice."
     },
     {
       "id": "q20",
@@ -180,7 +200,8 @@
       "category": "gravity",
       "kind": "enumerative",
       "query": "Which experiments compared ground tests with microgravity results?",
-      "expected": []
+      "expected": ["bass", "bass-ii", "saffire", "slice", "same", "acme-e-field"],
+      "labelSource": "Key Findings reporting 1-g comparison tests or 1-g data beside microgravity results: bass, bass-ii, saffire, slice (Yale replica hardware), same, acme-e-field."
     },
     {
       "id": "q21",
@@ -188,8 +209,9 @@
       "category": "spacecraft-scale",
       "kind": "specific",
       "query": "What did the spacecraft-scale fire experiments show?",
-      "expected": [],
-      "expectedSections": ["FINDING"]
+      "expected": ["saffire"],
+      "expectedSections": ["FINDING"],
+      "labelSource": "Saffire is the only spacecraft-scale (Cygnus) fire experiment in the records."
     },
     {
       "id": "q22",
@@ -197,8 +219,9 @@
       "category": "spacecraft-scale",
       "kind": "specific",
       "query": "What are the limitations of the Saffire results?",
-      "expected": [],
-      "expectedSections": ["LIMITATION"]
+      "expected": ["saffire"],
+      "expectedSections": ["LIMITATION"],
+      "labelSource": "Named investigation; saffire Limitations section."
     },
     {
       "id": "q23",
@@ -206,8 +229,10 @@
       "category": "interpretation",
       "kind": "specific",
       "query": "Why does flame spread matter for lunar habitat design?",
-      "expected": [],
-      "expectedSections": ["INTERPRETATION"]
+      "expected": ["bass", "bass-ii", "saffire"],
+      "expectedSections": ["INTERPRETATION"],
+      "labelSource": "Fire Safety Relevance (team interpretation) sections of the flame-spread records: bass, bass-ii, saffire.",
+      "holdoutNote": "Inspected on 2026-11-14 while fixing: diagnosed only; no change made. No longer an unbiased holdout; replace with a fresh question when the set is next revised."
     },
     {
       "id": "n01",
@@ -231,7 +256,8 @@
       "category": "negative",
       "kind": "negative",
       "query": "Which football team won the cup last year?",
-      "expected": []
+      "expected": [],
+      "holdoutNote": "Inspected on 2026-11-14 while fixing: support rule (one rare word is not support). No longer an unbiased holdout; replace with a fresh question when the set is next revised."
     }
   ]
 }
