@@ -1,47 +1,64 @@
-import type { EvidenceChunk } from "@/lib/retrieval/types";
-
 /**
- * Hand-written placeholder for the Supabase schema.
- * Replace with `supabase gen types typescript` output once the schema exists.
+ * Hand-written types for the Supabase schema in supabase/migrations/.
+ * Keep the two in step: a column change is a `contract:` pull request that
+ * touches the migration, this file and docs/retrieval-contract.md together.
  */
 
-/** Database row for a chunk: snake_case columns, plus the pgvector column. */
+/** One row of `evidence_chunks`. Snake_case, as stored. */
 export type EvidenceChunkRow = {
-  id: string;
-  concept_id: string | null;
-  investigation_id: string | null;
+  /** Deterministic id, e.g. `bass-ii.conditions.01`. */
+  chunk_id: string;
+  /** Parent record as `<folder>/<record-id>`. */
+  concept_id: string;
+  /** Display name of the parent investigation or record. */
+  investigation: string;
   title: string;
   section: string;
-  chunk_type: EvidenceChunk["chunkType"];
+  /** OBJECTIVE | CONDITIONS | VARIABLES | MEASUREMENT | FINDING | LIMITATION | INTERPRETATION */
+  chunk_type: string;
   content: string;
-  tags: string[];
-  safety_categories: EvidenceChunk["safetyCategories"];
+  /** NASA_SOURCE | TEAM_INTERPRETATION */
+  source_class: string;
+  source_url: string | null;
+  safety_category: string[];
   fuel_type: string | null;
   material: string | null;
-  gravity_condition: EvidenceChunk["gravityCondition"];
-  source_class: EvidenceChunk["sourceClass"];
-  source_url: string | null;
-  verification_status: EvidenceChunk["verificationStatus"];
+  gravity_condition: string | null;
+  tags: string[];
+  human_verified: boolean;
   previous_chunk_id: string | null;
   next_chunk_id: string | null;
-  embedding_version: string | null;
-  /** vector(384). Server-side ingestion only; never selected for the frontend. */
+  /** Model and chunker version, e.g. `bge-small-en-v1.5/chunker-v1`. */
+  embedding_version: string;
+  /** vector(384). Written by ingestion; never selected for the frontend. */
   embedding: number[] | null;
+  /** Generated full-text column. Read-only. */
+  fts: unknown;
 };
+
+export type EvidenceChunkInsert = Omit<EvidenceChunkRow, "fts">;
 
 export type Database = {
   public: {
     Tables: {
       evidence_chunks: {
         Row: EvidenceChunkRow;
-        Insert: EvidenceChunkRow;
-        Update: Partial<EvidenceChunkRow>;
+        Insert: EvidenceChunkInsert;
+        Update: Partial<EvidenceChunkInsert>;
         Relationships: [];
       };
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      ignis_vector_available: { Args: Record<string, never>; Returns: boolean };
+      match_evidence_chunks: {
+        Args: { query_embedding: number[]; match_count?: number };
+        Returns: { chunk_id: string; similarity: number }[];
+      };
+    };
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;
   };
 };
+
+export const EVIDENCE_CHUNKS_TABLE = "evidence_chunks";
