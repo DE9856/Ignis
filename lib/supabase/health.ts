@@ -16,6 +16,7 @@ import { EVIDENCE_CHUNKS_TABLE } from "./types";
 export type DatabaseStatus =
   | "NOT_CONFIGURED"
   | "CONFIGURED_BUT_UNREACHABLE"
+  | "KEY_REJECTED"
   | "CONNECTED"
   | "PGVECTOR_UNAVAILABLE"
   | "EVIDENCE_CHUNKS_TABLE_MISSING"
@@ -48,7 +49,7 @@ export interface HealthCheckClient {
     select(
       columns: string,
       options: { count: "exact"; head: true },
-    ): PromiseLike<{ error: QueryError | null; count: number | null }>;
+    ): PromiseLike<{ error: QueryError | null; count: number | null; status?: number }>;
   };
   rpc(name: string): PromiseLike<{ data: unknown; error: QueryError | null }>;
 }
@@ -56,11 +57,25 @@ export interface HealthCheckClient {
 /** PostgREST / Postgres codes that mean "the server answered, the object is missing". */
 const MISSING_OBJECT_CODES = new Set(["42P01", "PGRST205", "PGRST202", "42883"]);
 
+/** The server answered and refused the credentials: HTTP 401/403, or PostgREST's JWT and key errors. */
+function isKeyRejected(error: QueryError, httpStatus: number | undefined): boolean {
+  return (
+    httpStatus === 401 ||
+    httpStatus === 403 ||
+    error.code === "401" ||
+    error.code === "PGRST301" ||
+    error.code === "PGRST302" ||
+    /invalid api key|no api key|jwt|apikey/i.test(error.message)
+  );
+}
+
 const DEFAULT_TIMEOUT_MS = 8000;
 
 const DETAILS = {
   notConfigured: "Supabase is not configured. The app runs on local knowledge files.",
   unreachable: "Supabase is configured but could not be reached. Check the project URL, key and network.",
+  keyRejected:
+    "Supabase answered but rejected the key. Check that the URL and both keys come from the same project and were copied in full.",
   tableMissing: "evidence_chunks table not found. Apply supabase/migrations/.",
   pgvector: "The pgvector extension is not installed. Apply supabase/migrations/.",
   dimension: `The embedding column is not vector(${EMBEDDING_DIMENSIONS}). Re-apply the migration.`,
@@ -117,8 +132,10 @@ export async function checkDatabaseHealth(
     } else if (table.error.code && MISSING_OBJECT_CODES.has(table.error.code)) {
       health.reachable = true;
       health.evidenceChunksTable = false;
+    } else if (isKeyRejected(table.error, table.status)) {
+      return { ...health, status: "KEY_REJECTED", reachable: true, detail: DETAILS.keyRejected };
     } else {
-      // Bad key, network policy, server error: all "could not use it".
+      // Network policy, server error: "could not use it".
       return health;
     }
 

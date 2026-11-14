@@ -60,6 +60,11 @@ sources:
     title: "A Researcher's Guide to: Combustion Science (NASA ISS Program Science Office, NP-2015-10-034-JSC)"
     sourceClass: NASA_SOURCE
     accessed: 2026-11-14
+  - id: nasa-acme-fact-sheet
+    resource: https://www.nasa.gov/wp-content/uploads/2025/07/advanced-combustion-via-microgravity-experiments-acme.pdf
+    title: Advanced Combustion via Microgravity Experiments (ACME) fact sheet (NASA; CFI-G section)
+    sourceClass: NASA_SOURCE
+    accessed: 2026-11-14
 
 related:
   - id: investigations/flex
@@ -135,5 +140,5 @@ Team interpretation: FLEX-2 is primarily fundamental combustion research aimed a
 
 - nasa-flex-fact-sheet: NASA FLEX fact sheet PDF, FLEX-2 section. Supports the objective, 2 mm to 4 mm droplets, single and binary droplet configurations, tethered convective-flow tests, burning to completion or extinction at a finite radius, and the four test groups of 30 to 60 tests each. The PI team is listed there (lead: Prof. Forman Williams, UCSD).
 - researchers-guide-combustion: NASA "A Researcher's Guide to: Combustion Science". Supports the FLEX-2 description (mixtures of pure fuels, real fuel surrogates, soot formation, slow sub-buoyant convective flow, droplet-droplet interactions), the energy-conversion motivation, the MDCA facility capability (1 to 5 mm, 0 to 3 atm, up to 40% O2), the Figure 3 FLEX-2 example (ethanol, 30% O2, 2.4 atm), and the combined FLEX/FLEX-2 statements in Key Findings.
-- The ACME fact sheet (see the ACME records) supports the 2012 cool flame discovery statement.
+- nasa-acme-fact-sheet: NASA ACME fact sheet, CFI-G section. Supports the 2012 cool flame discovery statement.
 - Candidate sources not used: a 2014 NASA-authored conference paper on cool-flame extinction (NTRS 20140006750) attributes its results to "FLEX experiments" without naming FLEX-2, so it was not used here. The NASA PSI record for FLEX-2 was not consulted. Member 3 should check whether a FLEX-2-specific NASA results source exists.

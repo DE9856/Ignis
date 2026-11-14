@@ -79,4 +79,4 @@ Team interpretation: a material that passes Test 1 is not proven safe in a venti
 
 - researchers-guide-combustion: supports the statement that BASS results indicate Test 1 is not conservative and that materials can burn at lower oxygen in microgravity.
 - ntrs-20210011521: supports the Test 1 description (30 cm sample, ignited at bottom, fails past 15 cm), the thick-fuel dissimilarity, the authors' statement on the usefulness and limits of the test, and the surface-structure finding.
-- ntrs-20210011385: BASS-II Summary Report. Supports "upward burning ... considered to be the worst-case geometry for flammability of the material on Earth", "it may not be conservative for flammability in space", and the BASS-II worst-case objective.
+- ntrs-20210011385: BASS-II Summary Report. Supports "upward burning … considered to be the worst-case geometry for flammability of the material on Earth", "it may not be conservative for flammability in space", and the BASS-II worst-case objective.
