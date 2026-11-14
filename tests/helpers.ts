@@ -13,7 +13,9 @@ export function makeInvestigation(overrides: Partial<Investigation> = {}): Inves
     shortTitle: null,
     program: null,
     description: null,
+    resource: null,
     objective: null,
+    fireSafetyRelevance: null,
     safetyCategories: [],
     fuelType: null,
     material: null,
@@ -38,8 +40,8 @@ export function makeInvestigation(overrides: Partial<Investigation> = {}): Inves
     sources: [],
     related: [],
     generated: null,
-    verified: [{ by: "human:test", at: null, scope: null }],
-    status: "verified",
+    verified: [{ by: "human:test", at: null, note: null }],
+    status: "stable",
     ...overrides,
   };
 }

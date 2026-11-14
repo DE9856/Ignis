@@ -27,9 +27,16 @@ status: draft
 tags:
   - combustion
 
+safety_category:
+  - prevention
+
+fuel_type: null
+oxygen_min: null
+oxygen_max: null
+
 sources:
   - id: source-1
-    resource: https://example.com
+    resource: https://www.nasa.gov/
 
 generated:
   by: human:member2
@@ -41,14 +48,20 @@ verified: []
 
 # Experimental Conditions
 
-# Measurements
+# Variables
+
+# Sensors and Measurements
 
 # Key Findings
 
 # Fire Safety Relevance
 
 # Limitations
+
+# Source Notes
 ```
+
+Keys are snake_case. Start from `_templates/investigation.md`, which lists every field.
 
 The full field list, units and validation rules are in [docs/data-contract.md](../docs/data-contract.md).
 
@@ -58,9 +71,16 @@ The full field list, units and validation rules are in [docs/data-contract.md](.
 2. If the source does not state a value, write `null`. Do not estimate.
 3. Every record lists its sources with URLs.
 4. New records are `status: draft`.
-5. Someone other than the author checks the record against the source, adds an entry under `verified`, and sets `status: verified`.
+5. Someone other than the author checks the record against the source, adds an entry under `verified`, and sets `status: stable`.
 6. Keep `Fire Safety Relevance` clearly separate: it is the team's interpretation, not NASA's statement.
 
 ## Checking your work
 
-Run `npm run dev` and open the Evidence Explorer. Valid records appear in the table. Files with problems are listed at the top with the reason.
+```bash
+npm run validate:knowledge     # PASS / WARN / ERROR for every file
+npm run inspect:knowledge      # counts and completeness
+```
+
+An ERROR must be fixed before the file can merge; CI runs the same check. A WARN is worth a look and does not block a draft.
+
+You can also run `npm run dev` and open the Evidence Explorer. Valid records appear in the table. Files with problems are listed at the top with the reason.

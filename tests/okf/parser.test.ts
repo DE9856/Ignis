@@ -19,8 +19,12 @@ title: Synthetic fixture investigation
 status: draft
 tags:
   - test
-oxygenMin: 10
-oxygenMax: 20
+safety_category:
+  - prevention
+fuel_type: fixture-fuel
+oxygen_min: 10
+oxygen_max: 20
+hardware: TEST_RIG
 sources:
   - id: source-1
     resource: https://example.com
@@ -42,6 +46,10 @@ Exercise the parser.
 \`\`\`md
 # Not a heading
 \`\`\`
+
+# Fire Safety Relevance
+
+Team interpretation: synthetic text.
 
 # Limitations
 `;
@@ -76,6 +84,7 @@ describe("parseOkfDocument", () => {
     expect(document.sections.map((section) => section.slug)).toEqual([
       "objective",
       "key-findings",
+      "fire-safety-relevance",
       "limitations",
     ]);
   });
@@ -89,6 +98,33 @@ describe("parseOkfDocument", () => {
     expect(metadata.material).toBeNull();
   });
 
+  it("accepts snake_case keys and maps them onto the camelCase fields", () => {
+    const { metadata } = parseInvestigation(FIXTURE);
+    expect(metadata.safetyCategories).toEqual(["prevention"]);
+    expect(metadata.fuelType).toBe("fixture-fuel");
+    expect(metadata.hardware).toEqual(["TEST_RIG"]);
+  });
+
+  it("still accepts camelCase keys", () => {
+    const { metadata } = parseInvestigation("---\ntype: Investigation\ntitle: T\noxygenMin: 5\n---\n");
+    expect(metadata.oxygenMin).toBe(5);
+  });
+
+  it("rejects an unrecognised key instead of silently dropping it", () => {
+    const result = parseOkfDocument("---\ntype: Investigation\ntitle: T\noxygen_minimum: 5\n---\n", "x.md");
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.issues[0].message).toMatch(/oxygen_minimum/);
+  });
+
+  it("keeps full timestamps and the reviewer note on verification entries", () => {
+    const { metadata } = parseInvestigation(
+      "---\ntype: Investigation\ntitle: T\nstatus: stable\nverified:\n  - by: human:reviewer\n    at: 2026-01-02T10:30:00Z\n    note: Checked\n---\n",
+    );
+    expect(metadata.verified).toEqual([
+      { by: "human:reviewer", at: "2026-01-02T10:30:00Z", note: "Checked" },
+    ]);
+  });
+
   it("stores YAML dates as plain strings and defaults source trust to UNVERIFIED", () => {
     const { metadata } = parseInvestigation(FIXTURE);
     expect(metadata.sources[0]).toMatchObject({ accessed: "2026-01-02", sourceClass: "UNVERIFIED" });
@@ -99,7 +135,7 @@ describe("parseOkfDocument", () => {
     expect(missingTitle.ok).toBe(false);
 
     const inverted = parseOkfDocument(
-      "---\ntype: Investigation\ntitle: T\noxygenMin: 30\noxygenMax: 20\n---\n",
+      "---\ntype: Investigation\ntitle: T\noxygen_min: 30\noxygen_max: 20\n---\n",
       "x.md",
     );
     expect(inverted.ok).toBe(false);
@@ -121,8 +157,11 @@ describe("parseOkfDocument", () => {
     expect(bad.ok).toBe(false);
   });
 
-  it("rejects status 'verified' without a reviewer entry", () => {
-    const result = parseOkfDocument("---\ntype: Investigation\ntitle: T\nstatus: verified\n---\n", "x.md");
+  it("rejects status 'stable' without a reviewer entry, and unknown status values", () => {
+    expect(parseOkfDocument("---\ntype: Investigation\ntitle: T\nstatus: verified\n---\n", "x.md").ok).toBe(
+      false,
+    );
+    const result = parseOkfDocument("---\ntype: Investigation\ntitle: T\nstatus: stable\n---\n", "x.md");
     expect(result.ok).toBe(false);
   });
 
@@ -141,6 +180,7 @@ describe("toInvestigation", () => {
     expect(investigation.objective).toBe("Exercise the parser.");
     expect(investigation.keyFindings).toEqual(["First synthetic finding", "Second synthetic finding"]);
     expect(investigation.limitations).toEqual([]);
+    expect(investigation.fireSafetyRelevance).toBe("Team interpretation: synthetic text.");
     expect(isVerified(investigation)).toBe(false);
   });
 });

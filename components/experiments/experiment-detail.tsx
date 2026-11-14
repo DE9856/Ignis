@@ -1,4 +1,5 @@
 import { EvidenceSource } from "@/components/evidence/evidence-source";
+import { ProvenanceBadge } from "@/components/evidence/provenance-badge";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Section } from "@/components/shared/section";
 import { StatusBadge } from "@/components/shared/status-badge";
@@ -63,6 +64,15 @@ export function ExperimentDetail({ investigation }: { investigation: Investigati
             <BulletBlock title="Key findings" items={investigation.keyFindings} />
             <BulletBlock title="Limitations" items={investigation.limitations} />
           </div>
+
+          {investigation.fireSafetyRelevance ? (
+            <div>
+              <h3 className="flex items-center gap-2 text-[11px] font-medium tracking-wide text-ink-muted uppercase">
+                Fire safety relevance <ProvenanceBadge value="TEAM_INTERPRETATION" />
+              </h3>
+              <p className="mt-2 text-sm whitespace-pre-line">{investigation.fireSafetyRelevance}</p>
+            </div>
+          ) : null}
 
           {investigation.related.length > 0 ? (
             <div>
