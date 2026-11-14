@@ -10,6 +10,7 @@ import { createSummaryCache, summaryCacheKey, type SummaryCache } from "./cache"
 import { groundOutput, parseModelOutput } from "./grounding";
 import { completeChat, LlmError, readLlmConfig, type LlmConfig } from "./groq";
 import { buildMessages, PROMPT_VERSION, type ChatMessage } from "./prompt";
+import { retryAnswer } from "./retry";
 import { scopeToNamedInvestigations, type InvestigationName } from "./scope";
 import {
   applyVerdicts,
@@ -173,8 +174,23 @@ export async function synthesize(
   }
 
   const sourced = (list: SynthesisStatement[]) => list.some((statement) => statement.sources.length > 0);
-  const answered = sourced(sections.answer);
   const findings = sourced(sections.nasaEvidence) || sourced(sections.teamInterpretation);
+
+  // The answer failed review but supported findings survived: one more attempt, built only from them.
+  // Not for partial-gravity questions: there a retry pushes the model to apply microgravity results
+  // to the Moon or Mars, which IGNIS must not do. The withheld answer and the findings are the honest result.
+  if (!output.insufficient && !partialGravity && !sourced(sections.answer) && findings) {
+    const verifiedStatements = [...sections.nasaEvidence, ...sections.teamInterpretation].filter(
+      (statement) => statement.sources.length > 0,
+    );
+    const rejected = removed.filter((item) => item.section === "answer");
+    const retry = await retryAnswer(question, chunks, verifiedStatements, rejected, chat, llm);
+    if (retry) {
+      sections = { ...sections, answer: retry.answer };
+      removed = [...removed, ...retry.removed.map((item) => ({ ...item, reason: `retry: ${item.reason}` }))];
+    }
+  }
+  const answered = sourced(sections.answer);
   // "Insufficient" only when the model says so or nothing supported survives. If the checks removed
   // the answer sentence but supported findings remain, say the answer was withheld instead.
   const insufficient = output.insufficient || (!answered && !findings);

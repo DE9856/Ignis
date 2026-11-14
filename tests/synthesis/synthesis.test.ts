@@ -7,6 +7,7 @@ import { groundOutput, numbersIn, parseModelOutput, type ParsedOutput } from "@/
 import { completeChat, GROQ_CHAT_URL, readLlmConfig } from "@/lib/synthesis/groq";
 import { buildMessages, SYSTEM_PROMPT } from "@/lib/synthesis/prompt";
 import { synthesize, type ChatFunction } from "@/lib/synthesis/server";
+import { RETRY_PROMPT } from "@/lib/synthesis/retry";
 import { VERIFIER_PROMPT } from "@/lib/synthesis/verify";
 
 import {
@@ -499,5 +500,110 @@ describe("synthesize(): a rejected answer with supported findings is withheld, n
     const response = await synthesize("What were the conditions?", [CONDITIONS.id], { store, llm, chat });
     if (response.status !== "ok") throw new Error(`expected ok, got ${response.status}`);
     expect(response).toMatchObject({ insufficient: true, answerWithheld: false });
+  });
+});
+
+describe("synthesize(): one retry of a rejected answer, built from verified statements", () => {
+  const store = createMemoryStore(CHUNKS);
+  const llm = { apiKey: "test-key", model: "test-model" };
+  const first = JSON.stringify(
+    output({
+      answer: [{ text: "Pressure was 1,000 Pa in opposed flow.", sources: ["S1"] }],
+      nasaEvidence: [{ text: "Pressure was 1,000 Pa.", sources: ["S1"] }],
+    }),
+  );
+  const rejectOpposed = (text: string) => (text.includes("opposed") ? "unsupported" : "supported");
+
+  /** Routes the three kinds of call: first write, retry write, review. */
+  function model(retryReply: () => Promise<string>, seen: { retry?: string } = {}): ChatFunction {
+    return withReviewer(async (messages) => {
+      if (messages[0].content === RETRY_PROMPT) {
+        seen.retry = messages[1].content;
+        return retryReply();
+      }
+      return first;
+    }, rejectOpposed);
+  }
+
+  it("replaces the withheld answer when the retry passes review", async () => {
+    const seen: { retry?: string } = {};
+    const chat = model(
+      async () =>
+        JSON.stringify({ answer: [{ text: "The chamber pressure was 1,000 Pa.", sources: ["S1"] }] }),
+      seen,
+    );
+    const response = await synthesize("What was the pressure?", [CONDITIONS.id], { store, llm, chat });
+    if (response.status !== "ok") throw new Error(`expected ok, got ${response.status}`);
+    expect(response.answerWithheld).toBe(false);
+    expect(response.insufficient).toBe(false);
+    expect(response.sections.answer).toEqual([
+      { text: "The chamber pressure was 1,000 Pa.", sources: [CONDITIONS.id] },
+    ]);
+    // The retry sees the verified statement and why the first answer failed.
+    expect(seen.retry).toContain("- Pressure was 1,000 Pa. (S1)");
+    expect(seen.retry).toContain("Pressure was 1,000 Pa in opposed flow.");
+    expect(seen.retry).toContain("TEST reviewer");
+  });
+
+  it("keeps the answer withheld when the retry also fails review or errors", async () => {
+    for (const retryReply of [
+      async () =>
+        JSON.stringify({
+          answer: [{ text: "Pressure was 1,000 Pa in opposed flow again.", sources: ["S1"] }],
+        }),
+      async () => {
+        throw new Error("rate limited");
+      },
+      async () => "not json",
+    ]) {
+      const response = await synthesize("What was the pressure?", [CONDITIONS.id], {
+        store,
+        llm,
+        chat: model(retryReply),
+      });
+      if (response.status !== "ok") throw new Error(`expected ok, got ${response.status}`);
+      expect(response).toMatchObject({ answerWithheld: true, insufficient: false });
+      expect(response.sections.nasaEvidence).toHaveLength(1);
+    }
+  });
+
+  it("does not retry when the model said the evidence is insufficient", async () => {
+    const seen: { retry?: string } = {};
+    const chat = withReviewer(async (messages) => {
+      if (messages[0].content === RETRY_PROMPT) seen.retry = "called";
+      return JSON.stringify(
+        output({ nasaEvidence: [{ text: "Pressure was 1,000 Pa.", sources: ["S1"] }], insufficient: true }),
+      );
+    });
+    const response = await synthesize("What was the pressure?", [CONDITIONS.id], { store, llm, chat });
+    expect(response).toMatchObject({ status: "ok", insufficient: true });
+    expect(seen.retry).toBeUndefined();
+  });
+});
+
+describe("synthesize(): no answer retry for partial-gravity questions", () => {
+  it("leaves the answer withheld instead of letting a retry apply microgravity results to the Moon", async () => {
+    const store = createMemoryStore(CHUNKS);
+    const llm = { apiKey: "test-key", model: "test-model" };
+    const seen: { retry?: boolean } = {};
+    const chat = withReviewer(
+      async (messages) => {
+        if (messages[0].content === RETRY_PROMPT) seen.retry = true;
+        return JSON.stringify(
+          output({
+            answer: [{ text: "Lunar habitats burn like this in opposed flow.", sources: ["S1"] }],
+            nasaEvidence: [{ text: "Pressure was 1,000 Pa.", sources: ["S1"] }],
+          }),
+        );
+      },
+      (text) => (text.includes("opposed") ? "unsupported" : "supported"),
+    );
+    const response = await synthesize("Why does pressure matter for lunar habitat design?", [CONDITIONS.id], {
+      store,
+      llm,
+      chat,
+    });
+    expect(seen.retry).toBeUndefined();
+    expect(response).toMatchObject({ status: "ok", answerWithheld: true });
   });
 });
