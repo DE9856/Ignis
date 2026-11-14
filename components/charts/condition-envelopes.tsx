@@ -1,4 +1,5 @@
 import { displayTitle } from "@/components/experiments/experiment-fields";
+import { GrowIn } from "@/components/motion/grow-in";
 import { EmptyState } from "@/components/shared/empty-state";
 import { GRAVITY_LABELS } from "@/components/shared/labels";
 import type { ScenarioAnalysis } from "@/lib/integration/scenario";
@@ -49,7 +50,7 @@ export function ConditionEnvelopes({
 
   return (
     <div className={cn("space-y-3", className)}>
-      <div className="grid gap-3 2xl:grid-cols-2">
+      <GrowIn className="grid gap-3 2xl:grid-cols-2">
         <ConditionEnvelope
           title="Oxygen"
           unit="% O₂"
@@ -80,7 +81,7 @@ export function ConditionEnvelopes({
           scenarioValue={scenario.airflowMetersPerSecond}
           rows={rowsFor(investigations, (i) => ({ min: i.airflowMin, max: i.airflowMax }))}
         />
-      </div>
+      </GrowIn>
       <ul className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-ink-muted">
         <li className="flex items-center gap-1.5">
           <span aria-hidden className="h-2.5 w-4 rounded-full bg-evidence-direct" />

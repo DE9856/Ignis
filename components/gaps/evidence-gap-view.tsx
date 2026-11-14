@@ -1,4 +1,5 @@
 import { ProvenanceBadge } from "@/components/evidence/provenance-badge";
+import { GrowIn } from "@/components/motion/grow-in";
 import { scenarioFactorText } from "@/components/scenario/factor-display";
 import { EmptyState } from "@/components/shared/empty-state";
 import type { ScenarioAnalysis } from "@/lib/integration/scenario";
@@ -35,15 +36,17 @@ export function EvidenceGapView({ analysis, className }: { analysis: ScenarioAna
   return (
     <div className={cn("space-y-3", className)}>
       <CoverageLegend />
-      <ul className="divide-y divide-line rounded-md border border-line">
-        {analysis.gaps.map((gap) => (
-          <GapRow
-            key={gap.factor}
-            gap={gap}
-            scenarioValue={scenarioFactorText(gap.factor, analysis.scenario)}
-          />
-        ))}
-      </ul>
+      <GrowIn>
+        <ul className="divide-y divide-line rounded-md border border-line">
+          {analysis.gaps.map((gap) => (
+            <GapRow
+              key={gap.factor}
+              gap={gap}
+              scenarioValue={scenarioFactorText(gap.factor, analysis.scenario)}
+            />
+          ))}
+        </ul>
+      </GrowIn>
       <p className="flex flex-wrap items-center gap-2 text-xs text-ink-muted">
         <ProvenanceBadge value="COMPUTED" />
         Evidence coverage across {analysis.consideredCount} reviewed{" "}
@@ -70,6 +73,7 @@ function GapRow({ gap, scenarioValue }: { gap: GapFinding; scenarioValue: string
       <div
         role="img"
         aria-label={label}
+        data-grow
         className="col-span-2 flex h-2.5 gap-[2px] md:col-span-1 md:col-start-3 md:row-start-1"
       >
         {total === 0 ? (
@@ -94,7 +98,10 @@ function Segment({ count, total, className }: { count: number; total: number; cl
   if (count === 0) return null;
   return (
     <span
-      className={cn("h-full rounded-[2px] first:rounded-l-full last:rounded-r-full", className)}
+      className={cn(
+        "h-full rounded-[2px] transition-[flex-grow] duration-500 ease-out first:rounded-l-full last:rounded-r-full",
+        className,
+      )}
       style={{ flexGrow: count, flexBasis: 0 }}
       title={`${count} of ${total}`}
     />

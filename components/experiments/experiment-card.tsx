@@ -52,9 +52,10 @@ export function ExperimentCard({
   return (
     <article
       id={investigation.id}
+      data-flip-id={investigation.id}
       aria-current={selected ? "true" : undefined}
       className={cn(
-        "group relative flex scroll-mt-24 flex-col rounded-lg border bg-surface transition-colors",
+        "group relative flex scroll-mt-24 flex-col rounded-lg border bg-surface transition-[border-color,box-shadow] duration-200 hover:shadow-[0_8px_24px_-12px_rgb(0_0_0/0.6)]",
         selected ? "border-accent/60 ring-1 ring-accent/30" : "border-line hover:border-line-strong",
         className,
       )}

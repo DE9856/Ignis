@@ -71,7 +71,7 @@ export function ConditionEnvelope({ title, unit, scenarioValue, rows, className 
           {scenarioX !== null ? (
             <span
               aria-hidden
-              className="absolute -top-1 bottom-5 z-10 w-0.5 -translate-x-1/2 rounded-full bg-accent"
+              className="absolute -top-1 bottom-5 z-10 w-0.5 -translate-x-1/2 rounded-full bg-accent transition-[left] duration-500 ease-out"
               style={{ left: `${scenarioX}%` }}
             />
           ) : null}
@@ -189,7 +189,7 @@ function EnvelopeMark({
           role="img"
           aria-label={label}
           className={cn(
-            "absolute top-1/2 size-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full ring-2 ring-sunken",
+            "absolute top-1/2 size-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full ring-2 ring-sunken transition-[left,background-color] duration-500 ease-out",
             fill,
           )}
           style={{ left: `${(left + right) / 2}%` }}
@@ -200,7 +200,11 @@ function EnvelopeMark({
       <span
         role="img"
         aria-label={label}
-        className={cn("absolute top-1/2 h-2.5 -translate-y-1/2 rounded-full", fill)}
+        data-grow
+        className={cn(
+          "absolute top-1/2 h-2.5 -translate-y-1/2 rounded-full transition-[left,width,background-color] duration-500 ease-out",
+          fill,
+        )}
         style={{ left: `${left}%`, width: `${right - left}%` }}
       />
     );

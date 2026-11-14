@@ -17,7 +17,7 @@ function ScoreRow({ label, value, note }: { label: string; value: number | null;
         <span aria-hidden className="relative h-1.5 overflow-hidden rounded-full bg-track">
           {inUnitRange ? (
             <span
-              className="absolute inset-y-0 left-0 rounded-full bg-evidence-direct"
+              className="absolute inset-y-0 left-0 rounded-full bg-evidence-direct transition-[width] duration-500 ease-out"
               style={{ width: `${value * 100}%` }}
             />
           ) : null}
@@ -91,7 +91,7 @@ export function WhyRetrieved({
   ];
 
   return (
-    <Disclosure summary="Why retrieved?" bodyClassName="mt-2.5">
+    <Disclosure summary="Why retrieved?" bodyClassName="pt-2.5">
       <div className="grid gap-4 rounded-md border border-line bg-sunken/50 p-3 md:grid-cols-2">
         <div className="space-y-3">
           <div>

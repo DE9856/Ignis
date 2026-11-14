@@ -2,7 +2,10 @@
 
 import { ArrowRight, FunnelX, LayoutGrid, Rows3, X } from "lucide-react";
 import Link from "next/link";
-import { Fragment, useMemo, useState, useSyncExternalStore } from "react";
+import { Fragment, useMemo, useRef, useState, useSyncExternalStore } from "react";
+
+import { Enter } from "@/components/motion/enter";
+import { useFlipList } from "@/components/motion/use-flip-list";
 
 import { EmptyState } from "@/components/shared/empty-state";
 import { pluralize } from "@/components/shared/labels";
@@ -60,6 +63,8 @@ export function EvidenceExplorer({ investigations }: { investigations: Investiga
     [investigations, filters],
   );
   const selected = investigations.find((investigation) => investigation.id === hash) ?? null;
+  const grid = useRef<HTMLDivElement>(null);
+  useFlipList(grid, `${selected?.id ?? ""}|${visible.map((investigation) => investigation.id).join(",")}`);
 
   if (investigations.length === 0) {
     return (
@@ -112,7 +117,9 @@ export function EvidenceExplorer({ investigations }: { investigations: Investiga
           Close
         </button>
       </div>
-      <ExperimentDetail investigation={selected} />
+      <Enter key={selected.id} variant="slide">
+        <ExperimentDetail investigation={selected} />
+      </Enter>
     </div>
   ) : null;
 
@@ -216,6 +223,7 @@ export function EvidenceExplorer({ investigations }: { investigations: Investiga
             </div>
           ) : (
             <div
+              ref={grid}
               className={cn(
                 "grid min-w-0 gap-3",
                 selected ? "sm:grid-cols-2 lg:grid-cols-1 2xl:grid-cols-2" : "sm:grid-cols-2 xl:grid-cols-3",

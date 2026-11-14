@@ -1,6 +1,7 @@
 import { CircleCheck } from "lucide-react";
 
 import { ProvenanceBadge } from "@/components/evidence/provenance-badge";
+import { Enter } from "@/components/motion/enter";
 import { scenarioFactorText } from "@/components/scenario/factor-display";
 import { EmptyState } from "@/components/shared/empty-state";
 import { GRAVITY_LABELS, pluralize, SAFETY_LABELS } from "@/components/shared/labels";
@@ -77,23 +78,25 @@ export function LargestGap({ analysis, variant = "full", className }: LargestGap
 
   return (
     <div className={cn("space-y-3", className)}>
-      <div className="rounded-md border border-line bg-sunken/50">
-        <div className="flex flex-wrap items-start justify-between gap-3 border-b border-line px-3.5 py-3">
-          <div className="min-w-0">
-            <p className="text-lg leading-tight font-semibold text-ink">{FACTOR_LABELS[largest.factor]}</p>
-            <p className="mt-1 font-mono text-xs text-ink-muted">
-              Scenario: {scenarioFactorText(largest.factor, analysis.scenario)}
-            </p>
+      <Enter key={largest.factor} variant="slide">
+        <div className="rounded-md border border-line bg-sunken/50">
+          <div className="flex flex-wrap items-start justify-between gap-3 border-b border-line px-3.5 py-3">
+            <div className="min-w-0">
+              <p className="text-lg leading-tight font-semibold text-ink">{FACTOR_LABELS[largest.factor]}</p>
+              <p className="mt-1 font-mono text-xs text-ink-muted">
+                Scenario: {scenarioFactorText(largest.factor, analysis.scenario)}
+              </p>
+            </div>
+            <CoverageLevelBadge level={largest.level} />
           </div>
-          <CoverageLevelBadge level={largest.level} />
+          <div className="space-y-2.5 px-3.5 py-3">
+            <p className="text-xs text-ink-muted">{COVERAGE_LEVEL_MEANING[largest.level]}</p>
+            {variant === "full" ? (
+              <CorpusContents factor={largest.factor} investigations={investigations} />
+            ) : null}
+          </div>
         </div>
-        <div className="space-y-2.5 px-3.5 py-3">
-          <p className="text-xs text-ink-muted">{COVERAGE_LEVEL_MEANING[largest.level]}</p>
-          {variant === "full" ? (
-            <CorpusContents factor={largest.factor} investigations={investigations} />
-          ) : null}
-        </div>
-      </div>
+      </Enter>
 
       {others.length > 0 ? (
         <div>

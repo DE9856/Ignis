@@ -9,7 +9,8 @@ Rules every component follows:
 - Missing values are a visible state: "Not reported" for a record, "Not specified" for a scenario field, "Awaiting verified NASA evidence" for an empty panel. Never blank, never a sample number.
 - Status, provenance and evidence state are always text plus colour plus a shape cue.
 - No percentage without a label and a path to its breakdown. Coverage is "evidence coverage", never risk.
-- Colours come from the tokens in `app/globals.css`. Motion is limited to colour transitions, a disclosure chevron and the loading spinner (team UI convention).
+- Colours come from the tokens in `app/globals.css`.
+- Motion explains change and never delays reading a value. See [Motion](#motion).
 
 ## Screen hierarchy
 
@@ -107,7 +108,25 @@ Designed for a 1366 × 768 demo laptop first, then checked at 1440, tablet and 3
 
 ## Chart configuration (Recharts)
 
-`charts/chart-theme.ts` holds the shared settings: series colours as CSS variables, `BAR_SIZE` 14 px (cap 24), a 2 px surface-coloured stroke as the gap between stacked segments, hairline solid gridlines, mono tick labels in ink tokens, a `tooltipCursor`, and animation off. `EvidenceCoverageChart` is the reference use: horizontal stacked bars, legend above, numbers printed beside it so the tooltip never gates a value. The other plots (coverage bars, envelopes, strength meters) are plain HTML so they stay crisp, accessible and theme-safe.
+`charts/chart-theme.ts` holds the shared settings: series colours as CSS variables, `BAR_SIZE` 14 px (cap 24), a 2 px surface-coloured stroke as the gap between stacked segments, hairline solid gridlines, mono tick labels in ink tokens, a `tooltipCursor`, and a 700 ms ease-out grow on first render. `EvidenceCoverageChart` is the reference use: horizontal stacked bars, legend above, numbers printed beside it so the tooltip never gates a value. The other plots (coverage bars, envelopes, strength meters) are plain HTML so they stay crisp, accessible and theme-safe.
+
+## Motion
+
+GSAP 3.15 with `@gsap/react` (both pinned), plus a few CSS keyframes. Everything is skipped under `prefers-reduced-motion`, and nothing hides a value: the final state is always in the markup.
+
+| Where                                | What moves                                                                            | How                                                       |
+| ------------------------------------ | ------------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| Every page                           | Header lines and panels rise in once, in reading order                                | CSS `[data-stagger]` (first paint, no flash)              |
+| Long pages                           | Panels below the fold rise in as they are scrolled to                                 | `motion/ScrollReveal` (ScrollTrigger.batch)               |
+| Coverage bars, gap bars, envelopes   | Grow out from their baseline; later value changes glide                               | CSS `[data-grow]`, `motion/GrowIn`, CSS width transitions |
+| Ranked investigations                | Rows slide to their new rank when the scenario changes; scores count to the new value | `motion/useFlipList`, `motion/AnimatedNumber`             |
+| Explorer cards                       | Re-flow smoothly on filter or selection; the record slides in                         | `useFlipList`, `motion/Enter`                             |
+| "Why this score", "Why retrieved?"   | Panels ease open and closed                                                           | `shared/Disclosure`                                       |
+| Search results, refusal, largest gap | Rise in when they change                                                              | `motion/Enter`, keyed by content                          |
+| Envelope scenario marker             | Glides to the new value while typing                                                  | CSS `left` transition                                     |
+| Brand mark, sidebar accent           | Ignites once on load; the accent bar draws in on navigation                           | CSS keyframes                                             |
+
+Import GSAP only from `components/motion/gsap.ts`, which registers plugins once and sets shared timing (`MOTION`). The "no animation beyond a loading spinner" line in `docs/contribution-guide.md` predates the team's decision to use motion and should be updated by whoever owns that guide.
 
 ## Working without real records
 

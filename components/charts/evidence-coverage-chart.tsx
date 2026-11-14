@@ -57,7 +57,8 @@ export function EvidenceCoverageChart({ data }: { data: CoverageDatum[] }) {
             stackId="status"
             fill={CHART_COLORS.reviewed}
             {...BAR_GAP_STROKE}
-            isAnimationActive={false}
+            animationDuration={700}
+            animationEasing="ease-out"
           />
           <Bar
             dataKey="unverified"
@@ -66,7 +67,8 @@ export function EvidenceCoverageChart({ data }: { data: CoverageDatum[] }) {
             fill={CHART_COLORS.notReviewed}
             radius={[0, 4, 4, 0]}
             {...BAR_GAP_STROKE}
-            isAnimationActive={false}
+            animationDuration={700}
+            animationEasing="ease-out"
           />
         </BarChart>
       </ResponsiveContainer>

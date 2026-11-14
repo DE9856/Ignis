@@ -3,6 +3,7 @@
 import { Layers, Search, ServerOff } from "lucide-react";
 import { useState, type FormEvent } from "react";
 
+import { Enter } from "@/components/motion/enter";
 import { EmptyState } from "@/components/shared/empty-state";
 import { ErrorState } from "@/components/shared/error-state";
 import { INPUT_CLASS, ToggleChip } from "@/components/shared/form-controls";
@@ -227,7 +228,13 @@ function SearchResults({
     );
   }
 
-  if (response.results.length === 0) return <EvidenceRefusal query={query} />;
+  if (response.results.length === 0) {
+    return (
+      <Enter key={query}>
+        <EvidenceRefusal query={query} />
+      </Enter>
+    );
+  }
 
   return (
     <section aria-labelledby="retrieved-title" className="space-y-3">
@@ -251,32 +258,34 @@ function SearchResults({
         </p>
       ) : null}
 
-      <ol className="space-y-3">
-        {response.results.map((result, index) => {
-          const checked = selectedIds.includes(result.chunk.id);
-          return (
-            <li key={result.chunk.id}>
-              <EvidenceCard
-                input={result}
-                rank={index + 1}
-                query={query}
-                filters={filters}
-                action={
-                  <label className="inline-flex cursor-pointer items-center gap-1.5 text-ink-muted hover:text-ink">
-                    <input
-                      type="checkbox"
-                      checked={checked}
-                      onChange={() => onToggleSelected(result.chunk.id)}
-                      className="size-3.5 accent-accent"
-                    />
-                    Use in summary
-                  </label>
-                }
-              />
-            </li>
-          );
-        })}
-      </ol>
+      <Enter key={`${query}|${response.results.length}`} selector=":scope > ol > li">
+        <ol className="space-y-3">
+          {response.results.map((result, index) => {
+            const checked = selectedIds.includes(result.chunk.id);
+            return (
+              <li key={result.chunk.id}>
+                <EvidenceCard
+                  input={result}
+                  rank={index + 1}
+                  query={query}
+                  filters={filters}
+                  action={
+                    <label className="inline-flex cursor-pointer items-center gap-1.5 text-ink-muted hover:text-ink">
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => onToggleSelected(result.chunk.id)}
+                        className="size-3.5 accent-accent"
+                      />
+                      Use in summary
+                    </label>
+                  }
+                />
+              </li>
+            );
+          })}
+        </ol>
+      </Enter>
 
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-dashed border-line-strong px-4 py-3">
         <div className="min-w-0 text-xs text-ink-muted">

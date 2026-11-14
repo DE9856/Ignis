@@ -107,7 +107,7 @@ export function NavLinks({ orientation }: { orientation: "vertical" | "horizonta
                     className={cn(
                       "relative flex h-8 items-center gap-2.5 rounded-md px-2.5 text-sm2 transition-colors",
                       active
-                        ? "bg-raised font-medium text-ink before:absolute before:inset-y-1.5 before:-left-2 before:w-0.5 before:rounded-full before:bg-accent"
+                        ? "bg-raised font-medium text-ink before:absolute before:inset-y-1.5 before:-left-2 before:w-0.5 before:animate-[bar-in_420ms_cubic-bezier(0.22,1,0.36,1)] before:rounded-full before:bg-accent"
                         : "text-ink-muted hover:bg-raised/50 hover:text-ink",
                     )}
                   >

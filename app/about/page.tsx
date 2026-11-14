@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { PageHeader } from "@/components/layout/page-header";
+import { ScrollReveal } from "@/components/motion/scroll-reveal";
 import { Section } from "@/components/shared/section";
 
 export const metadata: Metadata = { title: "About" };
@@ -22,7 +23,7 @@ export default function AboutPage() {
         title="About IGNIS"
         description="An evidence-first way to explore NASA microgravity combustion research and relate it to fire-safety scenarios for future human spaceflight."
       />
-      <div className="space-y-5">
+      <ScrollReveal>
         <Section title="What it is">
           <div className="max-w-3xl space-y-3 text-sm2 text-ink-muted">
             <p>
@@ -68,7 +69,7 @@ export default function AboutPage() {
             <dd className="text-ink-muted">Architecture, data contract, contribution guide.</dd>
           </dl>
         </Section>
-      </div>
+      </ScrollReveal>
     </>
   );
 }

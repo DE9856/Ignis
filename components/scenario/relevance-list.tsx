@@ -1,7 +1,12 @@
+"use client";
+
 import { ArrowUpRight, SlidersHorizontal } from "lucide-react";
 import Link from "next/link";
+import { useRef } from "react";
 
 import { displayTitle } from "@/components/experiments/experiment-fields";
+import { AnimatedNumber } from "@/components/motion/animated-number";
+import { useFlipList } from "@/components/motion/use-flip-list";
 import { Disclosure } from "@/components/shared/disclosure";
 import { EmptyState } from "@/components/shared/empty-state";
 import { pluralize } from "@/components/shared/labels";
@@ -55,15 +60,28 @@ export function RelevanceList({
     );
   }
 
+  return <RankedRows analysis={analysis} limit={limit} openFirst={openFirst} className={className} />;
+}
+
+/** The ranked rows. Re-ranking (a scenario edit) moves rows to their new places rather than swapping them. */
+function RankedRows({
+  analysis,
+  limit,
+  openFirst,
+  className,
+}: Pick<RelevanceListProps, "analysis" | "limit" | "openFirst" | "className">) {
+  const list = useRef<HTMLOListElement>(null);
   const rows = limit ? analysis.ranked.slice(0, limit) : analysis.ranked;
+  useFlipList(list, rows.map((row) => row.investigation.id).join("|"));
 
   return (
-    <ol className={cn("divide-y divide-line", className)}>
+    <ol ref={list} className={cn("divide-y divide-line", className)}>
       {rows.map(({ rank, investigation, result }) => {
         const compared = result.matched + result.mismatched + result.unknown;
         return (
           <li
             key={investigation.id}
+            data-flip-id={investigation.id}
             className="grid grid-cols-[1.75rem_minmax(0,1fr)_auto] gap-x-3 px-4 py-3"
           >
             <span className="pt-0.5 font-mono text-xs text-ink-faint tabular-nums">
@@ -92,7 +110,7 @@ export function RelevanceList({
 
             <div className="flex flex-col items-end gap-1 text-right">
               <p className="font-mono text-lg leading-none font-medium text-ink">
-                {formatPercent(result.score)}
+                <AnimatedNumber value={result.score} format={formatPercent} fallback={formatPercent(null)} />
               </p>
               <p className="text-2xs text-ink-faint">relevance</p>
               <FactorPips outcomes={result.factors.map((factor) => factor.outcome)} className="mt-1" />
@@ -105,7 +123,7 @@ export function RelevanceList({
               className="col-span-3 -mt-5 sm:col-span-2 sm:col-start-2"
               summary="Why this score"
               defaultOpen={openFirst && rank === 1}
-              bodyClassName="mt-2"
+              bodyClassName="pt-2"
             >
               <ProvisionalScoreExplanation
                 scenario={analysis.scenario}

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import { EvidenceSearch } from "@/components/evidence/evidence-search";
 import { PageHeader } from "@/components/layout/page-header";
+import { ScrollReveal } from "@/components/motion/scroll-reveal";
 import { DegradedNotice } from "@/components/shared/degraded-notice";
 import { Disclosure } from "@/components/shared/disclosure";
 import { getCapabilities } from "@/lib/core/capabilities";
@@ -33,7 +34,7 @@ export default function EvidencePage() {
         title="Evidence Desk"
         description="Search reviewed source passages directly. Each result carries its investigation, section, evidence class and NASA source, and the evidence always comes before any generated summary."
       />
-      <div className="space-y-5">
+      <ScrollReveal>
         <DegradedNotice notices={notices} />
         <EvidenceSearch synthesisAvailable={capabilities.llmEnabled} />
         <div className="rounded-lg border border-line bg-surface px-4 py-3">
@@ -50,7 +51,7 @@ export default function EvidencePage() {
             </dl>
           </Disclosure>
         </div>
-      </div>
+      </ScrollReveal>
     </>
   );
 }

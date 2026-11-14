@@ -192,7 +192,7 @@ export function ScoreBreakdown({
                       style={{ width: maxWeight > 0 ? `${(dimension.weight / maxWeight) * 100}%` : "0%" }}
                     />
                     <span
-                      className="absolute inset-y-0 left-0 rounded-full bg-evidence-direct"
+                      className="absolute inset-y-0 left-0 rounded-full bg-evidence-direct transition-[width] duration-500 ease-out"
                       style={{
                         width: maxWeight > 0 ? `${(dimension.contribution / maxWeight) * 100}%` : "0%",
                       }}

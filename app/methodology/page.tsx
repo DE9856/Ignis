@@ -4,6 +4,7 @@ import { ProvenanceBadge } from "@/components/evidence/provenance-badge";
 import { ProvenanceLegend } from "@/components/evidence/provenance-legend";
 import { CoverageLevelBadge } from "@/components/gaps/coverage-level";
 import { PageHeader } from "@/components/layout/page-header";
+import { ScrollReveal } from "@/components/motion/scroll-reveal";
 import { EvidenceStateBadge, FactorOutcomeBadge, GapStateBadge } from "@/components/scenario/evidence-state";
 import { Section } from "@/components/shared/section";
 import { EVIDENCE_STATES } from "@/lib/ranking/methodology";
@@ -43,7 +44,7 @@ export default function MethodologyPage() {
         title="Methodology and provenance"
         description="How evidence enters IGNIS, how it is labelled, what is computed, where AI is used, and what the tool cannot tell you."
       />
-      <div className="space-y-5">
+      <ScrollReveal>
         <Section id="pipeline" title="Evidence pipeline" description="From NASA source to screen">
           <ol className="space-y-2.5">
             {PIPELINE.map(([step, text], index) => (
@@ -163,7 +164,7 @@ export default function MethodologyPage() {
             ))}
           </ul>
         </Section>
-      </div>
+      </ScrollReveal>
     </>
   );
 }

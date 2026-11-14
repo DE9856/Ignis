@@ -3,6 +3,7 @@ import { MissionDashboard } from "@/components/dashboard/mission-dashboard";
 import { PurposeSteps } from "@/components/dashboard/purpose-steps";
 import { SystemStatus } from "@/components/dashboard/system-status";
 import { PageHeader } from "@/components/layout/page-header";
+import { ScrollReveal } from "@/components/motion/scroll-reveal";
 import { DegradedNotice } from "@/components/shared/degraded-notice";
 import { getCapabilities } from "@/lib/core/capabilities";
 import { getDegradedNotices } from "@/lib/core/degraded";
@@ -32,7 +33,7 @@ export default function DashboardPage() {
       >
         <PurposeSteps />
       </PageHeader>
-      <div className="space-y-5">
+      <ScrollReveal>
         <DegradedNotice notices={getDegradedNotices(capabilities, "scoring")} />
         <MissionDashboard
           investigations={knowledge.investigations}
@@ -47,7 +48,7 @@ export default function DashboardPage() {
           synthesisReady={capabilities.llmEnabled}
           methodologyReady={capabilities.methodologyConfigured}
         />
-      </div>
+      </ScrollReveal>
     </>
   );
 }
