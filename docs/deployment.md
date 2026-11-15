@@ -137,13 +137,16 @@ Consequences: a deployed site shows the knowledge **as of the commit it was buil
 
 Audit result: no route uses the Edge runtime; `fs`/`path` are used only in `lib/okf/*` (server code) and scripts; client components import no Node built-ins; the service-role key is read only in `lib/supabase/server.ts`.
 
-1. **Node version:** in Vercel → Settings → General, set Node.js to 22.x to match `.nvmrc`. (`engines` is `>=20.19`, which would otherwise float.)
+1. **Node version:** pinned by `"engines": { "node": "22.x" }` in `package.json`, which matches `.nvmrc`. Vercel uses `engines` over the dashboard setting (Settings → Build and Deployment → Node.js Version); with a range like `>=20.19` it silently built on the newest major. Set the dashboard to 22.x too so the two agree.
 2. Framework preset: **Next.js** (auto-detected). Build command `npm run build`, install `npm ci` (defaults).
 3. Environment variables (Settings → Environment Variables), for **Production** (and Preview if wanted):
-   - `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - `ONNXRUNTIME_NODE_INSTALL=skip` (type Config): stops `npm ci` downloading unused CUDA libraries.
+   - `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` (Config; both are public by design).
+   - `OPTIONAL_LLM_API_KEY` as type **Secret**, never Config (Config values are readable by every project member). Production only means previews show "Generated synthesis is disabled"; add a Preview copy to test synthesis on branches.
    - `SUPABASE_SERVICE_ROLE_KEY` only if server code needs it. IGNIS pages do not need it today; ingestion runs from a developer machine. **Leaving it out of Vercel is the safest choice until needed.** Never add a `NEXT_PUBLIC_` prefix.
    - Do **not** set `NEXT_PUBLIC_IGNIS_DEV_MOCKS`.
-4. `NEXT_PUBLIC_*` values are inlined at build time: changing them requires a **redeploy**.
+4. Any environment variable change takes effect only on the next deployment. `NEXT_PUBLIC_*` values are inlined at build time, so redeploy **without** "Use existing Build Cache".
+5. **Previews:** connect the Git repository (Settings → Git) **before** pushing branches. Vercel builds only pushes that arrive after the connection; for an earlier push, use Deployments → ⋯ → Create Deployment with the branch name, or push a new commit.
 
 ## Embedding model on Vercel
 
@@ -183,22 +186,24 @@ Before every production deploy:
 
 ## First production deployment
 
-Do not deploy until the checklist is green. Nothing in the repository deploys automatically.
+Done on 2026-11-15: https://ignis-vert.vercel.app (Vercel project `ignis`, Git-connected to `DE9856/Ignis`). Pushes to `main` deploy production; other branches build previews. To set up a new project from scratch:
 
-1. Merge `feat/infrastructure` to `main` once reviewed and CI is green.
-2. Vercel → **Add New → Project** → import the GitHub repo.
-3. Framework: Next.js. Set Node 22.x and the environment variables above, including `ONNXRUNTIME_NODE_INSTALL=skip`.
-4. **Deploy.**
-5. Open `https://<deployment>/api/health`. Expect `"status":"ok"`, counts, and `false` for anything not set up.
-6. If Supabase is connected, open `/api/health?deep=1`. Expect `"check":{"status":"READY"...}`.
-7. Click through `/`, `/explore`, `/evidence`, `/compare`, `/scenario`, `/methodology`, `/about`. Empty states are expected until verified knowledge exists.
-8. Open `/dev/status`. Expect the 404 page.
-9. Confirm no secrets in the client: view page source / DevTools Network and search for `service_role` and the first characters of your service key. Only the anon key and project URL may appear.
+1. Vercel → **Add New → Project** → import the GitHub repo. This connects Git and deploys `main` once.
+2. Apply "Vercel setup" above (Node, environment variables), then redeploy without the build cache.
+3. Open `https://<deployment>/api/health?deep=1`. Expect `"status":"ok"`, the database check `READY` (if Supabase is set), and `true` for what is configured.
+4. Open `GET /api/evidence/search`. Expect `"ready": true` and the q8 version (see "Embedding model on Vercel").
+5. Run one search on `/evidence`. Expect results with mode `hybrid`, and a generated summary if the LLM key is set.
+6. Click through `/`, `/explore`, `/evidence`, `/compare`, `/scenario`, `/methodology`, `/about`.
+7. Open `/dev/status`. Expect the 404 page.
+8. Confirm no secrets in the client: view page source / DevTools Network and search for `service_role` and the first characters of your service key. Only the anon key and project URL may appear.
+
+**Before a live demo:** open the site and run one search and one summary a few minutes ahead. The first request after idle loads the model (about 1–2 s) and the first summary takes about 5 s. The search route allows 30 requests per minute per address.
 
 ## Rollback
 
 - **Bad deploy:** Vercel → Deployments → pick the last good one → **Promote to Production** (instant; no rebuild).
-- **Bad env value:** fix it in Vercel and redeploy. `NEXT_PUBLIC_*` changes need a rebuild.
+- **Bad env value:** fix it in Vercel and redeploy. `NEXT_PUBLIC_*` changes need a rebuild without the build cache.
+- **Leaked or rotated LLM key:** rotate it at Groq, replace the Secret in Vercel, redeploy. The old key keeps working in the running deployment until then.
 - **Leaked service-role key:** Supabase → Project Settings → API → regenerate the key, update Vercel and `.env.local`, redeploy.
 - **Bad migration:** the table is a derived index. `drop table public.evidence_chunks cascade;` then re-run the migration and re-ingest. The OKF files are untouched. Do this only on a project without data you need.
 - **Supabase outage:** nothing to do. Pages do not depend on it.

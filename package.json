@@ -58,6 +58,6 @@
   "description": "Evidence-first exploration of NASA microgravity combustion research for spacecraft fire safety. Independent hackathon prototype.",
   "license": "MIT",
   "engines": {
-    "node": ">=20.19"
+    "node": "22.x"
   }
 }
