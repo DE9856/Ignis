@@ -15,7 +15,7 @@ import { LoadingState } from "@/components/shared/loading-state";
 import { Section } from "@/components/shared/section";
 import type { CoverageByObjective } from "@/lib/integration/dashboard";
 import type { Investigation } from "@/lib/okf/types";
-import type { MissionScenario } from "@/lib/ranking/types";
+import type { MissionPreset } from "@/lib/integration/missions";
 
 import { ObjectiveCoverage } from "./objective-coverage";
 import { ScenarioStrip } from "./scenario-strip";
@@ -23,8 +23,8 @@ import { ScenarioStrip } from "./scenario-strip";
 export interface MissionDashboardProps {
   /** Every loaded investigation. Only human-reviewed ones are ranked. */
   investigations: Investigation[];
-  /** Mission presets, already mapped to scenarios by the page. Empty until presets exist. */
-  presets: MissionScenario[];
+  /** Mission presets from knowledge/missions, mapped by the page. */
+  presets: MissionPreset[];
   coverage: CoverageByObjective[];
 }
 

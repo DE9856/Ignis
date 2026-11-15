@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 
 import { EvidenceSearch } from "@/components/evidence/evidence-search";
 import { PageHeader } from "@/components/layout/page-header";
 import { ScrollReveal } from "@/components/motion/scroll-reveal";
 import { DegradedNotice } from "@/components/shared/degraded-notice";
 import { Disclosure } from "@/components/shared/disclosure";
+import { LoadingState } from "@/components/shared/loading-state";
 import { getCapabilities } from "@/lib/core/capabilities";
 import { getDegradedNotices } from "@/lib/core/degraded";
 import { EMBEDDING_DIMENSIONS, EMBEDDING_MODEL } from "@/lib/retrieval";
@@ -36,7 +38,9 @@ export default function EvidencePage() {
       />
       <ScrollReveal>
         <DegradedNotice notices={notices} />
-        <EvidenceSearch synthesisAvailable={capabilities.llmEnabled} />
+        <Suspense fallback={<LoadingState label="Loading evidence search" />}>
+          <EvidenceSearch synthesisAvailable={capabilities.llmEnabled} />
+        </Suspense>
         <div className="rounded-lg border border-line bg-surface px-4 py-3">
           <Disclosure summary="How retrieval works">
             <dl className="grid gap-x-4 gap-y-1.5 text-sm2 sm:grid-cols-[10rem_1fr]">

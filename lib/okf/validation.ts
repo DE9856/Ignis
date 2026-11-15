@@ -10,7 +10,7 @@ import {
   type KnowledgeDirectory,
 } from "./loader";
 import { camelToSnake, isVerified, normalizeFrontmatterKeys, parseOkfDocument } from "./parser";
-import { BASE_FRONTMATTER_KEYS } from "./schema";
+import { BASE_FRONTMATTER_KEYS, MISSION_FIELD_KEYS, missionFieldsSchema } from "./schema";
 import type { DocumentStatus, OkfDocumentType } from "./types";
 
 /**
@@ -222,7 +222,20 @@ function validateFile(root: string, directory: KnowledgeDirectory, fileName: str
       .map((section) => section.heading);
     if (empty.length > 0) strict(`Empty sections: ${empty.join(", ")}`);
   } else {
-    const unknownKeys = Object.keys(rawData).filter((key) => !BASE_FRONTMATTER_KEYS.includes(key));
+    const isMission = document.type === "Mission";
+    if (isMission) {
+      const missionData = Object.fromEntries(
+        Object.entries(rawData).filter(([key]) => MISSION_FIELD_KEYS.includes(key)),
+      );
+      const parsed = missionFieldsSchema.safeParse(missionData);
+      if (!parsed.success) {
+        for (const issue of parsed.error.issues) {
+          error(`${issue.path.map((segment) => camelToSnake(String(segment))).join(".")}: ${issue.message}`);
+        }
+      }
+    }
+    const knownKeys = isMission ? [...BASE_FRONTMATTER_KEYS, ...MISSION_FIELD_KEYS] : BASE_FRONTMATTER_KEYS;
+    const unknownKeys = Object.keys(rawData).filter((key) => !knownKeys.includes(key));
     if (unknownKeys.length > 0)
       warn(`Fields not in the shared schema yet: ${unknownKeys.map(camelToSnake).join(", ")}`);
     if (document.sections.length === 0) warn("No Markdown sections");

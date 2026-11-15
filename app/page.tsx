@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import { KnowledgeStatus } from "@/components/dashboard/knowledge-status";
 import { MissionDashboard } from "@/components/dashboard/mission-dashboard";
 import { SystemStatus } from "@/components/dashboard/system-status";
+import { ControlAreas } from "@/components/landing/control-areas";
 import { Families } from "@/components/landing/families";
 import { Hero } from "@/components/landing/hero";
 import { Journey, type JourneyStep } from "@/components/landing/journey";
@@ -15,21 +16,15 @@ import { DegradedNotice } from "@/components/shared/degraded-notice";
 import { SAFETY_LABELS } from "@/components/shared/labels";
 import { getCapabilities } from "@/lib/core/capabilities";
 import { getDegradedNotices } from "@/lib/core/degraded";
+import { buildControlAreas } from "@/lib/integration/controls";
 import { buildDashboardViewModel } from "@/lib/integration/dashboard";
 import { buildLandingViewModel, type LandingViewModel } from "@/lib/integration/landing";
+import { toMissionPresets } from "@/lib/integration/missions";
 import { DISCLAIMER } from "@/lib/navigation";
 import { loadKnowledgeBase } from "@/lib/okf/loader";
 import type { SafetyObjective } from "@/lib/okf/types";
-import type { MissionScenario } from "@/lib/ranking/types";
 import { RETRIEVAL } from "@/lib/retrieval/config";
 import { getSupabaseStatus } from "@/lib/supabase/server";
-
-/**
- * Mission presets from knowledge/missions, as scenarios. Empty until the
- * Mission field names are agreed (team workflow, open decision 4); map the
- * documents here then. Never fill a preset value that a record does not state.
- */
-const MISSION_PRESETS: MissionScenario[] = [];
 
 /** What each safety objective asks. Category descriptions, not findings. */
 const OBJECTIVE_QUESTIONS: Record<SafetyObjective, string> = {
@@ -324,6 +319,14 @@ export default function LandingPage() {
           </div>
         </section>
 
+        <section aria-labelledby="controls-title" className="py-16 sm:py-24 lg:py-32">
+          <SectionIntro id="controls-title" title="What the evidence informs.">
+            The next generation of fire-safety controls and equipment, and the NASA findings each one rests
+            on. The grouping is ours; every statement is transcribed from a record that cites its NASA source.
+          </SectionIntro>
+          <ControlAreas areas={buildControlAreas(knowledge)} />
+        </section>
+
         <section aria-labelledby="families-title" className="py-16 sm:py-24 lg:py-32">
           <SectionIntro
             id="families-title"
@@ -344,7 +347,7 @@ export default function LandingPage() {
             <DegradedNotice notices={getDegradedNotices(capabilities, "scoring")} />
             <MissionDashboard
               investigations={knowledge.investigations}
-              presets={MISSION_PRESETS}
+              presets={toMissionPresets(knowledge.missions)}
               coverage={dashboard.coverage}
             />
             <KnowledgeStatus summary={dashboard.summary} />

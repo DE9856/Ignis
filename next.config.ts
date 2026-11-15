@@ -30,6 +30,9 @@ const nextConfig: NextConfig = {
       "./node_modules/onnxruntime-node/bin/napi-v6/linux/x64/libonnxruntime.so.1",
     ],
     "/api/evidence/synthesize": ["./knowledge/**/*.md"],
+    // Prerendered at build; listed so a request-time render still finds the records.
+    "/api/export/investigations.csv": ["./knowledge/**/*.md"],
+    "/api/export/investigations.json": ["./knowledge/**/*.md"],
   },
   // The tracer picks these up on its own: a developer's transformers.js download cache
   // (the old fp32 model, 134 MB) and the browser runtime. Neither is used on the server.

@@ -13,13 +13,13 @@ import {
   type ScenarioDraft,
 } from "@/components/scenario/scenario-draft";
 import { Field, NumberInput, SegmentedControl } from "@/components/shared/form-controls";
-import type { MissionScenario } from "@/lib/ranking/types";
+import type { MissionPreset } from "@/lib/integration/missions";
 
 interface ScenarioStripProps {
   draft: ScenarioDraft;
   errors: FieldErrors;
   onChange: (draft: ScenarioDraft) => void;
-  presets: MissionScenario[];
+  presets: MissionPreset[];
 }
 
 /**

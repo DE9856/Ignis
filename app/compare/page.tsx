@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import { ComparisonTable } from "@/components/compare/comparison-table";
 import { PageHeader } from "@/components/layout/page-header";
+import { ExportLinks } from "@/components/shared/export-links";
 import { loadKnowledgeBase } from "@/lib/okf/loader";
 
 export const metadata: Metadata = { title: "Compare" };
@@ -15,6 +16,7 @@ export default function ComparePage() {
         eyebrow="Compare"
         title="Investigations side by side"
         description="Up to four investigations side by side: purpose, sample, environment, facility, what was measured and what was found. Rows that differ are marked; a value that is not reported cannot be called the same."
+        actions={<ExportLinks />}
       />
       <ComparisonTable investigations={investigations} />
     </>

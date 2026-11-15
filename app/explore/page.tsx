@@ -4,6 +4,7 @@ import { EvidenceExplorer } from "@/components/experiments/evidence-explorer";
 import { RelationshipView } from "@/components/experiments/relationship-view";
 import { PageHeader } from "@/components/layout/page-header";
 import { ScrollReveal } from "@/components/motion/scroll-reveal";
+import { ExportLinks } from "@/components/shared/export-links";
 import { IssueList } from "@/components/shared/issue-list";
 import { Section } from "@/components/shared/section";
 import { loadKnowledgeBase } from "@/lib/okf/loader";
@@ -19,6 +20,7 @@ export default function ExplorePage() {
         eyebrow="Investigations"
         title="NASA combustion investigations"
         description="Every NASA combustion investigation record in IGNIS, with its test conditions, fire-safety role and review status. A condition the source does not state reads Not reported."
+        actions={<ExportLinks />}
       />
       <ScrollReveal>
         <IssueList issues={issues} />
