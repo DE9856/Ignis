@@ -11,8 +11,9 @@ import { ResearchQuestionPanel } from "@/components/gaps/research-question";
 import { LoadingState } from "@/components/shared/loading-state";
 import { Section } from "@/components/shared/section";
 import type { Investigation } from "@/lib/okf/types";
-import type { MissionScenario } from "@/lib/ranking/types";
+import type { MissionPreset } from "@/lib/integration/missions";
 
+import { AskEvidence } from "./ask-evidence";
 import { RelevanceList } from "./relevance-list";
 import { useScenarioDraft } from "./scenario-draft";
 import { ScenarioForm } from "./scenario-form";
@@ -22,7 +23,9 @@ export { toScenario } from "./scenario-draft";
 
 export interface ScenarioWorkspaceProps {
   investigations: Investigation[];
-  presets?: MissionScenario[];
+  presets?: MissionPreset[];
+  /** Whether the Evidence Desk writes grounded summaries on this deployment. */
+  synthesisAvailable?: boolean;
 }
 
 /**
@@ -42,7 +45,11 @@ export function ScenarioWorkspace(props: ScenarioWorkspaceProps) {
   );
 }
 
-function ScenarioWorkspaceContent({ investigations, presets = [] }: ScenarioWorkspaceProps) {
+function ScenarioWorkspaceContent({
+  investigations,
+  presets = [],
+  synthesisAvailable = false,
+}: ScenarioWorkspaceProps) {
   const [draft, setDraft] = useScenarioDraft();
   const [includeUnverified, setIncludeUnverified] = useState(false);
   const { errors, analysis } = useScenarioAnalysis(draft, investigations, includeUnverified);
@@ -78,6 +85,8 @@ function ScenarioWorkspaceContent({ investigations, presets = [] }: ScenarioWork
       </Section>
 
       <div className="min-w-0 space-y-5">
+        <AskEvidence scenario={analysis.scenario} synthesisAvailable={synthesisAvailable} />
+
         <Section
           id="ranking"
           title="Relevant investigations"

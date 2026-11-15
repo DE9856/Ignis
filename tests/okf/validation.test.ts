@@ -25,7 +25,7 @@ describe("validateKnowledge on the valid fixture set", () => {
   it("warns, without failing, about missing sections and not-yet-agreed fields", () => {
     expect(messagesFor(report, "test-investigation-beta.md")).toMatch(/^WARN WARN:Missing sections/);
     expect(messagesFor(report, "test-scenario-alpha.md")).toMatch(
-      /Fields not in the shared schema yet: gravity_g/,
+      /Fields not in the shared schema yet: crew_size/,
     );
   });
 

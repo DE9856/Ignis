@@ -1,6 +1,7 @@
 "use client";
 
 import { Layers, LoaderCircle, Search, ServerOff } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 
 import { Enter } from "@/components/motion/enter";
@@ -11,6 +12,7 @@ import { GRAVITY_LABELS, SAFETY_LABELS } from "@/components/shared/labels";
 import { LoadingState } from "@/components/shared/loading-state";
 import { DEGRADED_MESSAGES } from "@/lib/core/degraded";
 import { retrieveEvidence, type EvidenceRetrievalResult } from "@/lib/integration/retrieval";
+import { EVIDENCE_QUESTION_PARAM } from "@/lib/navigation";
 import {
   GRAVITY_CONDITIONS,
   SAFETY_OBJECTIVES,
@@ -53,13 +55,30 @@ type SearchState =
  * of the retrieved passages is written automatically and shown first; the
  * passages follow so every statement can be checked. Without an LLM key the
  * passages are the answer.
+ *
+ * A `?q=` question in the URL is filled in and run once on arrival. Uses
+ * useSearchParams, so it must render inside <Suspense>.
  */
 export function EvidenceSearch({ synthesisAvailable = false }: { synthesisAvailable?: boolean }) {
-  const [text, setText] = useState("");
+  const params = useSearchParams();
+  const [initialQuery] = useState(() => (params.get(EVIDENCE_QUESTION_PARAM) ?? "").trim().slice(0, 500));
+  const [text, setText] = useState(initialQuery);
   const [objectives, setObjectives] = useState<SafetyObjective[]>([]);
   const [gravity, setGravity] = useState<GravityCondition | "">("");
-  const [state, setState] = useState<SearchState>({ kind: "idle" });
+  const [state, setState] = useState<SearchState>(() =>
+    initialQuery ? { kind: "pending", query: initialQuery } : { kind: "idle" },
+  );
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+
+  /** Fetches and stores the result. State changes only after the request settles. */
+  const fetchResults = useCallback(async (query: string, filters: RetrievalFilters) => {
+    try {
+      const response = await retrieveEvidence({ text: query, filters, limit: RESULT_LIMIT });
+      setState({ kind: "done", query, filters, response });
+    } catch {
+      setState({ kind: "error", query });
+    }
+  }, []);
 
   async function run(query: string) {
     const trimmed = query.trim();
@@ -70,13 +89,16 @@ export function EvidenceSearch({ synthesisAvailable = false }: { synthesisAvaila
     };
     setState({ kind: "pending", query: trimmed });
     setSelectedIds([]);
-    try {
-      const response = await retrieveEvidence({ text: trimmed, filters, limit: RESULT_LIMIT });
-      setState({ kind: "done", query: trimmed, filters, response });
-    } catch {
-      setState({ kind: "error", query: trimmed });
-    }
+    await fetchResults(trimmed, filters);
   }
+
+  // A question that arrived in the URL starts as "pending"; run it once, with no filters.
+  const ranInitial = useRef(false);
+  useEffect(() => {
+    if (ranInitial.current || initialQuery === "") return;
+    ranInitial.current = true;
+    void fetchResults(initialQuery, {});
+  }, [initialQuery, fetchResults]);
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();

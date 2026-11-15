@@ -114,6 +114,77 @@ function requireReviewerForStable(value: ReviewFields, context: z.RefinementCtx)
 export const baseFrontmatterSchema = z.looseObject(baseShape).superRefine(requireReviewerForStable);
 export type BaseFrontmatter = z.infer<typeof baseFrontmatterSchema>;
 
+/**
+ * Where a mission preset value comes from. Every stated preset value carries one,
+ * so a scenario never presents an assumption as a NASA figure.
+ * - nasa_source: stated in a cited NASA document
+ * - challenge_context: stated in the NASA Space Apps challenge text
+ * - prototype_assumption: chosen by the team; the record's notes say why
+ */
+export const VALUE_BASES = ["nasa_source", "challenge_context", "prototype_assumption"] as const;
+export type ValueBasis = (typeof VALUE_BASES)[number];
+
+/** Mission preset values. Same names and units as `MissionScenario` in lib/ranking/types. */
+export const MISSION_VALUE_KEYS = [
+  "oxygenPercent",
+  "pressureKPa",
+  "airflowMetersPerSecond",
+  "gravityG",
+  "material",
+  "fuelType",
+  "safetyObjective",
+] as const;
+export type MissionValueKey = (typeof MISSION_VALUE_KEYS)[number];
+
+/**
+ * Mission-specific frontmatter, checked on its own after the shared fields.
+ * Strict, so a misspelt preset field is an error rather than a blank value.
+ */
+export const missionFieldsSchema = z
+  .strictObject({
+    /** Percent by volume. */
+    oxygenPercent: optionalNumber,
+    /** Absolute, kPa. */
+    pressureKPa: optionalNumber,
+    airflowMetersPerSecond: optionalNumber,
+    /** 1 = Earth surface. */
+    gravityG: optionalNumber,
+    material: optionalText,
+    fuelType: optionalText,
+    safetyObjective: z.enum(SAFETY_OBJECTIVES).nullable().default(null),
+    assumptionNotes: optionalText,
+    valueBasis: z.partialRecord(z.enum(MISSION_VALUE_KEYS), z.enum(VALUE_BASES)).default({}),
+  })
+  .superRefine((value, context) => {
+    for (const key of MISSION_VALUE_KEYS) {
+      if (value[key] !== null && value.valueBasis[key] === undefined) {
+        context.addIssue({
+          code: "custom",
+          path: ["valueBasis", key],
+          message: `${key} is set but valueBasis does not say where it comes from`,
+        });
+      }
+      if (value[key] === null && value.valueBasis[key] !== undefined) {
+        context.addIssue({
+          code: "custom",
+          path: ["valueBasis", key],
+          message: `valueBasis names ${key}, but ${key} has no value`,
+        });
+      }
+    }
+    if (value.oxygenPercent !== null && (value.oxygenPercent < 0 || value.oxygenPercent > 100)) {
+      context.addIssue({ code: "custom", path: ["oxygenPercent"], message: "must be 0 to 100" });
+    }
+    for (const key of ["pressureKPa", "airflowMetersPerSecond", "gravityG"] as const) {
+      const number = value[key];
+      if (number !== null && number < 0) {
+        context.addIssue({ code: "custom", path: [key], message: "cannot be negative" });
+      }
+    }
+  });
+export type MissionFields = z.infer<typeof missionFieldsSchema>;
+export const MISSION_FIELD_KEYS: readonly string[] = [...MISSION_VALUE_KEYS, "assumptionNotes", "valueBasis"];
+
 const RANGE_FIELDS = [
   ["oxygenMin", "oxygenMax"],
   ["pressureMin", "pressureMax"],

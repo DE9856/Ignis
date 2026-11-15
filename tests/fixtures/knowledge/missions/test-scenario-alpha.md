@@ -5,6 +5,10 @@ description: Synthetic mission fixture with fields that are not in the shared sc
 status: draft
 gravity_g: 0.5
 safety_objective: prevention
+value_basis:
+  gravity_g: prototype_assumption
+  safety_objective: prototype_assumption
+crew_size: 4
 sources:
   - id: test-source-mission
     resource: https://test.invalid/scenario-alpha

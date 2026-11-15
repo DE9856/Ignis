@@ -5,8 +5,10 @@ import { useId } from "react";
 
 import { Field, INPUT_CLASS, NumberInput, SegmentedControl } from "@/components/shared/form-controls";
 import { SAFETY_LABELS, SAFETY_LETTERS } from "@/components/shared/labels";
+import { ProvenanceBadge } from "@/components/evidence/provenance-badge";
+import { VALUE_BASIS_LABELS, type MissionPreset } from "@/lib/integration/missions";
+import type { MissionValueKey } from "@/lib/okf/schema";
 import { SAFETY_OBJECTIVES } from "@/lib/okf/types";
-import type { MissionScenario } from "@/lib/ranking/types";
 import { cn } from "@/lib/utils/cn";
 
 import {
@@ -39,7 +41,7 @@ export const OBJECTIVE_OPTIONS_SHORT = [
 ];
 
 interface PresetSelectProps {
-  presets: MissionScenario[];
+  presets: MissionPreset[];
   value: string;
   onSelect: (draft: ScenarioDraft) => void;
   current: ScenarioDraft;
@@ -75,11 +77,79 @@ export function PresetSelect({ presets, value, onSelect, current, className }: P
   );
 }
 
+const BASIS_ROWS: { key: MissionValueKey; label: string; unit: string }[] = [
+  { key: "oxygenPercent", label: "Oxygen", unit: "%" },
+  { key: "pressureKPa", label: "Pressure", unit: " kPa" },
+  { key: "gravityG", label: "Gravity", unit: " g" },
+  { key: "airflowMetersPerSecond", label: "Airflow", unit: " m/s" },
+  { key: "material", label: "Material", unit: "" },
+  { key: "fuelType", label: "Fuel", unit: "" },
+  { key: "safetyObjective", label: "Objective", unit: "" },
+];
+
+/**
+ * Where a loaded preset's values come from, shown while the preset is untouched.
+ * A preset is a scenario input, not evidence: its review state is shown too.
+ */
+export function PresetBasis({ preset }: { preset: MissionPreset }) {
+  const rows = BASIS_ROWS.filter(({ key }) => preset[key] !== null);
+  return (
+    <div className="rounded-md border border-line bg-sunken/60 px-3 py-2.5 text-xs">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="font-medium text-ink">Where these values come from</p>
+        {preset.humanReviewed ? (
+          <ProvenanceBadge value="HUMAN_REVIEWED" />
+        ) : (
+          <ProvenanceBadge value="UNVERIFIED" />
+        )}
+      </div>
+      {rows.length > 0 ? (
+        <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
+          {rows.map(({ key, label, unit }) => {
+            const basis = preset.valueBasis[key];
+            return (
+              <div key={key} className="contents">
+                <dt className="text-ink-muted">
+                  {label} <span className="font-mono text-ink tabular-nums">{`${preset[key]}${unit}`}</span>
+                </dt>
+                <dd className={basis === "prototype_assumption" ? "text-ink-muted italic" : "text-ink"}>
+                  {basis ? VALUE_BASIS_LABELS[basis] : "Basis not recorded"}
+                </dd>
+              </div>
+            );
+          })}
+        </dl>
+      ) : null}
+      {preset.sources.length > 0 ? (
+        <ul className="mt-2 space-y-0.5 border-t border-line pt-2">
+          {preset.sources.map((source) => (
+            <li key={source.id} className="truncate">
+              <a
+                href={source.resource}
+                target="_blank"
+                rel="noreferrer"
+                className="text-ink-muted underline decoration-line-strong underline-offset-2 hover:text-ink"
+              >
+                {source.title ?? source.id}
+              </a>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+      {!preset.humanReviewed ? (
+        <p className="mt-2 text-ink-faint">
+          Preset not yet checked by a second reviewer. Editing any condition makes it a custom scenario.
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
 interface ScenarioFormProps {
   draft: ScenarioDraft;
   errors: FieldErrors;
   onChange: (draft: ScenarioDraft) => void;
-  presets?: MissionScenario[];
+  presets?: MissionPreset[];
   /** Materials and fuels that reviewed records actually state, offered as suggestions. */
   materialOptions?: string[];
   fuelOptions?: string[];
@@ -100,11 +170,13 @@ export function ScenarioForm({
       [key]: value,
       presetId: key === "name" || key === "description" || key === "assumptionNotes" ? draft.presetId : "",
     });
+  const selectedPreset = presets.find((preset) => preset.id === draft.presetId) ?? null;
 
   return (
     <form className="space-y-5" onSubmit={(event) => event.preventDefault()}>
       <div className="space-y-3">
         <PresetSelect presets={presets} value={draft.presetId} current={draft} onSelect={onChange} />
+        {selectedPreset ? <PresetBasis preset={selectedPreset} /> : null}
         <Field id="scenario-name" label="Scenario name">
           <input
             id="scenario-name"
